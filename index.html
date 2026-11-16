@@ -1,22 +1,91 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-active-page="home">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dowon Dashboard — 프로젝트 마일스톤</title>
+<title>작업 공간 — 홈</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#253b30;background:#f5f7f2}*{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.4;cursor:default}.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}.side{background:#fff;border-right:1px solid #e2e9e1;padding:24px 15px}.brand{font-weight:850;font-size:20px;margin:4px 8px 32px}.brand span{color:#528866}.small{font-size:12px;color:#839488}.nav{display:grid;gap:6px;margin:10px 0 20px}.project{border:0;border-radius:10px;background:none;text-align:left;padding:12px;color:#526a5c}.project.active{background:#e7f1e8;color:#275b3b;font-weight:750}.main{padding:36px clamp(18px,5vw,70px);max-width:1510px;width:100%;margin:auto}.top,.head,.stats,.tools,.tabs,.row,.sectionhead{display:flex;gap:12px;align-items:center;justify-content:space-between}.head{align-items:flex-start;flex-wrap:wrap;margin:10px 0 28px}h1{font-size:clamp(24px,3vw,35px);letter-spacing:-1px;margin:7px 0}h2{font-size:18px;margin:0}.muted{color:#84978a}.btn{border:1px solid #dfe8dd;border-radius:9px;background:#fff;color:#3d614b;padding:10px 12px;font-size:13px;font-weight:650}.btn:hover{background:#edf5ed}.btn.primary{background:#356c4d;color:white;border-color:#356c4d}.btn.danger{color:#ae4949}.tools{justify-content:flex-end;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:25px}.stat,.item,.log,.calendar,.daydetails{background:white;border:1px solid #e1e9df;border-radius:14px;padding:18px}.stat b{display:block;font-size:27px;margin-top:10px}.bar{height:8px;background:#e7eee5;border-radius:8px;margin-top:13px;overflow:hidden}.bar i{display:block;height:100%;background:#73a586}.tabs{justify-content:flex-start;border-bottom:1px solid #dfe7dc;gap:24px;margin-bottom:22px}.tab{border:0;background:transparent;color:#839488;padding:14px 1px;font-weight:750;border-bottom:2px solid transparent}.tab.active{color:#356d4e;border-bottom-color:#356d4e}.sectionhead{margin-bottom:14px}.items{display:grid;gap:10px}.item .row{align-items:flex-start}.item h3{margin:3px 0 9px;font-size:16px}.item p{white-space:pre-wrap;color:#728679;font-size:13px}.tag{display:inline-block;border-radius:40px;font-size:11px;padding:5px 9px;background:#ecf0ed;color:#65776b;font-weight:750}.tag.doing{background:#fff2d7;color:#95691e}.tag.done{background:#e2f3e5;color:#34794a}.log{margin-bottom:10px}.log p{font-size:13px;white-space:pre-wrap;color:#6e8072}.empty{padding:42px 14px;text-align:center;background:#fff;border:1px dashed #d7e2d6;border-radius:12px;color:#899a8d}.calendar{padding:12px}.calhead{display:flex;justify-content:space-between;align-items:center;padding:7px 5px 17px}.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.weekday{text-align:center;color:#819185;font-size:12px;padding:10px 2px}.day{min-height:105px;text-align:left;background:#fbfcf9;border:1px solid #e5ede3;border-radius:8px;padding:7px;min-width:0;color:#3b5141}.day.out{opacity:.34}.day.selected{outline:2px solid #5c9671;background:#edf6ec}.day.today .num{background:#376d4e;color:#fff;border-radius:50%}.num{display:inline-grid;place-items:center;width:26px;height:26px;font-size:12px}.event{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e7efe9;color:#406c4e;padding:4px 5px;border-radius:5px;font-size:11px;margin-top:4px}.event.doing{background:#fff0ce;color:#8b651d}.event.done{background:#dcf1e2;color:#2c7547}.daydetails{margin-top:13px}.daydetails .item{padding:10px 12px;margin-top:8px}.formgrid{display:grid;gap:15px}label{display:grid;gap:6px;font-size:13px;font-weight:700}input,textarea,select{border:1px solid #d8e3d8;border-radius:9px;padding:11px;width:100%;background:#fff;color:#2d4634}textarea{min-height:85px}dialog{border:0;border-radius:18px;width:min(520px,calc(100% - 24px));padding:25px;color:#263d2d;box-shadow:0 18px 70px #0003}dialog::backdrop{background:#17241aa3}dialog h2{margin-bottom:20px}.footer{display:flex;justify-content:space-between;gap:10px;margin-top:20px}.snapshot{display:none;background:#e4f2e6;border-radius:9px;padding:13px;color:#3c7750;margin:15px 0}html[data-readonly="true"] .snapshot{display:block}html[data-readonly="true"] .editable{display:none!important}@media(max-width:780px){.app{display:block}.side{padding:14px;border-right:0;border-bottom:1px solid #e2e9e1}.brand{margin:2px 0 10px}.nav{display:flex;overflow:auto;margin:9px 0}.project{white-space:nowrap}.main{padding:20px 14px}.stats{gap:7px}.stat{padding:12px}.stat b{font-size:20px}.day{min-height:76px;padding:3px}.event{font-size:9px}.calendar{padding:5px}.tools{justify-content:flex-start}}
+/* Minimal catalogue workspace; all current visuals are inline and self-contained. */
+:root{--paper:#eeece5;--ink:#11563f;--muted:#537264;--rule:#52806a;color:var(--ink);background:var(--paper);font-family:Arial,"Malgun Gothic",sans-serif}
+body{padding:0;background:var(--paper)}[hidden]{display:none!important}a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset:6px}h1:focus{outline:none}
+.app{display:block;max-width:1220px;min-height:100vh;margin:auto;padding:0 54px;background:transparent;box-shadow:none}
+.side{display:flex;align-items:center;flex-wrap:wrap;gap:18px 30px;min-height:0;background:none;border:0;border-bottom:1px solid var(--rule);padding:31px 0 25px}
+.brand{font-family:Georgia,serif;font-size:22px;font-weight:400;letter-spacing:-.6px;margin:0}.brand a{text-decoration:none}.side>.small,.side-note,.nav-symbol{display:none}
+.workspace-nav{display:flex;gap:27px;margin:0 0 0 auto;flex-wrap:wrap}.workspace-link{font-size:12px;text-decoration:none;color:var(--muted);padding:5px 0;white-space:nowrap;border-bottom:1px solid transparent}.workspace-link:hover,.workspace-link[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
+.project-sidebar{flex-basis:100%;border-top:1px solid #b3c0b4;padding-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.project-sidebar .nav{display:flex;flex-wrap:wrap;gap:7px;margin:0}.project-sidebar p{flex-basis:100%;margin:0;font-size:11px}.project{padding:8px 12px;border-radius:0;color:var(--ink)}.project.active{background:#dfe6db;color:var(--ink)}
+.main{width:100%;max-width:none;margin:0;padding:0}
+
+.catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:22px 0}
+.catalog-card{position:relative;min-width:0;display:flex;flex-direction:column;min-height:405px;padding:5px 29px 6px;text-decoration:none;border-right:1px solid var(--rule);transition:background-color .18s}.catalog-card:first-child{padding-left:0}.catalog-card:last-child{padding-right:0;border-right:0}.catalog-card:hover{background:#11563f04}.catalog-card:hover .catalog-arrow{transform:translate(3px,-3px)}
+.catalog-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.catalog-card h2{font-size:16px;line-height:1.4;font-weight:500;letter-spacing:-.3px;margin:0 0 5px}.catalog-en{font-size:11px;letter-spacing:.6px;color:var(--muted)}.catalog-number{font-family:Georgia,serif;font-size:13px;font-weight:400}
+.catalog-symbol{display:flex;align-items:center;justify-content:center;flex:1;min-height:205px;padding:30px 0}.catalog-symbol svg{height:88px;width:100px;display:block;color:var(--ink);fill:currentColor}.catalog-symbol .cutout{fill:var(--paper)}
+.catalog-details{font-size:12px;line-height:1.9;margin-top:auto}.catalog-details p{margin:0 0 12px;min-height:46px;word-break:keep-all}.catalog-status{font-size:11px;color:var(--muted);line-height:1.8;display:flex;gap:7px;align-items:baseline}.catalog-status:before{content:"";display:inline-block;width:5px;height:5px;flex-shrink:0;border:1px solid var(--ink);border-radius:50%}.catalog-status.live:before{background:var(--ink)}.catalog-link{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:19px;font-size:11px;letter-spacing:.4px}.catalog-arrow{font-size:20px;line-height:1;transition:transform .18s}
+
+.page-top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:30px 0 20px;border-bottom:1px solid var(--rule)}.eyebrow{font-size:11px;letter-spacing:1.2px}.back-link{font-size:12px;text-decoration:none;color:var(--ink)}.back-link:hover{text-decoration:underline}.milestone-back{display:inline-block;margin:30px 0 23px}.placeholder-heading{margin:40px 0 30px}.availability{font-size:11px;color:var(--muted);letter-spacing:.5px}.placeholder-heading h1{font-family:Georgia,"Batang",serif;font-size:32px;font-weight:400;margin:13px 0 12px}.page-intro{font-size:13px;line-height:1.8;color:var(--muted)}
+.placeholder-panel{min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:35px 20px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-bottom:35px}.placeholder-panel h2{font-size:18px;font-weight:500;margin:25px 0 12px}.placeholder-panel p{font-size:13px;line-height:1.9;color:var(--muted);margin:0}.feature-icon{display:grid;place-items:center;width:65px;height:65px}.feature-icon svg{width:56px;height:56px;fill:currentColor;color:var(--ink)}.planned-features{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:24px}.planned-features span{font-size:11px;color:var(--muted);padding-bottom:5px;border-bottom:1px solid #a5b6a8}
+.small,.muted,.item p,.log p{color:var(--muted)}.btn{border-color:#9caf9e;background:transparent;color:var(--ink);border-radius:2px}.btn:hover{background:#e0e6dc}.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}.btn.danger{color:#984d40}.stat,.item,.log,.calendar,.daydetails,.empty{background:transparent;border-color:#b1c0b2;border-radius:2px}.bar{background:#dbe3d6}.bar i{background:#51866b}.tabs{border-color:#b1c0b2}.tab{color:var(--muted)}.tab.active{color:var(--ink);border-color:var(--ink)}.day{background:#f4f3ec;border-color:#d3dccf;color:var(--ink);border-radius:2px}.day.selected{background:#e1eadb;outline-color:#558267}.day.today .num{background:var(--ink)}input,textarea,select{background:#f7f5ef;color:var(--ink);border-color:#b1c0b2;border-radius:2px}dialog{background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:3px}
+@media(max-width:900px){.app{padding:0 30px}.workspace-nav{gap:18px}.catalog-card{padding-left:20px;padding-right:20px}.catalog-card h2{font-size:15px}.catalog-details{font-size:11px}.catalog-symbol{min-height:190px}}
+@media(max-width:650px){.app{padding:0 22px}.side{padding:23px 0 18px;gap:18px}.brand{font-size:21px}.workspace-nav{width:100%;margin:0;justify-content:space-between;gap:8px}.workspace-link{font-size:10px}.catalog-grid{grid-template-columns:1fr;padding:0;border-bottom:0}.catalog-card,.catalog-card:first-child,.catalog-card:last-child{padding:24px 0 25px;border-right:0;border-bottom:1px solid var(--rule);min-height:320px}.catalog-card h2{font-size:17px}.catalog-symbol{min-height:145px;padding:25px 0}.catalog-symbol svg{height:72px;width:85px}.catalog-details{font-size:12px}.catalog-details p{min-height:0}.catalog-link{margin-top:16px}.page-top{padding-top:25px}.placeholder-heading h1{font-size:27px}.placeholder-panel{padding:30px 8px}.placeholder-panel h2{font-size:16px}.placeholder-panel p{font-size:12px}.head .tools{gap:7px}.tabs{gap:17px}.top{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.catalog-card,.catalog-arrow{transition:none}.catalog-card:hover .catalog-arrow{transform:none}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+html[data-active-page="home"] .side{display:none}
+#homePage{padding-top:64px;padding-bottom:48px}
+@media(max-width:650px){#homePage{padding-top:28px;padding-bottom:28px}}
 </style>
 </head>
 <body>
-<div class="app"><aside class="side"><div class="brand"><span>◈</span> Dowon Dashboard</div><div class="small">PROJECTS</div><nav class="nav" id="projects"></nav><button class="btn editable" id="newProject">＋ 프로젝트 추가</button><p class="small">변경 사항은 이 브라우저에 저장돼요. 다른 기기에서는 JSON 백업을 불러와 주세요.</p></aside>
-<main class="main"><div class="snapshot">공유용 읽기 전용 HTML입니다. 내보낸 시점의 데이터가 담겨 있어요.</div><div class="top"><span class="small">PROJECT MANAGEMENT / MILESTONES</span><span class="small" id="saveState">● 로컬 저장</span></div><div class="head"><div><h1 id="title"></h1><div id="desc" class="muted"></div></div><div class="tools editable"><button class="btn" id="editProject">프로젝트 수정</button><button class="btn" id="import">JSON 불러오기</button><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave">☁ GitHub 백업</button><button class="btn" id="cloudRestore">↙ GitHub 복원</button><button class="btn" id="backup">JSON 백업</button><button class="btn primary" id="share">공유용 HTML</button></div></div>
+<div class="app"><aside class="side"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div>
+<div class="small">WORKSPACE</div>
+<nav class="workspace-nav" aria-label="주 메뉴">
+<a class="workspace-link" href="#home" data-page="home"><span class="nav-symbol" aria-hidden="true">⌂</span>대시보드 홈</a>
+<a class="workspace-link" href="#milestones" data-page="milestones"><span class="nav-symbol" aria-hidden="true">☷</span>마일스톤</a>
+<a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF 자료실</a>
+<a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>아이디어·레퍼런스</a>
+</nav>
+<div id="projectSidebar" class="project-sidebar" hidden><div class="small">PROJECTS</div><nav class="nav" id="projects" aria-label="프로젝트"></nav><button class="btn editable" id="newProject">＋ 프로젝트 추가</button><p class="small">변경 사항은 이 브라우저에 저장돼요. 다른 기기에서는 JSON 백업을 불러와 주세요.</p></div>
+<p class="small side-note">계획부터 영감까지,<br>나의 작업을 한곳에서.</p></aside>
+<main class="main"><div class="snapshot">공유용 읽기 전용 HTML입니다. 내보낸 시점의 데이터가 담겨 있어요.</div>
+<section id="homePage" data-screen="home" aria-labelledby="homeTitle">
+<h1 id="homeTitle" class="sr-only" tabindex="-1">작업 공간</h1>
+<div class="catalog-grid">
+<a class="catalog-card" href="#milestones" aria-labelledby="milestoneCardTitle">
+<div class="catalog-card-head"><div><h2 id="milestoneCardTitle">마일스톤</h2><span class="catalog-en">Milestones</span></div><span class="catalog-number">01</span></div>
+<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M19 84V63h20V43h20V23h22v61Z"/><path d="M59 8h3v39h-3zM62 8h24l-6 8 6 8H62Z"/></svg></div>
+<div class="catalog-details"><p>프로젝트의 목표와 일정<br>타임라인 · 캘린더 · 업데이트 기록</p><div class="catalog-status live"><span id="homeMilestoneSummary">프로젝트 살펴보기</span></div></div><div class="catalog-link"><span>프로젝트 관리하기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
+</a>
+<a class="catalog-card" href="#pdf" aria-labelledby="pdfCardTitle">
+<div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF 자료실</h2><span class="catalog-en">Document library</span></div><span class="catalog-number">02</span></div>
+<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M19 25h47v61H19z"/><path class="cutout" d="M28 20h46v59H28z"/><path d="M32 13h33l16 17v44H32Z"/><path class="cutout" d="M64 13v19h17M42 44h28v3H42zm0 10h28v3H42zm0 10h19v3H42z"/></svg></div>
+<div class="catalog-details"><p>읽어야 할 문서와 참고 자료<br>나만의 문서 보관 공간</p><div class="catalog-status"><span>준비 중 · 기본 페이지</span></div></div><div class="catalog-link"><span>자료실 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
+</a>
+<a class="catalog-card" href="#ideas" aria-labelledby="ideasCardTitle">
+<div class="catalog-card-head"><div><h2 id="ideasCardTitle">아이디어·레퍼런스</h2><span class="catalog-en">Ideas &amp; references</span></div><span class="catalog-number">03</span></div>
+<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M43 9h14v25l18-18 10 10-18 18h25v14H67l18 18-10 10-18-18v25H43V68L25 86 15 76l18-18H8V44h25L15 26l10-10 18 18Z"/><circle class="cutout" cx="50" cy="51" r="10"/></svg></div>
+<div class="catalog-details"><p>마음에 남은 이미지와 링크<br>아이디어를 모으는 수집 공간</p><div class="catalog-status"><span>준비 중 · 기본 페이지</span></div></div><div class="catalog-link"><span>수집 공간 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
+</a>
+</div>
+
+</section>
+<section id="pdfPage" data-screen="pdf" aria-labelledby="pdfTitle" hidden>
+<div class="page-top"><span class="eyebrow">DOCUMENT LIBRARY</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
+<div class="placeholder-heading"><span class="availability">준비 중</span><h1 id="pdfTitle" tabindex="-1">PDF 자료실</h1><p class="page-intro">읽어야 할 문서와 다시 찾아볼 자료를 한곳에.</p></div>
+<div class="placeholder-panel"><span class="feature-icon pdf-icon" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M24 12h36l17 18v58H24Z"/><path d="M59 12v20h18M35 48h30v4H35zm0 13h30v4H35z" fill="var(--paper)"/></svg></span><h2>문서를 위한 자리를 마련했어요</h2><p>PDF를 모으고 읽는 기능을 준비 중입니다.<br>아직 파일을 업로드하거나 보관할 수는 없어요.</p><div class="planned-features" aria-label="추가 예정 기능"><span>PDF 모아보기</span><span>문서 읽기</span><span>읽기 상태 관리</span></div></div>
+</section>
+<section id="ideasPage" data-screen="ideas" aria-labelledby="ideasTitle" hidden>
+<div class="page-top"><span class="eyebrow">IDEAS &amp; REFERENCES</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
+<div class="placeholder-heading"><span class="availability">준비 중</span><h1 id="ideasTitle" tabindex="-1">아이디어·레퍼런스</h1><p class="page-intro">스쳐 지나가는 영감도, 오래 간직할 레퍼런스도.</p></div>
+<div class="placeholder-panel"><span class="feature-icon ideas-icon" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M43 9h14v25l18-18 10 10-18 18h25v14H67l18 18-10 10-18-18v25H43V68L25 86 15 76l18-18H8V44h25L15 26l10-10 18 18Z"/><circle cx="50" cy="51" r="10" fill="var(--paper)"/></svg></span><h2>다음 아이디어가 머물 공간이에요</h2><p>이미지와 링크, 메모를 모으는 기능을 준비 중입니다.<br>아직 자료를 추가하거나 저장할 수는 없어요.</p><div class="planned-features" aria-label="추가 예정 기능"><span>이미지·링크 수집</span><span>아이디어 메모</span><span>태그로 정리</span></div></div>
+</section>
+<section id="milestonesPage" data-screen="milestones" aria-labelledby="title" hidden>
+<a class="back-link milestone-back" href="#home">← 대시보드 홈</a>
+<div class="top"><span class="small">PROJECT MANAGEMENT / MILESTONES</span><span class="small" id="saveState">● 로컬 저장</span></div><div class="head"><div><h1 id="title" tabindex="-1"></h1><div id="desc" class="muted"></div></div><div class="tools editable"><button class="btn" id="editProject">프로젝트 수정</button><button class="btn" id="import">JSON 불러오기</button><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave">☁ GitHub 백업</button><button class="btn" id="cloudRestore">↙ GitHub 복원</button><button class="btn" id="backup">JSON 백업</button><button class="btn primary" id="share">공유용 HTML</button></div></div>
 <div class="small editable" id="cloudStatus" style="margin:-14px 0 18px">클라우드 백업: 연결 전 · 브라우저 로컬 저장은 계속 작동합니다.</div><div class="stats"><div class="stat"><span class="small">전체 진행률</span><b id="progress">0%</b><div class="bar"><i id="fill"></i></div></div><div class="stat"><span class="small">완료</span><b id="completed">0 / 0</b></div><div class="stat"><span class="small">마지막 업데이트</span><b style="font-size:16px" id="updated">—</b></div></div>
 <div class="tabs"><button class="tab active" data-tab="timeline">타임라인</button><button class="tab" data-tab="calendar">캘린더</button><button class="tab" data-tab="history">업데이트 히스토리</button></div>
 <section id="timelineView"><div class="sectionhead"><h2>마일스톤 타임라인</h2><button class="btn editable" id="addMilestone">＋ 마일스톤</button></div><div id="milestones" class="items"></div></section>
 <section id="calendarView" hidden><div class="calendar"><div class="calhead"><button class="btn" id="prevMonth">‹</button><strong id="month"></strong><div><button class="btn" id="today">오늘</button> <button class="btn" id="nextMonth">›</button></div></div><div class="calgrid" id="calgrid"></div></div><div class="daydetails"><div class="sectionhead"><h2 id="dayTitle"></h2><button class="btn editable" id="addOnDate">＋ 이 날짜에 추가</button></div><div id="dayItems"></div></div></section>
 <section id="historyView" hidden><div class="sectionhead"><h2>업데이트 히스토리</h2><button class="btn editable" id="addNote">＋ 메모 추가</button></div><div id="history"></div></section>
 <p class="small" style="margin-top:24px">서버 없이 작동합니다. 브라우저 저장 기록은 기기 간 자동 동기화되지 않으며, 공유 HTML은 읽기 전용 스냅샷입니다.</p>
-</main></div>
+</section></main></div>
 <dialog id="modal"><h2 id="modalTitle"></h2><form id="form"><div class="formgrid" id="fields"></div><div class="footer"><button type="button" class="btn danger" id="remove">삭제</button><div><button type="button" class="btn" id="cancel">취소</button> <button class="btn primary" type="submit">저장</button></div></div></form></dialog>
 <input type="file" accept=".json,application/json" id="file" hidden>
 <script type="application/json" id="seed">null</script>
@@ -31,10 +100,24 @@ function safe(v){if(!v||!Array.isArray(v.projects))throw Error("지원하지 않
 let state;try{state=safe(JSON.parse($("seed").textContent)||JSON.parse(localStorage.getItem(key)));}catch{state=fresh();}
 let tab="timeline",month=new Date(),selected=day(),edit=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
+const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스"};
+function route(focus=false){
+ const requested=location.hash.slice(1),page=Object.hasOwn(pages,requested)?requested:(readonly?"milestones":"home");
+ document.querySelectorAll("[data-screen]").forEach(el=>el.hidden=el.dataset.screen!==page);
+ document.querySelectorAll("[data-page]").forEach(el=>{if(el.dataset.page===page)el.setAttribute("aria-current","page");else el.removeAttribute("aria-current");});
+ document.documentElement.dataset.activePage=page;
+ $("projectSidebar").hidden=page!=="milestones";
+ document.title="작업 공간 — "+pages[page];
+ if(focus){document.querySelector('[data-screen="'+page+'"] h1').focus({preventScroll:true});window.scrollTo(0,0);}
+}
+window.addEventListener("hashchange",()=>route(true));
 function persist(){if(readonly)return;try{localStorage.setItem(key,JSON.stringify(state));$("saveState").textContent="● 자동 저장됨";}catch{$("saveState").textContent="⚠ 저장 실패 — JSON 백업 필요";}}
 function record(p,title,details){p.updatedAt=iso();p.history.unshift({id:id(),at:p.updatedAt,title,details:details||""});}
 function displayDate(d){return d?d.slice(0,10):"날짜 미정";}
-function render(){const p=current();if(!p){$("title").textContent="프로젝트 없음";return;}state.selectedId=p.id;
+function render(){
+const ongoing=state.projects.reduce((sum,p)=>sum+p.milestones.filter(m=>m.status==="doing").length,0);
+$("homeMilestoneSummary").textContent="프로젝트 "+state.projects.length+"개 · 진행 중인 마일스톤 "+ongoing+"개";
+const p=current();if(!p){$("title").textContent="프로젝트 없음";return;}state.selectedId=p.id;
 $("projects").innerHTML=state.projects.map(q=>'<button class="project '+(q.id===p.id?"active":"")+'" data-p="'+esc(q.id)+'">'+esc(q.name)+'</button>').join("");
 $("title").textContent=p.name;$("desc").textContent=p.description;let n=p.milestones.length,k=p.milestones.filter(m=>m.status==="done").length,rate=n?Math.round(100*k/n):0;
 $("progress").textContent=rate+"%";$("fill").style.width=rate+"%";$("completed").textContent=k+" / "+n;$("updated").textContent=displayDate(p.updatedAt);
@@ -109,7 +192,15 @@ $("cloudRestore").onclick=async()=>{
 };
 if(!readonly)cloudCheck();
 
-$("share").onclick=()=>{let copy=document.documentElement.cloneNode(true);copy.dataset.readonly="true";copy.querySelector("#seed").textContent=JSON.stringify(state).replace(/</g,"\\u003c");download("dowon-dashboard-share-"+day()+".html","<!doctype html>\n"+copy.outerHTML,"text/html;charset=utf-8");};
-render();persist();
+$("share").onclick=async()=>{const button=$("share");button.disabled=true;try{let copy=document.documentElement.cloneNode(true);copy.dataset.readonly="true";copy.querySelector("#seed").textContent=JSON.stringify(state).replace(/</g,"\\u003c");const images=new Map();
+for(const img of copy.querySelectorAll("img[src]")){
+ const src=img.getAttribute("src");if(src.startsWith("data:"))continue;
+ if(!images.has(src)){const response=await fetch(src);if(!response.ok)throw Error("이미지를 불러오지 못했습니다.");const blob=await response.blob();const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("이미지를 변환하지 못했습니다."));reader.readAsDataURL(blob);});images.set(src,data);}
+ img.setAttribute("src",images.get(src));
+}
+copy.querySelector("#share").disabled=false;
+download("dowon-dashboard-share-"+day()+".html","<!doctype html>\n"+copy.outerHTML,"text/html;charset=utf-8");
+}catch(error){alert("공유 HTML 생성 실패: "+error.message);}finally{button.disabled=false;}};
+render();persist();route();
 })();
 </script></body></html>
