@@ -72,7 +72,7 @@ $("file").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{if(f.size>
 /* Cloud backup requires a separately deployed Worker URL.
    OAuth credential exchange and GitHub access are handled only by Worker. */
 let cloudSha=null;
-const apiBase=()=>localStorage.getItem(API_KEY)||"";
+const apiBase=()=>"https://api.3dowon.com";
 async function cloudRequest(path,options={}){
  const base=apiBase();if(!base)throw Error("Worker 주소를 먼저 설정해 주세요.");
  const r=await fetch(base+path,{credentials:"include",...options});
@@ -82,12 +82,7 @@ async function cloudRequest(path,options={}){
 function cloudMessage(text){$("cloudStatus").textContent="클라우드 백업: "+text;}
 async function cloudCheck(){if(!apiBase())return;try{const m=await cloudRequest("/api/me");cloudMessage(m.login+" 연결됨");}catch{cloudMessage("로그인이 필요하거나 Worker 연결을 확인해야 합니다.");}}
 $("connectGithub").onclick=()=>{
- let base=apiBase();
- const entered=prompt("Cloudflare Worker 주소를 입력해 주세요.\n예: https://dowon-backup.example.workers.dev\n\n기존 주소: "+(base||"없음"),base);
- if(entered===null)return;
- base=entered.trim().replace(/\/+$/,"");
- if(!/^https:\/\/[a-z0-9.-]+(?::443)?$/i.test(base)){alert("https://로 시작하는 Worker 주소만 입력해 주세요.");return;}
- localStorage.setItem(API_KEY,base);location.href=base+"/auth/login";
+ location.href=apiBase()+"/auth/login";
 };
 $("cloudSave").onclick=async()=>{
  try{
@@ -106,10 +101,13 @@ $("cloudRestore").onclick=async()=>{
   const remote=await cloudRequest("/api/backup");cloudSha=remote.sha;
   if(!remote.data.projects.length){alert("GitHub에 저장된 프로젝트가 없습니다.");return;}
   if(!confirm("GitHub 백업을 불러오면 현재 브라우저 프로젝트를 덮어씁니다.\n먼저 JSON 백업을 해 두는 것을 권장합니다.\n복원할까요?"))return;
-  state=safe(remote.data);persist();render();cloudMessage("GitHub 데이터 복원 완료");
+  const restored=safe(remote.data);
+  localStorage.setItem(key+":before-restore",JSON.stringify(state));
+  download("dowon-before-restore-"+day()+".json",JSON.stringify(state,null,2),"application/json");
+  state=restored;persist();render();cloudMessage("GitHub 데이터 복원 완료 · 이전 데이터 JSON 보관됨");
  }catch(e){alert("GitHub 복원 실패: "+e.message);}
 };
-cloudCheck();
+if(!readonly)cloudCheck();
 
 $("share").onclick=()=>{let copy=document.documentElement.cloneNode(true);copy.dataset.readonly="true";copy.querySelector("#seed").textContent=JSON.stringify(state).replace(/</g,"\\u003c");download("dowon-dashboard-share-"+day()+".html","<!doctype html>\n"+copy.outerHTML,"text/html;charset=utf-8");};
 render();persist();

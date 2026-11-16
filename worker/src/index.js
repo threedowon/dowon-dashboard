@@ -13,40 +13,41 @@ async function gh(path,token,options={}){return fetch("https://api.github.com"+p
 export default {async fetch(req,env){
  const u=new URL(req.url),origin=req.headers.get("origin"),site=env.DASHBOARD_ORIGIN||"https://threedowon.github.io",home=env.DASHBOARD_URL||"https://threedowon.github.io/dowon-dashboard/";
  const cors=origin===site?{"access-control-allow-origin":site,"access-control-allow-credentials":"true","access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","vary":"Origin"}:{};
- const cookies=ck(req),cb=u.origin+"/auth/callback";
+ const cb=u.origin+"/auth/callback";
  try{
+ const cookies=ck(req);
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
  if(u.pathname==="/health")return j({ok:true,configured:!!(env.GITHUB_CLIENT_ID&&env.GITHUB_CLIENT_SECRET&&env.SESSION_KEY)});
  if(u.pathname==="/auth/login"){
  if(!env.GITHUB_CLIENT_ID||!env.GITHUB_CLIENT_SECRET||!env.SESSION_KEY)return j({error:"Secrets missing"},503);
  const state=rand(),verifier=rand(),digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));
  const qs=new URLSearchParams({client_id:env.GITHUB_CLIENT_ID,state,redirect_uri:cb,code_challenge:b64(digest),code_challenge_method:"S256"});
- const res=Response.redirect("https://github.com/login/oauth/authorize?"+qs,302);
- res.headers.append("Set-Cookie",cookie("dowon_oauth",await seal(env,{state,verifier,expires:Date.now()+600000}),"SameSite=Lax; Max-Age=600"));return res;
+ const res=new Response(null,{status:302,headers:{location:"https://github.com/login/oauth/authorize?"+qs,"cache-control":"no-store"}});
+ res.headers.append("Set-Cookie",cookie("__Host-dowon_oauth",await seal(env,{state,verifier,expires:Date.now()+600000}),"SameSite=Lax; Max-Age=600"));return res;
  }
  if(u.pathname==="/auth/callback"){
- const data=await unseal(env,cookies.dowon_oauth);
+ const data=await unseal(env,cookies["__Host-dowon_oauth"]);
  if(data.expires<Date.now()||data.state!==u.searchParams.get("state"))return j({error:"OAuth state mismatch"},403);
  const tr=await fetch("https://github.com/login/oauth/access_token",{method:"POST",headers:{"accept":"application/json","content-type":"application/json"},body:JSON.stringify({client_id:env.GITHUB_CLIENT_ID,client_secret:env.GITHUB_CLIENT_SECRET,code:u.searchParams.get("code"),redirect_uri:cb,code_verifier:data.verifier})});
  const auth=await tr.json();if(!auth.access_token)throw Error("OAuth exchange failed");
  const who=await gh("/user",auth.access_token);if(!who.ok)throw Error("User verification failed");
  const user=await who.json();if(user.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"Access denied"},403);
- const res=Response.redirect(home,302);
- res.headers.append("Set-Cookie",cookie("dowon_session",await seal(env,{token:auth.access_token,login:user.login,expires:Date.now()+Math.min((auth.expires_in||28800)*1000,28800000)}),"SameSite=None; Max-Age=28800"));
- res.headers.append("Set-Cookie",cookie("dowon_oauth","","SameSite=Lax; Max-Age=0"));return res;
+ const res=new Response(null,{status:302,headers:{location:home,"cache-control":"no-store"}});
+ res.headers.append("Set-Cookie",cookie("__Host-dowon_session",await seal(env,{token:auth.access_token,login:user.login,expires:Date.now()+Math.min((auth.expires_in||28800)*1000,28800000)}),"SameSite=Lax; Max-Age=28800"));
+ res.headers.append("Set-Cookie",cookie("__Host-dowon_oauth","","SameSite=Lax; Max-Age=0"));return res;
  }
  if(u.pathname==="/auth/logout"&&req.method==="POST"){
  if(origin!==site)return j({error:"Origin denied"},403,cors);
- return j({ok:true},200,{"set-cookie":cookie("dowon_session","","SameSite=None; Max-Age=0"),...cors});
+ return j({ok:true},200,{"set-cookie":cookie("__Host-dowon_session","","SameSite=Lax; Max-Age=0"),...cors});
  }
  if(u.pathname.startsWith("/api/")){
  if(origin!==site)return j({error:"Origin denied"},403,cors);
- let session;try{session=await unseal(env,cookies.dowon_session)}catch{return j({error:"로그인이 필요합니다."},401,cors)}
+ let session;try{session=await unseal(env,cookies["__Host-dowon_session"])}catch{return j({error:"로그인이 필요합니다."},401,cors)}
  if(session.expires<Date.now()||session.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"로그인 만료"},401,cors);
  if(u.pathname==="/api/me")return j({login:session.login},200,cors);
  if(u.pathname==="/api/backup"&&req.method==="GET"){
  const r=await gh("/repos/"+repo+"/contents/"+file,session.token);
- if(r.status===404)return j({data:{version:1,selectedId:null,projects:[]},sha:null},200,cors);
+ if(r.status===404)return j({error:"백업 파일 또는 저장소 접근 권한을 확인해주세요."},404,cors);
  if(!r.ok)return j({error:"GitHub read failed ("+r.status+")"},502,cors);
  const f=await r.json(),bytes=Uint8Array.from(atob(f.content.replace(/\s/g,"")),c=>c.charCodeAt(0));
  return j({data:JSON.parse(new TextDecoder().decode(bytes)),sha:f.sha},200,cors);
@@ -61,6 +62,7 @@ export default {async fetch(req,env){
  if((old?.sha||null)!==(body.sha||null))return j({error:"GitHub 백업이 변경됐습니다. 최신 백업을 확인해주세요.",conflict:true},409,cors);
  const content=btoa(Array.from(new TextEncoder().encode(raw)).map(x=>String.fromCharCode(x)).join(""));
  const put=await gh("/repos/"+repo+"/contents/"+file,session.token,{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({message:"Dashboard backup "+new Date().toISOString(),content,...(old?{sha:old.sha}:{})})});
+ if(put.status===409||put.status===422)return j({error:"백업이 변경되었습니다. 최신 백업을 다시 확인해주세요.",conflict:true},409,cors);
  if(!put.ok)return j({error:"GitHub write failed ("+put.status+")"},502,cors);
  const result=await put.json();return j({ok:true,sha:result.content.sha,commit:result.commit.sha},200,cors);
  }

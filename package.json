@@ -1,0 +1,27 @@
+{
+  "name": "dowon-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threedowon/dowon-dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/threedowon/dowon-dashboard/issues"
+  },
+  "homepage": "https://github.com/threedowon/dowon-dashboard#readme",
+  "devDependencies": {
+    "wrangler": "^4.162.0"
+  },
+  "private": true
+}
