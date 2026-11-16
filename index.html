@@ -3,29 +3,129 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>작업 공간 — 홈</title>
+<link rel="preload" href="assets/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+<style id="workspaceFont">
+/*
+Copyright (c) 2021, Kil Hyung-jin (https://github.com/orioncactus/pretendard),
+with Reserved Font Name Pretendard.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+*/
+@font-face{font-family:"Pretendard Variable";font-weight:45 920;font-style:normal;font-display:swap;src:url("assets/fonts/PretendardVariable.woff2") format("woff2")}
+</style>
 <style>
-:root{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#253b30;background:#f5f7f2}*{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.4;cursor:default}.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}.side{background:#fff;border-right:1px solid #e2e9e1;padding:24px 15px}.brand{font-weight:850;font-size:20px;margin:4px 8px 32px}.brand span{color:#528866}.small{font-size:12px;color:#839488}.nav{display:grid;gap:6px;margin:10px 0 20px}.project{border:0;border-radius:10px;background:none;text-align:left;padding:12px;color:#526a5c}.project.active{background:#e7f1e8;color:#275b3b;font-weight:750}.main{padding:36px clamp(18px,5vw,70px);max-width:1510px;width:100%;margin:auto}.top,.head,.stats,.tools,.tabs,.row,.sectionhead{display:flex;gap:12px;align-items:center;justify-content:space-between}.head{align-items:flex-start;flex-wrap:wrap;margin:10px 0 28px}h1{font-size:clamp(24px,3vw,35px);letter-spacing:-1px;margin:7px 0}h2{font-size:18px;margin:0}.muted{color:#84978a}.btn{border:1px solid #dfe8dd;border-radius:9px;background:#fff;color:#3d614b;padding:10px 12px;font-size:13px;font-weight:650}.btn:hover{background:#edf5ed}.btn.primary{background:#356c4d;color:white;border-color:#356c4d}.btn.danger{color:#ae4949}.tools{justify-content:flex-end;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:25px}.stat,.item,.log,.calendar,.daydetails{background:white;border:1px solid #e1e9df;border-radius:14px;padding:18px}.stat b{display:block;font-size:27px;margin-top:10px}.bar{height:8px;background:#e7eee5;border-radius:8px;margin-top:13px;overflow:hidden}.bar i{display:block;height:100%;background:#73a586}.tabs{justify-content:flex-start;border-bottom:1px solid #dfe7dc;gap:24px;margin-bottom:22px}.tab{border:0;background:transparent;color:#839488;padding:14px 1px;font-weight:750;border-bottom:2px solid transparent}.tab.active{color:#356d4e;border-bottom-color:#356d4e}.sectionhead{margin-bottom:14px}.items{display:grid;gap:10px}.item .row{align-items:flex-start}.item h3{margin:3px 0 9px;font-size:16px}.item p{white-space:pre-wrap;color:#728679;font-size:13px}.tag{display:inline-block;border-radius:40px;font-size:11px;padding:5px 9px;background:#ecf0ed;color:#65776b;font-weight:750}.tag.doing{background:#fff2d7;color:#95691e}.tag.done{background:#e2f3e5;color:#34794a}.log{margin-bottom:10px}.log p{font-size:13px;white-space:pre-wrap;color:#6e8072}.empty{padding:42px 14px;text-align:center;background:#fff;border:1px dashed #d7e2d6;border-radius:12px;color:#899a8d}.calendar{padding:12px}.calhead{display:flex;justify-content:space-between;align-items:center;padding:7px 5px 17px}.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.weekday{text-align:center;color:#819185;font-size:12px;padding:10px 2px}.day{min-height:105px;text-align:left;background:#fbfcf9;border:1px solid #e5ede3;border-radius:8px;padding:7px;min-width:0;color:#3b5141}.day.out{opacity:.34}.day.selected{outline:2px solid #5c9671;background:#edf6ec}.day.today .num{background:#376d4e;color:#fff;border-radius:50%}.num{display:inline-grid;place-items:center;width:26px;height:26px;font-size:12px}.event{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e7efe9;color:#406c4e;padding:4px 5px;border-radius:5px;font-size:11px;margin-top:4px}.event.doing{background:#fff0ce;color:#8b651d}.event.done{background:#dcf1e2;color:#2c7547}.daydetails{margin-top:13px}.daydetails .item{padding:10px 12px;margin-top:8px}.formgrid{display:grid;gap:15px}label{display:grid;gap:6px;font-size:13px;font-weight:700}input,textarea,select{border:1px solid #d8e3d8;border-radius:9px;padding:11px;width:100%;background:#fff;color:#2d4634}textarea{min-height:85px}dialog{border:0;border-radius:18px;width:min(520px,calc(100% - 24px));padding:25px;color:#263d2d;box-shadow:0 18px 70px #0003}dialog::backdrop{background:#17241aa3}dialog h2{margin-bottom:20px}.footer{display:flex;justify-content:space-between;gap:10px;margin-top:20px}.snapshot{display:none;background:#e4f2e6;border-radius:9px;padding:13px;color:#3c7750;margin:15px 0}html[data-readonly="true"] .snapshot{display:block}html[data-readonly="true"] .editable{display:none!important}@media(max-width:780px){.app{display:block}.side{padding:14px;border-right:0;border-bottom:1px solid #e2e9e1}.brand{margin:2px 0 10px}.nav{display:flex;overflow:auto;margin:9px 0}.project{white-space:nowrap}.main{padding:20px 14px}.stats{gap:7px}.stat{padding:12px}.stat b{font-size:20px}.day{min-height:76px;padding:3px}.event{font-size:9px}.calendar{padding:5px}.tools{justify-content:flex-start}}
+:root{font-family:"Pretendard Variable",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#253b30;background:#f5f7f2}*{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.4;cursor:default}.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}.side{background:#fff;border-right:1px solid #e2e9e1;padding:24px 15px}.brand{font-weight:850;font-size:20px;margin:4px 8px 32px}.brand span{color:#528866}.small{font-size:12px;color:#839488}.nav{display:grid;gap:6px;margin:10px 0 20px}.project{border:0;border-radius:10px;background:none;text-align:left;padding:12px;color:#526a5c}.project.active{background:#e7f1e8;color:#275b3b;font-weight:750}.main{padding:36px clamp(18px,5vw,70px);max-width:1510px;width:100%;margin:auto}.top,.head,.stats,.tools,.tabs,.row,.sectionhead{display:flex;gap:12px;align-items:center;justify-content:space-between}.head{align-items:flex-start;flex-wrap:wrap;margin:10px 0 28px}h1{font-size:clamp(24px,3vw,35px);letter-spacing:-1px;margin:7px 0}h2{font-size:18px;margin:0}.muted{color:#84978a}.btn{border:1px solid #dfe8dd;border-radius:9px;background:#fff;color:#3d614b;padding:10px 12px;font-size:13px;font-weight:650}.btn:hover{background:#edf5ed}.btn.primary{background:#356c4d;color:white;border-color:#356c4d}.btn.danger{color:#ae4949}.tools{justify-content:flex-end;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:25px}.stat,.item,.log,.calendar,.daydetails{background:white;border:1px solid #e1e9df;border-radius:14px;padding:18px}.stat b{display:block;font-size:27px;margin-top:10px}.bar{height:8px;background:#e7eee5;border-radius:8px;margin-top:13px;overflow:hidden}.bar i{display:block;height:100%;background:#73a586}.tabs{justify-content:flex-start;border-bottom:1px solid #dfe7dc;gap:24px;margin-bottom:22px}.tab{border:0;background:transparent;color:#839488;padding:14px 1px;font-weight:750;border-bottom:2px solid transparent}.tab.active{color:#356d4e;border-bottom-color:#356d4e}.sectionhead{margin-bottom:14px}.items{display:grid;gap:10px}.item .row{align-items:flex-start}.item h3{margin:3px 0 9px;font-size:16px}.item p{white-space:pre-wrap;color:#728679;font-size:13px}.tag{display:inline-block;border-radius:40px;font-size:11px;padding:5px 9px;background:#ecf0ed;color:#65776b;font-weight:750}.tag.doing{background:#fff2d7;color:#95691e}.tag.done{background:#e2f3e5;color:#34794a}.log{margin-bottom:10px}.log p{font-size:13px;white-space:pre-wrap;color:#6e8072}.empty{padding:42px 14px;text-align:center;background:#fff;border:1px dashed #d7e2d6;border-radius:12px;color:#899a8d}.calendar{padding:12px}.calhead{display:flex;justify-content:space-between;align-items:center;padding:7px 5px 17px}.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.weekday{text-align:center;color:#819185;font-size:12px;padding:10px 2px}.day{min-height:105px;text-align:left;background:#fbfcf9;border:1px solid #e5ede3;border-radius:8px;padding:7px;min-width:0;color:#3b5141}.day.out{opacity:.34}.day.selected{outline:2px solid #5c9671;background:#edf6ec}.day.today .num{background:#376d4e;color:#fff;border-radius:50%}.num{display:inline-grid;place-items:center;width:26px;height:26px;font-size:12px}.event{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e7efe9;color:#406c4e;padding:4px 5px;border-radius:5px;font-size:11px;margin-top:4px}.event.doing{background:#fff0ce;color:#8b651d}.event.done{background:#dcf1e2;color:#2c7547}.daydetails{margin-top:13px}.daydetails .item{padding:10px 12px;margin-top:8px}.formgrid{display:grid;gap:15px}label{display:grid;gap:6px;font-size:13px;font-weight:700}input,textarea,select{border:1px solid #d8e3d8;border-radius:9px;padding:11px;width:100%;background:#fff;color:#2d4634}textarea{min-height:85px}dialog{border:0;border-radius:18px;width:min(520px,calc(100% - 24px));padding:25px;color:#263d2d;box-shadow:0 18px 70px #0003}dialog::backdrop{background:#17241aa3}dialog h2{margin-bottom:20px}.footer{display:flex;justify-content:space-between;gap:10px;margin-top:20px}.snapshot{display:none;background:#e4f2e6;border-radius:9px;padding:13px;color:#3c7750;margin:15px 0}html[data-readonly="true"] .snapshot{display:block}html[data-readonly="true"] .editable{display:none!important}@media(max-width:780px){.app{display:block}.side{padding:14px;border-right:0;border-bottom:1px solid #e2e9e1}.brand{margin:2px 0 10px}.nav{display:flex;overflow:auto;margin:9px 0}.project{white-space:nowrap}.main{padding:20px 14px}.stats{gap:7px}.stat{padding:12px}.stat b{font-size:20px}.day{min-height:76px;padding:3px}.event{font-size:9px}.calendar{padding:5px}.tools{justify-content:flex-start}}
 /* Minimal catalogue workspace; all current visuals are inline and self-contained. */
-:root{--paper:#eeece5;--ink:#11563f;--muted:#537264;--rule:#52806a;color:var(--ink);background:var(--paper);font-family:Arial,"Malgun Gothic",sans-serif}
+:root{--paper:#eeece5;--ink:#11563f;--muted:#537264;--rule:#52806a;color:var(--ink);background:var(--paper);font-family:"Pretendard Variable",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-weight:400;letter-spacing:-.015em}
 body{padding:0;background:var(--paper)}[hidden]{display:none!important}a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset:6px}h1:focus{outline:none}
 .app{display:block;max-width:1220px;min-height:100vh;margin:auto;padding:0 54px;background:transparent;box-shadow:none}
 .side{display:flex;align-items:center;flex-wrap:wrap;gap:18px 30px;min-height:0;background:none;border:0;border-bottom:1px solid var(--rule);padding:31px 0 25px}
-.brand{font-family:Georgia,serif;font-size:22px;font-weight:400;letter-spacing:-.6px;margin:0}.brand a{text-decoration:none}.side>.small,.side-note,.nav-symbol{display:none}
-.workspace-nav{display:flex;gap:27px;margin:0 0 0 auto;flex-wrap:wrap}.workspace-link{font-size:12px;text-decoration:none;color:var(--muted);padding:5px 0;white-space:nowrap;border-bottom:1px solid transparent}.workspace-link:hover,.workspace-link[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
+.brand{font-family:inherit;font-size:20px;font-weight:600;letter-spacing:-.5px;margin:0}.brand a{text-decoration:none}.side>.small,.side-note,.nav-symbol{display:none}
+.workspace-nav{display:flex;gap:27px;margin:0 0 0 auto;flex-wrap:wrap}.workspace-link{font-size:13px;font-weight:500;text-decoration:none;color:var(--muted);padding:5px 0;white-space:nowrap;border-bottom:1px solid transparent}.workspace-link:hover,.workspace-link[aria-current="page"]{color:var(--ink);border-bottom-color:var(--ink)}
 .project-sidebar{flex-basis:100%;border-top:1px solid #b3c0b4;padding-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.project-sidebar .nav{display:flex;flex-wrap:wrap;gap:7px;margin:0}.project-sidebar p{flex-basis:100%;margin:0;font-size:11px}.project{padding:8px 12px;border-radius:0;color:var(--ink)}.project.active{background:#dfe6db;color:var(--ink)}
 .main{width:100%;max-width:none;margin:0;padding:0}
 
 .catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:22px 0}
 .catalog-card{position:relative;min-width:0;display:flex;flex-direction:column;min-height:405px;padding:5px 29px 6px;text-decoration:none;border-right:1px solid var(--rule);transition:background-color .18s}.catalog-card:first-child{padding-left:0}.catalog-card:last-child{padding-right:0;border-right:0}.catalog-card:hover{background:#11563f04}.catalog-card:hover .catalog-arrow{transform:translate(3px,-3px)}
-.catalog-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.catalog-card h2{font-size:16px;line-height:1.4;font-weight:500;letter-spacing:-.3px;margin:0 0 5px}.catalog-en{font-size:11px;letter-spacing:.6px;color:var(--muted)}.catalog-number{font-family:Georgia,serif;font-size:13px;font-weight:400}
+.catalog-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.catalog-card h2{font-size:18px;line-height:1.45;font-weight:600;letter-spacing:-.5px;margin:0 0 5px}.catalog-en{font-size:12px;letter-spacing:.1px;color:var(--muted)}.catalog-number{font-family:inherit;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.2px}
 .catalog-symbol{display:flex;align-items:center;justify-content:center;flex:1;min-height:205px;padding:30px 0}.catalog-symbol svg{height:88px;width:100px;display:block;color:var(--ink);fill:currentColor}.catalog-symbol .cutout{fill:var(--paper)}
-.catalog-details{font-size:12px;line-height:1.9;margin-top:auto}.catalog-details p{margin:0 0 12px;min-height:46px;word-break:keep-all}.catalog-status{font-size:11px;color:var(--muted);line-height:1.8;display:flex;gap:7px;align-items:baseline}.catalog-status:before{content:"";display:inline-block;width:5px;height:5px;flex-shrink:0;border:1px solid var(--ink);border-radius:50%}.catalog-status.live:before{background:var(--ink)}.catalog-link{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:19px;font-size:11px;letter-spacing:.4px}.catalog-arrow{font-size:20px;line-height:1;transition:transform .18s}
+.catalog-details{font-size:14px;line-height:1.75;margin-top:auto}.catalog-details p{margin:0 0 12px;min-height:46px;word-break:keep-all}.catalog-status{font-size:12px;color:var(--muted);line-height:1.8;display:flex;gap:7px;align-items:baseline}.catalog-status:before{content:"";display:inline-block;width:5px;height:5px;flex-shrink:0;border:1px solid var(--ink);border-radius:50%}.catalog-status.live:before{background:var(--ink)}.catalog-link{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:19px;font-size:13px;font-weight:550;letter-spacing:-.15px}.catalog-arrow{font-size:20px;line-height:1;transition:transform .18s}
 
-.page-top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:30px 0 20px;border-bottom:1px solid var(--rule)}.eyebrow{font-size:11px;letter-spacing:1.2px}.back-link{font-size:12px;text-decoration:none;color:var(--ink)}.back-link:hover{text-decoration:underline}.milestone-back{display:inline-block;margin:30px 0 23px}.placeholder-heading{margin:40px 0 30px}.availability{font-size:11px;color:var(--muted);letter-spacing:.5px}.placeholder-heading h1{font-family:Georgia,"Batang",serif;font-size:32px;font-weight:400;margin:13px 0 12px}.page-intro{font-size:13px;line-height:1.8;color:var(--muted)}
+.page-top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:30px 0 20px;border-bottom:1px solid var(--rule)}.eyebrow{font-size:11px;letter-spacing:1.2px}.back-link{font-size:12px;text-decoration:none;color:var(--ink)}.back-link:hover{text-decoration:underline}.milestone-back{display:inline-block;margin:30px 0 23px}.placeholder-heading{margin:40px 0 30px}.availability{font-size:11px;color:var(--muted);letter-spacing:.5px}.placeholder-heading h1{font-family:inherit;font-size:32px;font-weight:600;margin:13px 0 12px}.page-intro{font-size:13px;line-height:1.8;color:var(--muted)}
 .placeholder-panel{min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:35px 20px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-bottom:35px}.placeholder-panel h2{font-size:18px;font-weight:500;margin:25px 0 12px}.placeholder-panel p{font-size:13px;line-height:1.9;color:var(--muted);margin:0}.feature-icon{display:grid;place-items:center;width:65px;height:65px}.feature-icon svg{width:56px;height:56px;fill:currentColor;color:var(--ink)}.planned-features{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:24px}.planned-features span{font-size:11px;color:var(--muted);padding-bottom:5px;border-bottom:1px solid #a5b6a8}
 .small,.muted,.item p,.log p{color:var(--muted)}.btn{border-color:#9caf9e;background:transparent;color:var(--ink);border-radius:2px}.btn:hover{background:#e0e6dc}.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}.btn.danger{color:#984d40}.stat,.item,.log,.calendar,.daydetails,.empty{background:transparent;border-color:#b1c0b2;border-radius:2px}.bar{background:#dbe3d6}.bar i{background:#51866b}.tabs{border-color:#b1c0b2}.tab{color:var(--muted)}.tab.active{color:var(--ink);border-color:var(--ink)}.day{background:#f4f3ec;border-color:#d3dccf;color:var(--ink);border-radius:2px}.day.selected{background:#e1eadb;outline-color:#558267}.day.today .num{background:var(--ink)}input,textarea,select{background:#f7f5ef;color:var(--ink);border-color:#b1c0b2;border-radius:2px}dialog{background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:3px}
-@media(max-width:900px){.app{padding:0 30px}.workspace-nav{gap:18px}.catalog-card{padding-left:20px;padding-right:20px}.catalog-card h2{font-size:15px}.catalog-details{font-size:11px}.catalog-symbol{min-height:190px}}
-@media(max-width:650px){.app{padding:0 22px}.side{padding:23px 0 18px;gap:18px}.brand{font-size:21px}.workspace-nav{width:100%;margin:0;justify-content:space-between;gap:8px}.workspace-link{font-size:10px}.catalog-grid{grid-template-columns:1fr;padding:0;border-bottom:0}.catalog-card,.catalog-card:first-child,.catalog-card:last-child{padding:24px 0 25px;border-right:0;border-bottom:1px solid var(--rule);min-height:320px}.catalog-card h2{font-size:17px}.catalog-symbol{min-height:145px;padding:25px 0}.catalog-symbol svg{height:72px;width:85px}.catalog-details{font-size:12px}.catalog-details p{min-height:0}.catalog-link{margin-top:16px}.page-top{padding-top:25px}.placeholder-heading h1{font-size:27px}.placeholder-panel{padding:30px 8px}.placeholder-panel h2{font-size:16px}.placeholder-panel p{font-size:12px}.head .tools{gap:7px}.tabs{gap:17px}.top{flex-wrap:wrap}}
+@media(max-width:900px){.app{padding:0 30px}.workspace-nav{gap:18px}.catalog-card{padding-left:20px;padding-right:20px}.catalog-card h2{font-size:17px}.catalog-details{font-size:13px}.catalog-symbol{min-height:190px}}
+@media(max-width:650px){.app{padding:0 22px}.side{padding:23px 0 18px;gap:18px}.brand{font-size:21px}.workspace-nav{width:100%;margin:0;justify-content:space-between;gap:8px}.workspace-link{font-size:12px}.catalog-grid{grid-template-columns:1fr;padding:0;border-bottom:0}.catalog-card,.catalog-card:first-child,.catalog-card:last-child{padding:24px 0 25px;border-right:0;border-bottom:1px solid var(--rule);min-height:320px}.catalog-card h2{font-size:18px}.catalog-symbol{min-height:145px;padding:25px 0}.catalog-symbol svg{height:72px;width:85px}.catalog-details{font-size:14px}.catalog-details p{min-height:0}.catalog-link{margin-top:16px}.page-top{padding-top:25px}.placeholder-heading h1{font-size:27px}.placeholder-panel{padding:30px 8px}.placeholder-panel h2{font-size:16px}.placeholder-panel p{font-size:12px}.head .tools{gap:7px}.tabs{gap:17px}.top{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.catalog-card,.catalog-arrow{transition:none}.catalog-card:hover .catalog-arrow{transform:none}}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 html[data-active-page="home"] .side{display:none}
@@ -198,6 +298,13 @@ for(const img of copy.querySelectorAll("img[src]")){
  if(!images.has(src)){const response=await fetch(src);if(!response.ok)throw Error("이미지를 불러오지 못했습니다.");const blob=await response.blob();const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("이미지를 변환하지 못했습니다."));reader.readAsDataURL(blob);});images.set(src,data);}
  img.setAttribute("src",images.get(src));
 }
+const fontStyle=copy.querySelector("#workspaceFont");
+if(fontStyle&&!fontStyle.textContent.includes("data:font/woff2")){
+ const response=await fetch("assets/fonts/PretendardVariable.woff2");if(!response.ok)throw Error("글꼴을 불러오지 못했습니다.");
+ const font=await response.blob();const embedded=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("글꼴을 변환하지 못했습니다."));reader.readAsDataURL(new Blob([font],{type:"font/woff2"}));});
+ fontStyle.textContent=fontStyle.textContent.replace("assets/fonts/PretendardVariable.woff2",embedded);
+}
+copy.querySelector('link[as="font"]')?.remove();
 copy.querySelector("#share").disabled=false;
 download("dowon-dashboard-share-"+day()+".html","<!doctype html>\n"+copy.outerHTML,"text/html;charset=utf-8");
 }catch(error){alert("공유 HTML 생성 실패: "+error.message);}finally{button.disabled=false;}};
