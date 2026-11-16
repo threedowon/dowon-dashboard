@@ -28,8 +28,8 @@ export default {async fetch(req,env){
  if(u.pathname==="/auth/callback"){
  const data=await unseal(env,cookies["__Host-dowon_oauth"]);
  if(data.expires<Date.now()||data.state!==u.searchParams.get("state"))return j({error:"OAuth state mismatch"},403);
- const tr=await fetch("https://github.com/login/oauth/access_token",{method:"POST",headers:{"accept":"application/json","content-type":"application/json"},body:JSON.stringify({client_id:env.GITHUB_CLIENT_ID,client_secret:env.GITHUB_CLIENT_SECRET,code:u.searchParams.get("code"),redirect_uri:cb,code_verifier:data.verifier})});
- const auth=await tr.json();if(!auth.access_token){const known=["incorrect_client_credentials","redirect_uri_mismatch","bad_verification_code","incorrect_code_verifier","expired_token","access_denied"];return j({error:"OAuth exchange failed",reason:known.includes(auth.error)?auth.error:"upstream_error"},502);}
+ const tr=await fetch("https://github.com/login/oauth/access_token",{method:"POST",headers:{"accept":"application/json","content-type":"application/json"},body:JSON.stringify({client_id:env.GITHUB_CLIENT_ID,client_secret:env.GITHUB_CLIENT_SECRET.trim(),code:u.searchParams.get("code"),redirect_uri:cb,code_verifier:data.verifier})});
+ const auth=await tr.json();if(!auth.access_token){const known=["incorrect_client_credentials","redirect_uri_mismatch","bad_verification_code","incorrect_code_verifier","expired_token","access_denied"];return j({error:"OAuth exchange failed",reason:known.includes(auth.error)?auth.error:"upstream_error",secretFormatValid:/^[a-f0-9]{40}$/i.test(env.GITHUB_CLIENT_SECRET.trim())},502);}
  const who=await gh("/user",auth.access_token);if(!who.ok)throw Error("User verification failed");
  const user=await who.json();if(user.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"Access denied"},403);
  const res=new Response(null,{status:302,headers:{location:home,"cache-control":"no-store"}});
