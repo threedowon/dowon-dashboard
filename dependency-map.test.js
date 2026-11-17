@@ -51,9 +51,11 @@ test('imported cycles and undated tasks remain renderable without changing dates
   assert.ok(result.markup.includes('일정 조율 중'));
   assert.ok(!result.markup.includes('NaN'));assert.equal(JSON.stringify(projects),original);
 });
-test('untrusted labels are escaped and empty projects render a useful state',()=>{
+test('untrusted labels are escaped and empty projects retain a clean date grid',()=>{
   const result=DependencyMap.svg({name:'<script>',description:'',milestones:[]},'2026-11-17');
-  assert.ok(!result.markup.includes('<script>'));assert.ok(result.markup.includes('선행 일정을 연결'));
+  assert.ok(!result.markup.includes('<script>'));assert.ok(result.markup.includes('&lt;script&gt;'));
+  assert.ok(result.model.days.length>0);assert.ok(result.markup.includes('data-date="2026-11-17"'));
+  assert.ok(!result.markup.includes('선행 일정을 연결'));
 });
 test('daily bands remain compact for long tasks and card edges align to actual dates',()=>{
   const project=Roadmap.portfolio([{id:'long',name:'장기 작업',milestones:[task('long','2026-08-01','2026-10-04')]}]);

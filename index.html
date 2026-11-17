@@ -132,9 +132,9 @@ html[data-active-page="home"] .side{display:none}
 #homePage{padding-top:64px;padding-bottom:48px}
 @media(max-width:650px){#homePage{padding-top:28px;padding-bottom:28px}}
 </style>
-<link rel="stylesheet" href="assets/roadmap.css?v=20261118-column-button">
+<link rel="stylesheet" href="assets/roadmap.css?v=20261118-clean-map">
 <script src="assets/roadmap.js?v=20261118-timeline-tone"></script>
-<script src="assets/dependency-map.js?v=20261118-column-button"></script>
+<script src="assets/dependency-map.js?v=20261118-clean-map"></script>
 <script src="assets/dependency-editor.js?v=20261118-column-button"></script>
 <link rel="stylesheet" href="assets/ideas-board.css?v=20261118-inline">
 <script src="assets/ideas-board.js?v=20261118-inline"></script>
@@ -209,10 +209,9 @@ html[data-active-page="home"] .side{display:none}
 <div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
 <div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">100%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
-<div id="flowToolbar" class="flow-toolbar"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools"><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
+<div id="flowToolbar" class="sr-only"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools" hidden><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
 </div>
 <div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
-<p class="small roadmap-help" id="mapHelp">위·아래 테두리 드래그: 시작일·종료일 변경 / 카드 본문 드래그: 열 이동 / 네모 핸들: 빈 곳에 새 카드 만들기 · 기존 카드 연결. 테두리에 키보드 초점을 두고 ↑ ↓로도 날짜를 조절할 수 있어요.</p>
 <p id="exportStatus" class="small" role="status" aria-live="polite"></p>
 </section>
 </div>
@@ -325,7 +324,6 @@ function renderOverview(){
  document.querySelectorAll("[data-map-view]").forEach(b=>{const active=b.dataset.mapView===(state.mapView||"connections");b.classList.toggle("primary",active);b.setAttribute("aria-pressed",String(active));});
  $("timelineLegend").hidden=true;
  $("roadmapBoard").dataset.view=state.mapView||"connections";
- $("mapHelp").textContent=state.mapView==="timeline"?"막대를 선택하면 해당 프로젝트의 상세 페이지로 이동합니다.":"위·아래 테두리 드래그: 시작일·종료일 변경 / 카드 본문 드래그: 열 이동 / 네모 핸들: 빈 곳에 새 카드 만들기 · 기존 카드 연결. 테두리에 키보드 초점을 두고 ↑ ↓로도 날짜를 조절할 수 있어요.";
  $("roadmapBoard").setAttribute("aria-label",state.mapView==="timeline"?"월별 기간 로드맵":"주차별 프로젝트 연결 맵");
  mapDrawing=chosen.length?drawOverview(Roadmap.portfolio(chosen),{interactive:true}):null;
  $("roadmapBoard").innerHTML=mapDrawing?mapDrawing.markup:'<div class="empty">로드맵에 표시할 프로젝트를 목록에서 선택해 주세요.</div>';

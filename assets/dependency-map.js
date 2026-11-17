@@ -326,24 +326,18 @@ globalThis.DependencyMap = (() => {
   }
   function svg(project, today, { interactive = false, report = false } = {}) {
     const model = layout(project, today), width = model.width;
-    const titleLines = wrap(report ? project.name : '프로젝트 연결 맵', width - 56, 24);
-    const descLines = wrap(report ? project.description : '선행 일정 → 후속 일정 · 여러 프로젝트의 흐름을 함께 살펴보세요.', width - 56, 12);
-    const top = 122 + titleLines.length * 30 + descLines.length * 18, height = top + model.height + 86;
+    const top = 48, height = top + model.height + 16;
     model.top=top;
     const rect = (x,y,w,h,fill,extra='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
     const text = (x,y,value,size=12,fill='#334b3d',extra='') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${extra}>${esc(value)}</text>`;
     let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="${interactive?'group':'img'}" aria-label="프로젝트 연결 맵" style="font-family:'Pretendard Variable','Malgun Gothic',sans-serif"><title>${esc(project.name)} — 프로젝트 연결 맵</title>`;
     out += '<defs><marker id="dependency-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#647568"/></marker><marker id="dependency-warning" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b74736"/></marker></defs>';
     out += rect(0,0,width,height,'#faf8e9');
-    out += text(28,30,'CONNECTED MILESTONES',11,'#537264','letter-spacing="2"');
-    titleLines.forEach((line,i)=>{out+=text(28,60+i*30,line,24,'#11563f','font-weight="700"');});
-    descLines.forEach((line,i)=>{out+=text(28,64+titleLines.length*30+i*18,line,12);});
-    out += rect(28,top-42,12,12,'#fffdf2','stroke="#9ca995"') + text(46,top-31,'시작 전',11);
-    out += rect(100,top-42,12,12,'#ffe27a','stroke="#9ca995"') + text(118,top-31,'진행중',11);
-    out += rect(172,top-42,12,12,'#d5e5fc','stroke="#9ca995"') + text(190,top-31,'완료',11);
-    if(report)out += text(252,top-31,'공유 시점 '+today,11);
-    if(interactive)out+=`<foreignObject class="flow-add-column" x="24" y="${top-27}" width="120" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" id="mapAddColumn" aria-label="오른쪽에 열 추가" ${model.columns.length>=100?'disabled="disabled"':''}>＋ 열 추가</button></foreignObject>`;
-    for (const col of model.columns) out += text(col.x+12,top-8,`${col.index+1}열`,11,'#537264');
+    out += rect(172,top-29,12,12,'#fffdf2','stroke="#9ca995"') + text(190,top-18,'시작 전',11);
+    out += rect(244,top-29,12,12,'#ffe27a','stroke="#9ca995"') + text(262,top-18,'진행중',11);
+    out += rect(316,top-29,12,12,'#d5e5fc','stroke="#9ca995"') + text(334,top-18,'완료',11);
+    if(report)out += text(396,top-18,'공유 시점 '+today,11);
+    if(interactive)out+=`<foreignObject class="flow-add-column" x="24" y="${top-35}" width="120" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" id="mapAddColumn" aria-label="오른쪽에 열 추가" ${model.columns.length>=100?'disabled="disabled"':''}>＋ 열 추가</button></foreignObject>`;
     for (const week of model.weeks) {
       const active = week.start !== null && Roadmap.date(today) >= week.start && Roadmap.date(today) < week.end;
       out += rect(14,top+week.y,width-28,week.height-8,active?'#f5edcb':'#fffdf2',`stroke="${active?'#b74736':'#c5c4af'}" stroke-dasharray="4 5"`);
@@ -393,10 +387,6 @@ globalThis.DependencyMap = (() => {
       const [x,y]=anchor(m,side,top),sideName={top:'위',right:'오른쪽',bottom:'아래',left:'왼쪽'}[side];
       out+=`<g class="flow-port" data-port-node="${esc(m.id)}" data-side="${side}" data-x="${x}" data-y="${y}" role="button" tabindex="-1" aria-label="${esc(m.title)} ${sideName} 연결 핸들"><title>빈 곳으로 드래그: 연결된 새 카드 / 기존 카드로 드래그: 연결</title><rect x="${x-14}" y="${y-14}" width="28" height="28" fill="transparent"/><rect class="flow-port-mark" x="${x-6}" y="${y-6}" width="12" height="12" rx="1" fill="#fff" stroke="#4265ff" stroke-width="2"/></g>`;
     }
-    if(!model.items.length)out+=text(170,top+78,'프로젝트에 일정을 추가하고 선행 일정을 연결해 보세요.',15);
-    const warnings=model.edges.filter(e=>e.conflict||e.cycle||e.routingBlocked).length;
-    out+=text(28,height-48,'일요일–토요일 기준 · 카드 높이는 작업 기간, 화살표는 선행 관계를 나타냅니다.',11);
-    out+=text(28,height-27,`빨간 점선: 날짜 또는 연결 확인 ${warnings}건 · 화면 밖 선행 ${model.hiddenRefs}개${report?' (선택한 프로젝트만 포함)':''}`,11);
     return { markup:out+'</svg>',width,height,model };
   }
   return { key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
