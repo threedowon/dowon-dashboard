@@ -17,7 +17,7 @@ function render(){
  const q=$('pdfSearch').value.trim().toLocaleLowerCase();
  const shown=docs.filter(d=>(filter===null||(filter===''?!d.tags.length:d.tags.includes(filter)))&&[d.title,d.filename,...d.tags].join(' ').toLocaleLowerCase().includes(q));
  $('pdfCount').textContent=ready?shown.length+'개 문서'+(filter!==null?' · '+(filter||'태그 없음'):''):'';
- $('pdfList').innerHTML=shown.length?shown.map(d=>'<article class="pdf-card"><div class="pdf-emblem">PDF / '+esc(size(d.size))+'</div><h2>'+esc(d.title)+'</h2><p class="small">'+esc(d.filename)+'<br>'+esc(d.createdAt.slice(0,10))+' 추가</p><div class="pdf-card-tags">'+d.tags.map(t=>'<button class="tag" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join('')+'</div><div class="tools"><button class="btn primary" data-open="'+d.id+'">PDF 열기</button><button class="btn" data-edit="'+d.id+'">제목·태그 수정</button></div></article>').join(''):'<div class="empty">'+(!ready?'GitHub 연결 후 자료실을 불러와 주세요.':docs.length?'조건에 맞는 문서가 없어요.<br>검색어나 태그를 바꿔보세요.':'아직 보관한 PDF가 없어요.<br>PDF를 올리고 태그로 정리해 보세요.')+'</div>';
+ $('pdfList').innerHTML=shown.length?shown.map(d=>'<article class="pdf-card"><div class="pdf-emblem">PDF / '+esc(size(d.size))+'</div><h2>'+esc(d.title)+'</h2><p class="small">'+esc(d.filename)+'<br>'+esc(d.createdAt.slice(0,10))+' 추가</p><div class="pdf-card-tags">'+d.tags.map(t=>'<button class="tag" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join('')+'</div><div class="tools"><button class="btn primary" data-open="'+d.id+'">PDF 열기</button><button class="btn" data-edit="'+d.id+'">제목·태그 수정</button><button class="btn danger" data-delete="'+d.id+'">삭제</button></div></article>').join(''):'<div class="empty">'+(!ready?'GitHub 연결 후 자료실을 불러와 주세요.':docs.length?'조건에 맞는 문서가 없어요.<br>검색어나 태그를 바꿔보세요.':'아직 보관한 PDF가 없어요.<br>PDF를 올리고 태그로 정리해 보세요.')+'</div>';
 }
 async function load(){if(busy)return;busy=true;$('pdfRefresh').disabled=true;message('자료실 불러오는 중…');try{const data=await(await request('/api/library')).json();docs=data.documents;ready=true;message('비공개 자료실 · 업로드와 수정 내용은 바로 저장됩니다.');}catch(e){message(e.message,true);}finally{busy=false;$('pdfRefresh').disabled=false;$('pdfAdd').disabled=$('pdfDropzone').disabled=!ready;render();}}
 $('pdfConnect').onclick=()=>{sessionStorage.setItem('dowon:open-pdf','1');location.href=base+'/auth/login';};
@@ -58,6 +58,17 @@ $('pdfPage').addEventListener('drop',e=>{
 });
 window.addEventListener('dragend',clearDrag);
 $('pdfList').onclick=async e=>{
+ if(busy)return;
+ const deletion=e.target.closest('[data-delete]');
+ if(deletion){
+  const doc=docs.find(d=>d.id===deletion.dataset.delete);if(!doc)return;
+  if(!confirm('“'+doc.title+'”을 자료실에서 삭제할까요?\n파일: '+doc.filename+'\nPDF 파일과 목록에서 제거됩니다. 이전 파일은 GitHub 변경 기록에 남습니다.'))return;
+  formBusy(true);deletion.disabled=true;message('PDF 삭제 중…');
+  try{await request('/api/library/'+doc.id+'/delete',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({revision:doc.revision})});docs=docs.filter(d=>d.id!==doc.id);message('“'+doc.title+'”을 삭제했습니다.');}
+  catch(err){message('삭제 실패: '+err.message,true);}finally{formBusy(false);render();}
+  return;
+ }
+
  const tag=e.target.closest('[data-tag]');if(tag){filter=tag.dataset.tag;render();return;}
  const edit=e.target.closest('[data-edit]');if(edit){openForm(docs.find(d=>d.id===edit.dataset.edit));return;}
  const button=e.target.closest('[data-open]');if(!button)return;const doc=docs.find(d=>d.id===button.dataset.open);button.disabled=true;message('PDF 불러오는 중…');

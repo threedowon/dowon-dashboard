@@ -25,15 +25,15 @@ export async function library(req, token, gh, cors) {
   try {
     const path=new URL(req.url).pathname;
     if(path==='/api/library'&&req.method==='GET')return json((await snapshot()).data);
-    const match=path.match(/^\/api\/library\/([a-f0-9-]{36})(\/file)?$/);
-    if(match&&match[2]&&req.method==='GET'){
+    const match=path.match(/^\/api\/library\/([a-f0-9-]{36})(\/file|\/delete)?$/);
+    if(match&&match[2]==='/file'&&req.method==='GET'){
       const {data}=await snapshot(),doc=data.documents.find(d=>d.id===match[1]);
       if(!doc)fail('문서를 찾을 수 없습니다.',404);
       const r=await gh(root+'/contents/library/files/'+doc.id+'.pdf',token,{headers:{accept:'application/vnd.github.raw+json'}});
       if(!r.ok)fail('PDF를 불러오지 못했습니다.',502);
       return new Response(r.body,{headers:{...cors,'content-type':'application/pdf','content-disposition':"attachment; filename=\"document.pdf\"; filename*=UTF-8''"+encodeURIComponent(doc.filename),'cache-control':'no-store','x-content-type-options':'nosniff'}});
     }
-    let upload=null,edit=null,blob=null;
+    let upload=null,edit=null,blob=null,remove=null;
     if(path==='/api/library'&&req.method==='POST'){
       if(Number(req.headers.get('content-length'))>MAX_PDF+65536)fail('PDF 한 개당 10MB 이하로 올려주세요.',413);
       const form=await req.formData(),file=form.get('file');
@@ -43,22 +43,33 @@ export async function library(req, token, gh, cors) {
       if(new TextDecoder().decode(bytes.subarray(0,5))!=='%PDF-')fail('올바른 PDF 파일이 아닙니다.');
       upload={id:crypto.randomUUID(),...metadata(form.get('title'),JSON.parse(form.get('tags')||'[]')),filename:file.name.slice(0,200),size:file.size,createdAt:new Date().toISOString(),revision:crypto.randomUUID()};
       blob=await checked(await call('/git/blobs',{content:base64(bytes),encoding:'base64'}));
+    }else if(match&&match[2]==='/delete'&&req.method==='POST'){
+      const body=await req.json();
+      if(typeof body.revision!=='string'||!body.revision)fail('문서 버전을 확인한 뒤 다시 삭제해주세요.');
+      remove={id:match[1],revision:body.revision};
     }else if(match&&!match[2]&&req.method==='POST'){
       const body=await req.json();edit={id:match[1],...metadata(body.title,body.tags),revision:body.revision};
     }else return json({error:'Not found'},404);
     for(let attempt=0;attempt<3;attempt++){
       const snap=await snapshot();let doc;
       if(upload){if(snap.data.documents.length>=1000)fail('자료실은 최대 1,000개 문서를 지원합니다.');doc=upload;snap.data.documents.unshift(doc);}
-      else {doc=snap.data.documents.find(d=>d.id===edit.id);if(!doc)fail('문서를 찾을 수 없습니다.',404);if(doc.revision!==edit.revision)fail('다른 기기에서 수정된 문서입니다. 새로고침 후 다시 수정해주세요.',409);Object.assign(doc,{title:edit.title,tags:edit.tags,revision:crypto.randomUUID(),updatedAt:new Date().toISOString()});}
+      else {
+        const change=remove||edit;doc=snap.data.documents.find(d=>d.id===change.id);
+        if(!doc)fail('문서를 찾을 수 없습니다.',404);
+        if(doc.revision!==change.revision)fail('다른 기기에서 수정된 문서입니다. 새로고침 후 다시 시도해주세요.',409);
+        if(remove)snap.data.documents=snap.data.documents.filter(d=>d.id!==remove.id);
+        else Object.assign(doc,{title:edit.title,tags:edit.tags,revision:crypto.randomUUID(),updatedAt:new Date().toISOString()});
+      }
       const content=JSON.stringify(snap.data);
       if(new TextEncoder().encode(content).length>900000)fail('자료실 목록 저장 용량을 초과했습니다.');
       const tree=[{path:indexPath,mode:'100644',type:'blob',content}];
       if(upload)tree.push({path:'library/files/'+upload.id+'.pdf',mode:'100644',type:'blob',sha:blob.sha});
+      if(remove)tree.push({path:'library/files/'+remove.id+'.pdf',mode:'100644',type:'blob',sha:null});
       const built=await checked(await call('/git/trees',{base_tree:snap.tree,tree}));
-      const commit=await checked(await call('/git/commits',{message:upload?'Add PDF to library':'Update PDF title and tags',tree:built.sha,parents:[snap.head]}));
+      const commit=await checked(await call('/git/commits',{message:upload?'Add PDF to library':remove?'Delete PDF from library':'Update PDF title and tags',tree:built.sha,parents:[snap.head]}));
       const saved=await call('/git/refs/heads/main',{sha:commit.sha,force:false},'PATCH');
       if(saved.status===409||saved.status===422)continue;
-      await checked(saved);return json({document:doc,commit:commit.sha});
+      await checked(saved);return json(remove?{deleted:remove.id,commit:commit.sha}:{document:doc,commit:commit.sha});
     }
     fail('다른 저장 작업과 겹쳤습니다. 잠시 후 다시 저장해주세요.',409);
   }catch(e){return json({error:e.status?e.message:'자료실 요청을 처리하지 못했습니다. 다시 시도해주세요.'},e.status||500);}
