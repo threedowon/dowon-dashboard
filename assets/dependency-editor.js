@@ -162,7 +162,7 @@ globalThis.DependencyEditor = {
     }
     function activate(target){
       if(!isActive())return;
-      if(target.closest('[data-flow-status-select],[data-resize]'))return;
+      if(target.closest('[data-flow-status-select],[data-resize],.flow-add-column'))return;
       const port=target.closest('[data-port-node]'),node=target.closest('[data-m]'),line=target.closest('[data-edge-from]');
       if(port){if(pending&&pending.id!==port.dataset.portNode)finish(port.dataset.portNode,port.dataset.side);else start(portInfo(port));}
       else if(node){if(pending)finish(node.dataset.m);else selectNode(node.dataset.m);}
@@ -199,7 +199,7 @@ globalThis.DependencyEditor = {
     }
     board.addEventListener('pointerdown',e=>{
       if(!isActive()||e.button!==0)return;
-      if(e.target.closest('[data-flow-status-select]'))return;
+      if(e.target.closest('[data-flow-status-select],.flow-add-column'))return;
       const port=e.target.closest('[data-port-node]'),node=e.target.closest('.flow-node'),resize=e.target.closest('[data-resize]');
       if(resize){
         e.preventDefault();pending=null;clearPreview();selectNode(resize.dataset.resizeNode);
@@ -247,7 +247,7 @@ globalThis.DependencyEditor = {
     board.addEventListener('click',e=>{if(!isActive()||Date.now()<suppressClickUntil)return;activate(e.target);});
     board.addEventListener('keydown',e=>{
       if(!isActive())return;
-      if(e.target.closest('[data-flow-status-select]'))return;
+      if(e.target.closest('[data-flow-status-select],.flow-add-column'))return;
       if(e.key==='Escape'){e.preventDefault();cancel();return;}
       const handle=e.target.closest('[data-resize]');
       if(handle&&(e.key==='ArrowUp'||e.key==='ArrowDown')){

@@ -21,3 +21,5 @@ html[data-active-page="milestones"] .app{max-width:1600px}
 .flow-new-preview{pointer-events:none}@media print{.flow-new-preview{display:none!important}}
 
 .roadmap-board[data-view="timeline"] [data-m]:hover,.roadmap-board[data-view="timeline"] [data-m]:focus{filter:none}.roadmap-board[data-view="timeline"] [data-m]:hover>rect:first-of-type,.roadmap-board[data-view="timeline"] [data-m]:focus>rect:first-of-type{stroke:#11563f;stroke-width:2}.roadmap-toolbar:has(.roadmap-legend[hidden]){justify-content:flex-end}
+
+.flow-add-column button{display:block;box-sizing:border-box;width:100%;height:100%;margin:0;padding:0 10px;border:1px solid #9ca995;border-radius:5px;background:#fffdf2;color:#11563f;font:600 11px "Pretendard Variable","Malgun Gothic",sans-serif;cursor:pointer;touch-action:manipulation}.flow-add-column button:hover:not(:disabled){background:#e4e9df;border-color:#537264}.flow-add-column button:focus-visible{outline:2px solid #4265ff;outline-offset:-3px}.flow-add-column button:disabled{opacity:.4;cursor:default}@media print{.flow-add-column{display:none!important}}

@@ -132,10 +132,10 @@ html[data-active-page="home"] .side{display:none}
 #homePage{padding-top:64px;padding-bottom:48px}
 @media(max-width:650px){#homePage{padding-top:28px;padding-bottom:28px}}
 </style>
-<link rel="stylesheet" href="assets/roadmap.css?v=20261118-timeline-tone">
+<link rel="stylesheet" href="assets/roadmap.css?v=20261118-column-button">
 <script src="assets/roadmap.js?v=20261118-timeline-tone"></script>
-<script src="assets/dependency-map.js?v=20261118-straight-edges"></script>
-<script src="assets/dependency-editor.js?v=20261118-straight-edges"></script>
+<script src="assets/dependency-map.js?v=20261118-column-button"></script>
+<script src="assets/dependency-editor.js?v=20261118-column-button"></script>
 <link rel="stylesheet" href="assets/ideas-board.css?v=20261118-inline">
 <script src="assets/ideas-board.js?v=20261118-inline"></script>
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
@@ -209,7 +209,7 @@ html[data-active-page="home"] .side{display:none}
 <div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
 <div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">100%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
-<div id="flowToolbar" class="flow-toolbar"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools"><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" id="mapAddColumn">＋ 열 추가</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
+<div id="flowToolbar" class="flow-toolbar"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools"><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
 </div>
 <div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
 <p class="small roadmap-help" id="mapHelp">위·아래 테두리 드래그: 시작일·종료일 변경 / 카드 본문 드래그: 열 이동 / 네모 핸들: 빈 곳에 새 카드 만들기 · 기존 카드 연결. 테두리에 키보드 초점을 두고 ↑ ↓로도 날짜를 조절할 수 있어요.</p>
@@ -332,7 +332,7 @@ function renderOverview(){
  applyMapZoom();
  flowEditor?.refresh();
  syncUndo();
- $("mapAddColumn").disabled=readonly||!mapDrawing?.model?.columns||mapDrawing.model.columns.length>=100;
+ if($("mapAddColumn"))$("mapAddColumn").disabled=readonly||mapDrawing.model.columns.length>=100;
 }
 
 function persist(){if(readonly)return;editHistory.record(editableSnapshot());syncUndo();try{localStorage.setItem(key,JSON.stringify(state));$("saveState").textContent="● 이 기기에 저장됨";}catch{$("saveState").textContent="⚠ 저장 실패 — JSON 백업 필요";}milestoneCloud?.changed();}
@@ -392,7 +392,7 @@ document.querySelectorAll("[data-map-view]").forEach(b=>b.onclick=()=>{state.map
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();});
 function openRoadmapProject(e){const bar=e.target.closest("[data-m]");if(!bar)return;const m=Roadmap.portfolio(selectedProjects()).milestones.find(m=>m.id===bar.dataset.m);if(m)location.hash=projectHref(m.projectId);}
 $("roadmapBoard").onkeydown=e=>{if(state.mapView!=="timeline")return;if(e.target.closest("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRoadmapProject(e);}};
-$("roadmapBoard").onclick=e=>{if(state.mapView==="timeline")openRoadmapProject(e);};
+$("roadmapBoard").onclick=e=>{if(e.target.closest("#mapAddColumn")){addMapColumn();return;}if(state.mapView==="timeline")openRoadmapProject(e);};
 $("milestones").onclick=$("dayItems").onclick=e=>{let b=e.target.closest("[data-m]");if(b)open("milestone",b.dataset.m);};
 $("calgrid").onclick=e=>{let b=e.target.closest("[data-day]");if(b){selected=b.dataset.day;drawCalendar();}};
 $("prevMonth").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);drawCalendar();};
@@ -438,10 +438,11 @@ $("share").onclick=()=>exportRoadmap("html");
 $("exportPng").onclick=()=>exportRoadmap("png");
 $("printRoadmap").onclick=()=>window.print();
 
-$("mapAddColumn").onclick=()=>{
+function addMapColumn(){
  if(readonly||!mapDrawing?.model?.columns)return;
  const count=mapDrawing.model.columns.length;if(count>=100)return;
  state.mapColumns=count+1;persist();renderOverview();
+ $("mapAddColumn")?.focus({preventScroll:true});
  $("flowToolbar").querySelector("[data-flow-status]").textContent=(count+1)+"열을 추가했어요. 카드나 네모 핸들을 끌어 놓으세요.";
 };
 flowEditor=DependencyEditor.attach({

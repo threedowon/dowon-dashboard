@@ -342,6 +342,7 @@ globalThis.DependencyMap = (() => {
     out += rect(100,top-42,12,12,'#ffe27a','stroke="#9ca995"') + text(118,top-31,'진행중',11);
     out += rect(172,top-42,12,12,'#d5e5fc','stroke="#9ca995"') + text(190,top-31,'완료',11);
     if(report)out += text(252,top-31,'공유 시점 '+today,11);
+    if(interactive)out+=`<foreignObject class="flow-add-column" x="24" y="${top-27}" width="120" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" id="mapAddColumn" aria-label="오른쪽에 열 추가" ${model.columns.length>=100?'disabled="disabled"':''}>＋ 열 추가</button></foreignObject>`;
     for (const col of model.columns) out += text(col.x+12,top-8,`${col.index+1}열`,11,'#537264');
     for (const week of model.weeks) {
       const active = week.start !== null && Roadmap.date(today) >= week.start && Roadmap.date(today) < week.end;
