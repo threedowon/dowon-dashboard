@@ -57,18 +57,24 @@ $('pdfPage').addEventListener('drop',e=>{
  openForm();pending=files;$('pdfFiles').required=false;$('pdfSelected').textContent=files.map(f=>f.name+' ('+size(f.size)+')').join(' · ');saveForm();
 });
 window.addEventListener('dragend',clearDrag);
+let deleting=null;
+$('pdfDeleteCancel').onclick=()=>$('pdfDeleteModal').close();
+$('pdfDeleteModal').addEventListener('cancel',e=>{if(busy)e.preventDefault();});
+$('pdfDeleteConfirm').onclick=async()=>{
+ if(busy||!deleting)return;const doc=deleting;
+ formBusy(true);$('pdfDeleteCancel').disabled=$('pdfDeleteConfirm').disabled=true;$('pdfDeleteStatus').textContent='삭제 중…';
+ try{await request('/api/library/'+doc.id+'/delete',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({revision:doc.revision})});docs=docs.filter(d=>d.id!==doc.id);$('pdfDeleteModal').close();message('“'+doc.title+'”을 삭제했습니다.');}
+ catch(err){$('pdfDeleteStatus').textContent='삭제 실패: '+err.message;}
+ finally{formBusy(false);$('pdfDeleteCancel').disabled=$('pdfDeleteConfirm').disabled=false;render();}
+};
 $('pdfList').onclick=async e=>{
  if(busy)return;
  const deletion=e.target.closest('[data-delete]');
  if(deletion){
-  const doc=docs.find(d=>d.id===deletion.dataset.delete);if(!doc)return;
-  if(!confirm('“'+doc.title+'”을 자료실에서 삭제할까요?\n파일: '+doc.filename+'\nPDF 파일과 목록에서 제거됩니다. 이전 파일은 GitHub 변경 기록에 남습니다.'))return;
-  formBusy(true);deletion.disabled=true;message('PDF 삭제 중…');
-  try{await request('/api/library/'+doc.id+'/delete',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({revision:doc.revision})});docs=docs.filter(d=>d.id!==doc.id);message('“'+doc.title+'”을 삭제했습니다.');}
-  catch(err){message('삭제 실패: '+err.message,true);}finally{formBusy(false);render();}
-  return;
+  deleting=docs.find(d=>d.id===deletion.dataset.delete);if(!deleting)return;
+  $('pdfDeleteName').textContent=deleting.title+' ('+deleting.filename+')';
+  $('pdfDeleteStatus').textContent='';$('pdfDeleteModal').showModal();return;
  }
-
  const tag=e.target.closest('[data-tag]');if(tag){filter=tag.dataset.tag;render();return;}
  const edit=e.target.closest('[data-edit]');if(edit){openForm(docs.find(d=>d.id===edit.dataset.edit));return;}
  const button=e.target.closest('[data-open]');if(!button)return;const doc=docs.find(d=>d.id===button.dataset.open);button.disabled=true;message('PDF 불러오는 중…');
