@@ -140,6 +140,8 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/ideas-board.js?v=20261118-inline"></script>
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
 <script src="assets/milestone-sync.js?v=20261118-autosave"></script>
+<link rel="stylesheet" href="library.css?v=20261118-inline-upload">
+<link rel="stylesheet" href="assets/workspace-layout.css?v=20261118-spacing">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div>
@@ -190,11 +192,11 @@ html[data-active-page="home"] .side{display:none}
 <div class="ideas-toolbar" role="toolbar" aria-label="레퍼런스 보드 도구"><button class="btn primary" id="ideasImage">＋ 이미지</button><button class="btn" id="ideasLink">영상·링크</button><button class="btn" id="ideasNote">메모</button><button class="btn" id="ideasUndo" title="Ctrl+Z" disabled>↶</button><button class="btn" id="ideasRedo" title="Ctrl+Shift+Z" disabled>↷</button><button class="btn" id="ideasEdit" disabled>내용 수정</button><button class="btn" id="ideasDelete" disabled>삭제</button><div class="ideas-zoom-tools"><button class="btn" id="ideasZoomOut" aria-label="보드 축소">−</button><output id="ideasZoom">100%</output><button class="btn" id="ideasZoomIn" aria-label="보드 확대">＋</button><button class="btn" id="ideasFit">전체 보기</button></div></div>
 <div class="ideas-viewport" id="ideasViewport" tabindex="0" aria-label="프로젝트 레퍼런스 보드. 이미지나 영상 URL을 붙여넣으세요."><div class="ideas-world" id="ideasWorld"></div><div class="ideas-empty" id="ideasEmpty"><span class="ideas-empty-symbol" aria-hidden="true">✧</span><h2 id="ideasEmptyTitle">프로젝트를 선택해 보드를 시작하세요</h2><p>이미지 복사 후 Ctrl+V · 영상 URL 붙여넣기<br>파일을 끌어놓거나 위의 도구로 자료를 추가할 수도 있어요.</p></div></div>
 <p class="ideas-help">메모는 메모지 안에서 바로 입력 · 카드 위 이동 핸들을 끌어 배치 · 모서리로 크기 조절 · 빈 공간 드래그로 보드 이동 · Ctrl+휠로 확대/축소 · Ctrl+Z로 실행 취소<br>영상: YouTube / Vimeo / MP4·WebM URL · 이미지: 파일당 최대 20MB</p>
-<div class="tools" style="margin-top:12px"><button class="btn" id="ideasConnect">GitHub 연결</button><button class="btn" id="ideasRefresh">동기화</button><button class="btn" id="ideasResolve" hidden>내 변경을 복사해 보관하고 최신 보드 열기</button></div>
-<div class="ideas-save-row"><p class="small" id="ideasStatus" role="status" aria-live="polite">보드를 준비하고 있어요…</p><details><summary>보드 백업·불러오기</summary><p class="small">GitHub 연결 후 이미지·영상·메모와 배치가 비공개 저장소에 자동 저장됩니다.<br>다른 컴퓨터에서도 같은 GitHub 계정으로 연결하면 이어서 볼 수 있어요. 오프라인 변경은 이 기기에 보관됩니다.</p><div class="tools"><button class="btn" id="ideasExport">보드 백업</button><button class="btn" id="ideasImport">백업 추가하기</button><button class="btn" id="ideasRetry">다시 저장</button></div></details></div>
+<div class="ideas-sync-strip"><p class="small" id="ideasStatus" role="status" aria-live="polite">보드를 준비하고 있어요…</p><div class="tools"><button class="btn" id="ideasConnect">GitHub 연결</button><button class="btn" id="ideasRefresh">동기화</button><button class="btn" id="ideasResolve" hidden>내 변경을 복사해 보관하고 최신 보드 열기</button></div></div>
+<div class="ideas-save-row"><details><summary>보드 백업·불러오기</summary><p class="small">GitHub 연결 후 이미지·영상·메모와 배치가 비공개 저장소에 자동 저장됩니다.<br>다른 컴퓨터에서도 같은 GitHub 계정으로 연결하면 이어서 볼 수 있어요. 오프라인 변경은 이 기기에 보관됩니다.</p><div class="tools"><button class="btn" id="ideasExport">보드 백업</button><button class="btn" id="ideasImport">백업 추가하기</button><button class="btn" id="ideasRetry">다시 저장</button></div></details></div>
 </section>
 <section id="milestonesPage" data-screen="milestones" aria-labelledby="projectsTitle" hidden>
-<div class="sectionhead editable milestone-sync" style="flex-wrap:wrap;margin-bottom:20px"><p class="small" id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p><div class="tools"><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave">동기화</button><button class="btn" id="cloudRestore" hidden>내 변경 JSON 보관 후 최신 일정 열기</button></div></div>
+<div id="milestoneSync" class="sectionhead editable milestone-sync"><p class="small" id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p><div class="tools"><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave">동기화</button><button class="btn" id="cloudRestore" hidden>내 변경 JSON 보관 후 최신 일정 열기</button></div></div>
 <div id="projectOverview">
 <div class="page-top"><span class="eyebrow">PROJECTS / OVERVIEW</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="head projects-heading"><div><h1 id="projectsTitle" tabindex="-1">프로젝트</h1><p class="page-intro">전체 흐름은 한눈에, 자세한 일정은 프로젝트 안에서.</p></div><button class="btn primary editable" id="newProject">＋ 프로젝트 추가</button></div>
@@ -203,10 +205,12 @@ html[data-active-page="home"] .side{display:none}
 <div id="projectList" class="project-list"></div>
 <section id="roadmapView">
 <div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2>한눈에 보는 프로젝트 일정</h2><p class="small">목록에서 체크한 프로젝트만 모아 보고 공유하세요.</p></div><span class="small" id="selectionSummary" role="status"></span></div>
+<div class="roadmap-controls">
 <div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
 <div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">100%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
 <div id="flowToolbar" class="flow-toolbar"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools"><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" id="mapAddColumn">＋ 열 추가</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
+</div>
 <div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
 <p class="small roadmap-help" id="mapHelp">위·아래 테두리 드래그: 시작일·종료일 변경 / 카드 본문 드래그: 열 이동 / 네모 핸들: 빈 곳에 새 카드 만들기 · 기존 카드 연결. 테두리에 키보드 초점을 두고 ↑ ↓로도 날짜를 조절할 수 있어요.</p>
 <p id="exportStatus" class="small" role="status" aria-live="polite"></p>
@@ -231,7 +235,7 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfModal" aria-labelledby="pdfModalTitle"><h2 id="pdfModalTitle">PDF 올리기</h2><form id="pdfForm" class="formgrid"><label id="pdfFileLabel">PDF 파일 (여러 개 선택 가능)<input id="pdfFiles" type="file" accept=".pdf,application/pdf" multiple></label><p id="pdfSelected" class="small"></p><label id="pdfNameLabel">제목<input id="pdfName" maxlength="200"></label><label>태그<input id="pdfTagInput" placeholder="예: 설계, 참고자료, 회의" maxlength="820"><span class="small">쉼표로 구분해주세요. 최대 20개, 각 40자까지.</span></label><p id="pdfFormStatus" class="small" role="status" aria-live="polite"></p><div class="tools"><button type="button" class="btn" id="pdfCancel">취소</button><button class="btn primary" id="pdfSubmit">저장</button></div></form></dialog>
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
-<link rel="stylesheet" href="library.css?v=20261118-inline-upload"><script src="library.js?v=20261118-inline-upload" defer></script>
+<script src="library.js?v=20261118-inline-upload" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){
@@ -276,6 +280,8 @@ function route(focus=false){
   state.selectedId=project.id;
  }
  detailId=project?.id||null;
+ const syncAnchor=$(detailId?"projectDetail":"projectOverview").querySelector(".head");
+ if(syncAnchor.nextElementSibling!==$("milestoneSync"))syncAnchor.after($("milestoneSync"));
  document.querySelectorAll("[data-screen]").forEach(el=>el.hidden=el.dataset.screen!==page);
  document.querySelectorAll("[data-page]").forEach(el=>{if(el.dataset.page===page)el.setAttribute("aria-current","page");else el.removeAttribute("aria-current");});
  document.documentElement.dataset.activePage=page;

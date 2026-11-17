@@ -1,0 +1,268 @@
+/* Shared screen layout. Canvas coordinates and exported/printed diagrams stay in their own styles. */
+@media screen {
+  :root {
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --page-gutter: clamp(16px, 2.4vw, 36px);
+    --content-width: 1680px;
+  }
+
+  .app, html[data-active-page] .app {
+    width: 100%;
+    max-width: var(--content-width);
+    padding: 0 var(--page-gutter);
+    margin-inline: auto;
+  }
+  .main { min-width: 0; padding: 0 0 var(--space-8); }
+  .main > [data-screen] { min-width: 0; }
+  .side, html[data-active-page="home"] .side {
+    display: flex;
+    min-height: 72px;
+    padding: var(--space-4) 0;
+    gap: var(--space-3) var(--space-8);
+  }
+  .brand { margin: 0; font-size: 20px; }
+  .workspace-nav { gap: var(--space-6); align-items: center; }
+  .workspace-link { display: flex; align-items: center; min-height: 36px; padding: 6px 0; }
+  .page-top { min-height: 42px; padding: var(--space-4) 0 0; border: 0; gap: var(--space-3); }
+  .back-link, .eyebrow { line-height: 1.5; }
+
+  .head, .projects-heading, .placeholder-heading, .ideas-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+    margin: var(--space-4) 0 var(--space-6);
+  }
+  .head > div:first-child, .library-heading > div:first-child, .ideas-heading > div:first-child { min-width: 0; }
+  .head h1, .placeholder-heading h1, .ideas-heading h1 {
+    font-size: clamp(25px, 2.2vw, 32px);
+    font-weight: 650;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    margin: 0;
+  }
+  .placeholder-heading .availability, .ideas-heading .availability { display: none; }
+  .page-intro { margin: var(--space-2) 0 0; line-height: 1.65; overflow-wrap: anywhere; }
+  .sectionhead { min-width: 0; flex-wrap: wrap; gap: var(--space-3) var(--space-4); margin: 0 0 var(--space-3); }
+  .sectionhead h2 { line-height: 1.4; }
+  .small { line-height: 1.65; }
+  .tools { gap: var(--space-2); min-width: 0; }
+  .btn { min-height: 36px; padding: 8px 12px; line-height: 1.35; }
+  .tools > .btn { max-width: 100%; }
+  label { min-width: 0; gap: var(--space-2); }
+  input:not([type="checkbox"]):not([type="radio"]), .formgrid select, .ideas-project-row select { min-height: 40px; padding: 9px 12px; }
+  .empty { padding: var(--space-8) var(--space-6); line-height: 1.8; }
+  p:empty, .library-tags:empty, .pdf-card-tags:empty { display: none; }
+
+  /* Home: the three entry points use the same gutters as the working pages. */
+  #homePage { padding: var(--space-8) 0; }
+  .catalog-grid { gap: 0; padding: var(--space-6) 0; }
+  .catalog-card { min-height: 320px; padding: 0 var(--space-8); }
+  .catalog-card:first-child { padding-left: 0; }
+  .catalog-card:last-child { padding-right: 0; }
+  .catalog-symbol { min-height: 150px; padding: var(--space-6) 0; }
+  .catalog-symbol svg { width: 88px; height: 80px; }
+  .catalog-details p { min-height: 46px; margin: 0 0 var(--space-3); }
+  .catalog-link { margin-top: var(--space-4); }
+
+  /* Project list, roadmap controls and detail use a compact, shared rhythm. */
+  .milestone-sync, .ideas-sync-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    margin: 0 0 var(--space-6);
+    background: #e5e9df;
+    border: 1px solid #c3cebf;
+    border-radius: 4px;
+  }
+  .milestone-sync p, .ideas-sync-strip p { margin: 0; flex: 1 1 240px; }
+  .milestone-sync .tools, .ideas-sync-strip .tools { flex: 0 1 auto; }
+  #projectOverview > p.small { margin: 0 0 var(--space-3); }
+  .project-list-row { padding: var(--space-4); gap: var(--space-6); }
+  .project-check { flex-basis: 104px; }
+  .project-detail-link { grid-template-columns: minmax(0, 1fr) 116px 180px 84px; gap: var(--space-6); }
+  .project-summary h3 { margin: 0 0 6px; font-size: 17px; }
+  #projectOverview > #roadmapView { margin-top: var(--space-8); }
+  .roadmap-heading { margin: 0 0 var(--space-4); }
+  .roadmap-heading h2 { font-size: 22px; margin: 6px 0; }
+  .roadmap-heading p { margin: 0; }
+  .roadmap-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-3);
+  }
+  .map-view-switch, .roadmap-toolbar, .map-zoom, .flow-toolbar { margin: 0; }
+  .map-view-switch { gap: var(--space-2); flex-wrap: wrap; }
+  .roadmap-toolbar { justify-content: flex-end; gap: var(--space-3); }
+  .roadmap-legend { gap: var(--space-3); }
+  .map-zoom, .flow-toolbar { grid-column: 1 / -1; }
+  .map-zoom { gap: var(--space-2); }
+  .flow-toolbar { padding: var(--space-3); gap: var(--space-2) var(--space-4); }
+  .flow-toolbar p { min-width: min(220px, 100%); }
+  .flow-toolbar .tools { justify-content: flex-start; }
+  .roadmap-board { max-height: min(72vh, 900px); border-radius: 6px; }
+  .roadmap-help { margin: var(--space-3) 0 0; }
+  #exportStatus { margin: var(--space-2) 0 0; }
+  .milestone-back { margin: var(--space-6) 0 var(--space-4); }
+  #projectDetail .top { gap: var(--space-3); flex-wrap: wrap; }
+  #projectDetail .head { margin: var(--space-3) 0 var(--space-4); }
+  #desc { margin-top: var(--space-2); line-height: 1.65; overflow-wrap: anywhere; }
+  .stats { gap: var(--space-3); margin: 0 0 var(--space-6); }
+  .stat, .item, .log, .daydetails { padding: var(--space-4); }
+  .stat b { margin-top: var(--space-2); }
+  .tabs { gap: var(--space-6); margin: 0 0 var(--space-4); }
+  .tab { padding: var(--space-3) 0; }
+  .items { gap: var(--space-3); }
+  .item h3 { margin: 0 0 var(--space-2); line-height: 1.5; }
+  .item p, .log p { margin: var(--space-2) 0 0; line-height: 1.65; }
+  .log { margin-bottom: var(--space-3); }
+  .calendar { padding: var(--space-3); }
+  .calhead { gap: var(--space-2); padding: 0 0 var(--space-3); }
+  .calhead > div { display: flex; gap: 6px; }
+  .calgrid { gap: 6px; }
+  .day { min-height: 100px; padding: var(--space-2); }
+  .daydetails { margin-top: var(--space-4); }
+  .daydetails .item { margin-top: var(--space-2); padding: var(--space-3); }
+  .project-backup { margin: var(--space-6) 0 0; padding-top: var(--space-4); }
+  .project-backup p { margin: var(--space-3) 0; line-height: 1.7; }
+  .project-backup .tools { margin: var(--space-3) 0 0; }
+
+  /* Library: upload, search and results form one continuous workspace. */
+  .pdf-dropzone { gap: 6px; padding: var(--space-6); margin: 0 0 var(--space-6); border-radius: 4px; }
+  .pdf-dropzone strong { font-size: 16px; line-height: 1.5; }
+  .pdf-dropzone span { line-height: 1.6; }
+  .pdf-dropzone:hover, .pdf-dragging .pdf-dropzone { border-width: 1px; }
+  .library-toolbar { gap: var(--space-3); padding: 0; border: 0; }
+  .library-toolbar label { max-width: none; }
+  #pdfStatus { margin: var(--space-3) 0; }
+  .library-tags { gap: var(--space-2); margin: var(--space-4) 0 var(--space-3); }
+  #pdfCount { margin: 0 0 var(--space-3); }
+  .library-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--space-4); }
+  .pdf-card { padding: var(--space-4); gap: var(--space-3); border-radius: 4px; }
+  .pdf-card h2 { font-size: 17px; }
+  .pdf-emblem { padding-bottom: var(--space-3); }
+  .pdf-card .tools { gap: 6px; padding-top: var(--space-2); }
+  .pdf-card .btn { font-size: 12px; padding: 8px 10px; }
+  .library-grid > .empty { padding: 40px var(--space-6); }
+  .library-note { margin: var(--space-6) 0 0; }
+
+  /* Reference board: prioritize the canvas, keep secondary help below it. */
+  .ideas-project-row { gap: var(--space-3); margin: 0 0 var(--space-4); }
+  .ideas-project-row label { min-width: 0; max-width: 360px; }
+  .ideas-project-row select { padding: 9px 12px; border-radius: 4px; }
+  .ideas-project-row .small { margin-block: 0; }
+  .ideas-toolbar { gap: 6px; padding: var(--space-2); border-radius: 6px 6px 0 0; }
+  .ideas-toolbar .btn { padding: 8px 10px; }
+  .ideas-toolbar .ideas-zoom-tools { gap: 6px; }
+  .ideas-viewport { height: clamp(360px, calc(100dvh - 330px), 900px); border-radius: 0 0 6px 6px; }
+  .ideas-help { margin: var(--space-3) 0; line-height: 1.7; }
+  .ideas-sync-strip { margin: var(--space-3) 0 0; }
+  .ideas-save-row { justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-3); }
+  .ideas-save-row details { width: 100%; border-top: 1px solid #b1c0b2; padding-top: var(--space-3); }
+  .ideas-save-row details p { margin: var(--space-3) 0; }
+  .ideas-save-row .tools { justify-content: flex-start; margin: 0; }
+
+  /* Consistent form spacing, including the PDF viewer. */
+  dialog { max-height: calc(100dvh - 32px); overflow: auto; padding: var(--space-6); }
+  dialog h2 { margin: 0 0 var(--space-6); line-height: 1.4; }
+  .formgrid { gap: var(--space-4); }
+  .date-fields { gap: var(--space-3); }
+  .footer { gap: var(--space-3); margin-top: var(--space-6); flex-wrap: wrap; }
+  .footer > div { display: flex; gap: var(--space-2); }
+  #pdfViewer { width: min(1280px, calc(100vw - 32px)); height: calc(100dvh - 32px); max-height: none; }
+  #pdfViewer[open] { display: flex; flex-direction: column; gap: var(--space-3); }
+  #pdfViewer .sectionhead, #pdfViewer h2, #pdfViewer p { margin: 0; }
+  #pdfFrame { display: block; flex: 1; min-height: 0; height: auto; }
+}
+
+@media screen and (max-width: 1000px) {
+  .project-detail-link { grid-template-columns: minmax(0, 1fr) 100px 80px; gap: var(--space-4); }
+  .roadmap-controls { grid-template-columns: minmax(0, 1fr); }
+  .roadmap-toolbar { justify-content: flex-start; }
+  .roadmap-toolbar:has(.roadmap-legend[hidden]) { justify-content: flex-start; }
+  .flow-toolbar { align-items: flex-start; }
+  .flow-toolbar p { flex-basis: 100%; }
+  .catalog-card { padding-inline: var(--space-6); }
+}
+
+@media screen and (max-width: 700px) {
+  .side, html[data-active-page="home"] .side { gap: var(--space-2); padding: var(--space-4) 0 var(--space-3); }
+  .workspace-nav { width: 100%; margin: 0; justify-content: flex-start; gap: var(--space-4); }
+  .workspace-link { font-size: 12px; min-height: 36px; }
+  .page-top { padding-top: var(--space-3); min-height: 36px; }
+  .head, .projects-heading, .placeholder-heading, .ideas-heading { margin: var(--space-3) 0 var(--space-4); gap: var(--space-3); }
+  .library-heading .tools { width: auto; }
+  .sectionhead { align-items: flex-start; }
+  .tools { justify-content: flex-start; }
+  .btn { min-height: 40px; }
+  #homePage { padding: var(--space-6) 0; }
+  .catalog-grid { grid-template-columns: 1fr; padding: 0; border-bottom: 0; }
+  .catalog-card, .catalog-card:first-child, .catalog-card:last-child {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: var(--space-4);
+    min-height: 0;
+    padding: var(--space-6) 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .catalog-card-head { grid-column: 1 / -1; }
+  .catalog-symbol { grid-column: 2; grid-row: 2; min-height: 0; padding: 0; align-self: center; }
+  .catalog-symbol svg { width: 64px; height: 64px; }
+  .catalog-details { grid-column: 1; grid-row: 2; margin: 0; }
+  .catalog-details p { min-height: 0; }
+  .catalog-link { grid-column: 1 / -1; margin-top: 0; }
+  .milestone-sync, .ideas-sync-strip { padding: var(--space-3); margin-bottom: var(--space-4); }
+  .milestone-sync p, .ideas-sync-strip p { flex-basis: 100%; }
+  .project-list-row { flex-direction: column; align-items: stretch; padding: var(--space-3); gap: var(--space-3); }
+  .project-check { flex-basis: auto; min-height: 28px; }
+  .project-detail-link { grid-template-columns: minmax(0, 1fr) 76px; gap: var(--space-3); }
+  .project-open { grid-column: 1 / -1; }
+  .project-next { display: none; }
+  #projectOverview > #roadmapView { margin-top: var(--space-6); }
+  .roadmap-heading h2 { font-size: 20px; }
+  .map-zoom .small { width: 100%; margin: 0; }
+  .roadmap-board { max-height: 70vh; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); margin-bottom: var(--space-4); }
+  .stats .stat:last-child { grid-column: 1 / -1; }
+  .stat { padding: var(--space-3); }
+  .calendar { padding: var(--space-2); }
+  .calhead { flex-wrap: wrap; }
+  .calgrid { gap: 3px; }
+  .day { min-height: 76px; padding: 3px; }
+  .weekday { padding: var(--space-2) 0; }
+  .tabs { gap: var(--space-4); }
+  .pdf-dropzone { padding: var(--space-4); margin-bottom: var(--space-4); }
+  .library-toolbar { gap: var(--space-2); }
+  .ideas-project-row { flex-wrap: wrap; gap: var(--space-2); }
+  .ideas-project-row label { flex: 1 1 100%; max-width: none; }
+  .ideas-project-row .small { width: auto; margin-left: auto; }
+  .ideas-toolbar .ideas-zoom-tools { flex: 1 1 100%; margin: 0; }
+  .ideas-viewport { min-height: 360px; height: 60dvh; }
+  .ideas-help { font-size: 11px; }
+  dialog { padding: var(--space-4); }
+  dialog h2 { margin-bottom: var(--space-4); }
+  .footer { margin-top: var(--space-4); }
+  #pdfViewer { padding: var(--space-3); }
+}
+
+@media screen and (max-width: 380px) {
+  .workspace-nav { gap: 6px 12px; }
+  .workspace-link { font-size: 11px; }
+  .page-top { flex-wrap: wrap; }
+  .date-fields { grid-template-columns: 1fr; }
+  .calhead #today { padding-inline: 8px; }
+}
+
+@media print { .milestone-sync, .ideas-sync-strip { display: none !important; } }
