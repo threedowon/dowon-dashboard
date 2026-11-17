@@ -15,11 +15,11 @@ function fixture(){
   if(path.endsWith('/git/blobs')){const sha='blob'+blobs.size;blobs.set(sha,Buffer.from(body.content,'base64'));return Response.json({sha});}
   if(path.endsWith('/git/trees')){assert.equal(body.base_tree,tree);pendingIndex=JSON.parse(body.tree.find(t=>t.path==='library/index.json').content);const pdf=body.tree.find(t=>t.path.endsWith('.pdf'));return Response.json({sha:JSON.stringify({index:pendingIndex,pdf})});}
   if(path.endsWith('/git/commits')){const sha='c'+(++revision);commits.set(sha,JSON.parse(body.tree));return Response.json({sha});}
-  if(path.endsWith('/git/refs/heads/main')){assert.equal(body.force,false);if(race){race=false;head='concurrent';tree='concurrent-tree';return new Response('',{status:422});}const commit=commits.get(body.sha);index=commit.index;if(commit.pdf)files.set(commit.pdf.path.split('/').pop(),blobs.get(commit.pdf.sha));head=body.sha;writes++;return Response.json({object:{sha:head}});}
+  if(path.endsWith('/git/refs/heads/main')){assert.equal(body.force,false);if(race){race=false;head='concurrent';tree='concurrent-tree';return new Response('',{status:422});}const commit=commits.get(body.sha);index=commit.index;if(commit.pdf){const name=commit.pdf.path.split('/').pop();if(commit.pdf.sha===null)files.delete(name);else files.set(name,blobs.get(commit.pdf.sha));}head=body.sha;writes++;return Response.json({object:{sha:head}});}
   throw Error('Unexpected '+path);
  };
  const request=(path,options={})=>library(new Request('https://api.3dowon.com/api/library'+path,options),'private-token',gh,{'access-control-allow-origin':origin});
- return {request,get index(){return index;},get writes(){return writes;},race(){race=true;}};
+ return {request,files,get index(){return index;},get writes(){return writes;},race(){race=true;}};
 }
 function upload(content='%PDF-1.4\nfixture',name='참고 자료.pdf'){
  const form=new FormData();form.set('file',new Blob([content],{type:'application/pdf'}),name);form.set('title','참고 자료');form.set('tags',JSON.stringify(['설계',' 참고 ','설계']));return {method:'POST',body:form};
@@ -42,4 +42,20 @@ test('invalid PDF, oversized upload, invalid tags and unknown document cannot mu
  assert.equal((await f.request('',{...upload(),headers:{'content-length':String(MAX_PDF+65537)}})).status,413);
  assert.equal((await f.request('/00000000-0000-0000-0000-000000000000/file')).status,404);
  assert.throws(()=>metadata('a',['x'.repeat(41)]));assert.throws(()=>metadata('',[]));assert.equal(f.writes,0);
+});
+
+test('delete removes only the selected PDF atomically and rejects stale revisions',async()=>{
+ const f=fixture();
+ const first=(await(await f.request('',upload())).json()).document;
+ const second=(await(await f.request('',upload('%PDF-1.4\nother','other.pdf'))).json()).document;
+ const deletion=revision=>({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({revision})});
+ assert.equal((await f.request('/'+first.id+'/delete',deletion('stale'))).status,409);
+ assert.equal(f.files.size,2);
+ f.race();
+ assert.equal((await f.request('/'+first.id+'/delete',deletion(first.revision))).status,200);
+ assert.equal(f.files.has(first.id+'.pdf'),false);
+ assert.equal(f.files.has(second.id+'.pdf'),true);
+ assert.deepEqual(f.index.documents.map(d=>d.id),[second.id]);
+ assert.equal((await f.request('/'+first.id+'/file')).status,404);
+ assert.equal((await f.request('/'+first.id+'/delete',deletion(first.revision))).status,404);
 });
