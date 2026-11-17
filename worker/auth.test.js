@@ -46,6 +46,8 @@ test('OAuth redirects set secure cookies and preserve PKCE/state through callbac
 });
 
 test('anonymous requests cannot read private backups', async()=>{
+  assert.equal((await request('/api/library',{headers:{origin:env.DASHBOARD_ORIGIN}})).status,401);
+  assert.equal((await request('/api/library',{headers:{origin:'https://evil.example'}})).status,403);
   assert.equal((await request('/api/backup',{headers:{origin:env.DASHBOARD_ORIGIN}})).status,401);
   const preflight=await request('/api/backup',{method:'OPTIONS',headers:{origin:'https://evil.example'}});
   assert.equal(preflight.headers.get('access-control-allow-origin'),null);

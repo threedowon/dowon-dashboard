@@ -38,6 +38,10 @@ A missing/inaccessible backup returns an error, never a misleading successful em
 Moving from a previous origin does not move browser-local data: export JSON on the old address and import on the new address.
 
 ## Verification
+PDF library: open #pdf, connect GitHub, upload PDFs (10 MiB per file), then filter by tags or search title/filename/tags. Titles and tags save immediately. Other devices load the library directly; milestone backup/restore does not include or overwrite PDFs. Shared HTML does not include private PDF content. Up to 1,000 documents / 900 KB metadata are supported.
+
+Storage: library/index.json and library/files/<UUID>.pdf in the same private data repository. No new secrets or App permissions are needed. Upload commits file and metadata atomically using a base tree and non-force branch update. Concurrent branch changes retry from the newest commit; stale edits to the same document are rejected by revision. Files are returned only through authenticated, origin-restricted API responses with no-store headers. The PDF header check is a format check, not malware scanning.
+
 npm test covers OAuth state/PKCE, secure encrypted cookies, origin rejection, anonymous/tampered sessions, and stale-SHA write rejection.
 npx wrangler deploy --dry-run validates bundling.
 Live completion requires /health configured=true, GitHub login, backup, restore, and private repository commit verification.

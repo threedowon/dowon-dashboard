@@ -1,4 +1,5 @@
 
+import {library} from './library.js';
 const repo="threedowon/dowon-dashboard-data",file="projects.json";
 const j=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{"content-type":"application/json","cache-control":"no-store",...h}});
 const ck=r=>Object.fromEntries((r.headers.get("cookie")||"").split(";").map(x=>x.trim().split("=")).filter(x=>x.length>1).map(([k,...v])=>[k,decodeURIComponent(v.join("="))]));
@@ -45,6 +46,7 @@ export default {async fetch(req,env){
  let session;try{session=await unseal(env,cookies["__Host-dowon_session"])}catch{return j({error:"로그인이 필요합니다."},401,cors)}
  if(session.expires<Date.now()||session.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"로그인 만료"},401,cors);
  if(u.pathname==="/api/me")return j({login:session.login},200,cors);
+ if(u.pathname==='/api/library'||u.pathname.startsWith('/api/library/'))return library(req,session.token,gh,cors);
  if(u.pathname==="/api/backup"&&req.method==="GET"){
  const r=await gh("/repos/"+repo+"/contents/"+file,session.token);
  if(r.status===404)return j({error:"백업 파일 또는 저장소 접근 권한을 확인해주세요."},404,cors);

@@ -156,7 +156,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="catalog-card" href="#pdf" aria-labelledby="pdfCardTitle">
 <div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF 자료실</h2><span class="catalog-en">Document library</span></div><span class="catalog-number">02</span></div>
 <div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M19 25h47v61H19z"/><path class="cutout" d="M28 20h46v59H28z"/><path d="M32 13h33l16 17v44H32Z"/><path class="cutout" d="M64 13v19h17M42 44h28v3H42zm0 10h28v3H42zm0 10h19v3H42z"/></svg></div>
-<div class="catalog-details"><p>읽어야 할 문서와 참고 자료<br>나만의 문서 보관 공간</p><div class="catalog-status"><span>준비 중 · 기본 페이지</span></div></div><div class="catalog-link"><span>자료실 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
+<div class="catalog-details"><p>읽어야 할 문서와 참고 자료<br>태그로 정리하는 나만의 자료실</p><div class="catalog-status live"><span>PDF 업로드 · 태그별 모아보기</span></div></div><div class="catalog-link"><span>자료실 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
 </a>
 <a class="catalog-card" href="#ideas" aria-labelledby="ideasCardTitle">
 <div class="catalog-card-head"><div><h2 id="ideasCardTitle">아이디어·레퍼런스</h2><span class="catalog-en">Ideas &amp; references</span></div><span class="catalog-number">03</span></div>
@@ -168,8 +168,11 @@ html[data-active-page="home"] .side{display:none}
 </section>
 <section id="pdfPage" data-screen="pdf" aria-labelledby="pdfTitle" hidden>
 <div class="page-top"><span class="eyebrow">DOCUMENT LIBRARY</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
-<div class="placeholder-heading"><span class="availability">준비 중</span><h1 id="pdfTitle" tabindex="-1">PDF 자료실</h1><p class="page-intro">읽어야 할 문서와 다시 찾아볼 자료를 한곳에.</p></div>
-<div class="placeholder-panel"><span class="feature-icon pdf-icon" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M24 12h36l17 18v58H24Z"/><path d="M59 12v20h18M35 48h30v4H35zm0 13h30v4H35z" fill="var(--paper)"/></svg></span><h2>문서를 위한 자리를 마련했어요</h2><p>PDF를 모으고 읽는 기능을 준비 중입니다.<br>아직 파일을 업로드하거나 보관할 수는 없어요.</p><div class="planned-features" aria-label="추가 예정 기능"><span>PDF 모아보기</span><span>문서 읽기</span><span>읽기 상태 관리</span></div></div>
+<div class="placeholder-heading library-heading"><div><span class="availability">PRIVATE COLLECTION</span><h1 id="pdfTitle" tabindex="-1">PDF 자료실</h1><p class="page-intro">읽어야 할 문서와 다시 찾아볼 자료를 한곳에.<br>파일과 태그는 저장 즉시 다른 기기에서도 볼 수 있어요.</p></div><div class="tools editable"><button class="btn" id="pdfConnect">GitHub 연결</button><button class="btn primary" id="pdfAdd" disabled>＋ PDF 올리기</button></div></div>
+<div class="library-toolbar"><label>자료 검색<input id="pdfSearch" type="search" placeholder="제목, 파일 이름, 태그 검색"></label><button class="btn" id="pdfRefresh">새로고침</button></div>
+<p class="small" id="pdfStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p>
+<div id="pdfTags" class="library-tags" aria-label="태그별 필터"></div><p class="small" id="pdfCount"></p><div id="pdfList" class="library-grid"></div>
+<p class="small library-note">PDF 한 개당 최대 10MB · 비공개 저장소에 보관됩니다.<br>자료실은 업로드·수정 시 바로 저장되며, 마일스톤의 백업·복원과 별도로 관리됩니다.</p>
 </section>
 <section id="ideasPage" data-screen="ideas" aria-labelledby="ideasTitle" hidden>
 <div class="page-top"><span class="eyebrow">IDEAS &amp; REFERENCES</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
@@ -188,6 +191,9 @@ html[data-active-page="home"] .side{display:none}
 </section></main></div>
 <dialog id="modal"><h2 id="modalTitle"></h2><form id="form"><div class="formgrid" id="fields"></div><div class="footer"><button type="button" class="btn danger" id="remove">삭제</button><div><button type="button" class="btn" id="cancel">취소</button> <button class="btn primary" type="submit">저장</button></div></div></form></dialog>
 <input type="file" accept=".json,application/json" id="file" hidden>
+<dialog id="pdfModal" aria-labelledby="pdfModalTitle"><h2 id="pdfModalTitle">PDF 올리기</h2><form id="pdfForm" class="formgrid"><label id="pdfFileLabel">PDF 파일 (여러 개 선택 가능)<input id="pdfFiles" type="file" accept=".pdf,application/pdf" multiple></label><p id="pdfSelected" class="small"></p><label id="pdfNameLabel">제목<input id="pdfName" maxlength="200"></label><label>태그<input id="pdfTagInput" placeholder="예: 설계, 참고자료, 회의" maxlength="820"><span class="small">쉼표로 구분해주세요. 최대 20개, 각 40자까지.</span></label><p id="pdfFormStatus" class="small" role="status" aria-live="polite"></p><div class="tools"><button type="button" class="btn" id="pdfCancel">취소</button><button class="btn primary" id="pdfSubmit">저장</button></div></form></dialog>
+<dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
+<link rel="stylesheet" href="library.css"><script src="library.js" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){
