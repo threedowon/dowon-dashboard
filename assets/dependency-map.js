@@ -78,6 +78,101 @@ globalThis.DependencyMap = (() => {
   function anchor(m,side,top=0) {
     return {top:[m.x+m.width/2,top+m.y],right:[m.x+m.width,top+m.y+m.height/2],bottom:[m.x+m.width/2,top+m.y+m.height],left:[m.x,top+m.y+m.height/2]}[side];
   }
+  const directions={top:[0,-1],right:[1,0],bottom:[0,1],left:[-1,0]},routeCaches=new WeakMap(),EPS=1e-7;
+  function box(m,pad=0){return {left:m.x-pad,right:m.x+m.width+pad,top:m.y-pad,bottom:m.y+m.height+pad};}
+  // Test the open interior, so a route may run alongside a padded card boundary.
+  function crosses(a,b,r){
+    let lo=0,hi=1;
+    for(const [axis,min,max]of [[0,r.left+EPS,r.right-EPS],[1,r.top+EPS,r.bottom-EPS]]){
+      const delta=b[axis]-a[axis];
+      if(Math.abs(delta)<EPS){if(a[axis]<=min||a[axis]>=max)return false;continue;}
+      const p=(min-a[axis])/delta,q=(max-a[axis])/delta;lo=Math.max(lo,Math.min(p,q));hi=Math.min(hi,Math.max(p,q));
+      if(hi<=lo)return false;
+    }
+    return hi>lo&&hi>EPS&&lo<1-EPS;
+  }
+  function simplify(points){
+    const result=[];
+    for(const p of points){
+      if(result.length&&Math.hypot(p[0]-result.at(-1)[0],p[1]-result.at(-1)[1])<EPS)continue;
+      while(result.length>1){const a=result.at(-2),b=result.at(-1),u=[b[0]-a[0],b[1]-a[1]],v=[p[0]-b[0],p[1]-b[1]];
+        if(Math.abs(u[0]*v[1]-u[1]*v[0])>EPS||u[0]*v[0]+u[1]*v[1]<0)break;result.pop();}
+      result.push(p);
+    }
+    return result;
+  }
+  function routingGrid(items,pad){
+    const boxes=items.map(m=>box(m,pad));
+    const xs=[...new Set(items.flatMap(m=>[m.x-pad,m.x+m.width/2,m.x+m.width+pad]))].sort((a,b)=>a-b);
+    const ys=[...new Set(items.flatMap(m=>[m.y-pad,m.y+m.height/2,m.y+m.height+pad]))].sort((a,b)=>a-b);
+    xs.unshift(xs[0]-18);xs.push(xs.at(-1)+18);ys.unshift(ys[0]-18);ys.push(ys.at(-1)+18);
+    const nx=xs.length,ny=ys.length,flags=new Uint8Array(nx*ny);
+    const blocked=(start,end,intervals)=>intervals.some(([lo,hi])=>start<hi-EPS&&end>lo+EPS);
+    for(let y=0;y<ny;y++){
+      const intervals=boxes.filter(r=>ys[y]>r.top+EPS&&ys[y]<r.bottom-EPS).map(r=>[r.left,r.right]);
+      for(let x=0;x<nx;x++){
+        const node=y*nx+x;
+        if(!intervals.some(([lo,hi])=>xs[x]>lo+EPS&&xs[x]<hi-EPS))flags[node]|=1;
+        if(x<nx-1&&!blocked(xs[x],xs[x+1],intervals))flags[node]|=2;
+      }
+    }
+    for(let x=0;x<nx;x++){
+      const intervals=boxes.filter(r=>xs[x]>r.left+EPS&&xs[x]<r.right-EPS).map(r=>[r.top,r.bottom]);
+      for(let y=0;y<ny-1;y++)if(!blocked(ys[y],ys[y+1],intervals))flags[y*nx+x]|=4;
+    }
+    return {xs,ys,nx,ny,flags,xIndex:new Map(xs.map((x,i)=>[x,i])),yIndex:new Map(ys.map((y,i)=>[y,i]))};
+  }
+  function orthogonal(grid,start,end,startAxis,endAxis){
+    const {xs,ys,nx,ny,flags,xIndex,yIndex}=grid;
+    const sx=xIndex.get(start[0]),sy=yIndex.get(start[1]),ex=xIndex.get(end[0]),ey=yIndex.get(end[1]);
+    if([sx,sy,ex,ey].some(v=>v===undefined))return null;
+    const first=sy*nx+sx,last=ey*nx+ex;
+    if(!(flags[first]&1)||!(flags[last]&1))return null;
+    const distances=new Map(),parents=new Map(),heap=[];
+    function push(entry){let i=heap.length;heap.push(entry);while(i){const p=(i-1)>>1;if(heap[p].f<=entry.f)break;heap[i]=heap[p];i=p;}heap[i]=entry;}
+    function pop(){const first=heap[0],tail=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let child=i*2+1;if(child+1<heap.length&&heap[child+1].f<heap[child].f)child++;if(heap[child].f>=tail.f)break;heap[i]=heap[child];i=child;}heap[i]=tail;}return first;}
+    const estimate=node=>Math.abs(xs[node%nx]-end[0])+Math.abs(ys[Math.floor(node/nx)]-end[1]);
+    const initial=first*2+startAxis;distances.set(initial,0);push({state:initial,g:0,f:estimate(first)});
+    let best=null,bestCost=Infinity;
+    while(heap.length){
+      const step=pop();if(step.f>=bestCost)break;if(step.g!==distances.get(step.state))continue;
+      const node=Math.floor(step.state/2),axis=step.state%2,x=node%nx,y=Math.floor(node/nx);
+      if(node===last){const cost=step.g+(axis===endAxis?0:18);if(cost<bestCost){best=step.state;bestCost=cost;}continue;}
+      const neighbors=[];
+      if(x+1<nx&&(flags[node]&2))neighbors.push([node+1,0,xs[x+1]-xs[x]]);
+      if(x&&(flags[node-1]&2))neighbors.push([node-1,0,xs[x]-xs[x-1]]);
+      if(y+1<ny&&(flags[node]&4))neighbors.push([node+nx,1,ys[y+1]-ys[y]]);
+      if(y&&(flags[node-nx]&4))neighbors.push([node-nx,1,ys[y]-ys[y-1]]);
+      for(const [next,nextAxis,length]of neighbors){
+        if(!(flags[next]&1))continue;
+        const state=next*2+nextAxis,cost=step.g+length+(axis===nextAxis?0:18);
+        if(cost>=(distances.get(state)??Infinity))continue;
+        distances.set(state,cost);parents.set(state,step.state);push({state,g:cost,f:cost+estimate(next)});
+      }
+    }
+    if(best===null)return null;
+    const points=[];for(let state=best;state!==undefined;state=parents.get(state)){const node=Math.floor(state/2);points.push([xs[node%nx],ys[Math.floor(node/nx)]]);}return points.reverse();
+  }
+  function routeEdge(model,edge){
+    const a=edge.from,b=edge.to,fromSide=edge.fromSide||'bottom',toSide=edge.toSide||'top';
+    const start=anchor(a,fromSide),end=anchor(b,toSide),sd=directions[fromSide],td=directions[toSide];
+    const v=[end[0]-start[0],end[1]-start[1]];
+    let cache=routeCaches.get(model);if(!cache){cache={grids:new Map(),routes:new Map()};routeCaches.set(model,cache);}
+    const key=JSON.stringify([a.id,b.id,fromSide,toSide]);let points=cache.routes.get(key);
+    if(!points){
+      const facing=v[0]*sd[0]+v[1]*sd[1]>EPS&&-v[0]*td[0]-v[1]*td[1]>EPS;
+      if(facing&&!model.items.some(m=>crosses(start,end,box(m,m===a||m===b?0:6))))points=[start,end];
+      else for(const pad of [8,2,.75]){
+        const exit=[start[0]+sd[0]*pad,start[1]+sd[1]*pad],entry=[end[0]+td[0]*pad,end[1]+td[1]*pad];
+        if(model.items.some(m=>(m!==a&&crosses(start,exit,box(m,pad)))||(m!==b&&crosses(entry,end,box(m,pad)))))continue;
+        let grid=cache.grids.get(pad);if(!grid){grid=routingGrid(model.items,pad);cache.grids.set(pad,grid);}
+        const middle=orthogonal(grid,exit,entry,sd[0]?0:1,td[0]?0:1);
+        if(middle){points=simplify([start,...middle,end]);break;}
+      }
+      points=points||[];cache.routes.set(key,points);
+    }
+    return {points,path:points.map(([x,y],i)=>`${i?'L':'M'}${x} ${y+(model.top||0)}`).join(''),blocked:!points.length};
+  }
   function placement(model,id,targetColumn) {
     const item=model?.items.find(m=>m.id===id);
     if(!item||column(targetColumn)===null||!model.columns.some(c=>c.index===targetColumn))return '이동할 열을 찾을 수 없어요.';
@@ -238,7 +333,7 @@ globalThis.DependencyMap = (() => {
     const rect = (x,y,w,h,fill,extra='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
     const text = (x,y,value,size=12,fill='#334b3d',extra='') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${extra}>${esc(value)}</text>`;
     let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="${interactive?'group':'img'}" aria-label="프로젝트 연결 맵" style="font-family:'Pretendard Variable','Malgun Gothic',sans-serif"><title>${esc(project.name)} — 프로젝트 연결 맵</title>`;
-    out += '<defs><marker id="dependency-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#647568"/></marker><marker id="dependency-warning" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b74736"/></marker></defs>';
+    out += '<defs><marker id="dependency-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#647568"/></marker><marker id="dependency-warning" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b74736"/></marker></defs>';
     out += rect(0,0,width,height,'#faf8e9');
     out += text(28,30,'CONNECTED MILESTONES',11,'#537264','letter-spacing="2"');
     titleLines.forEach((line,i)=>{out+=text(28,60+i*30,line,24,'#11563f','font-weight="700"');});
@@ -264,18 +359,11 @@ globalThis.DependencyMap = (() => {
     if(interactive)for(const col of model.columns){
       out+=rect(col.x,top,col.width,model.height-8,'transparent',`class="flow-column" data-flow-column="${col.index}" data-x="${col.x}" data-top="${top}" data-width="${col.width}" data-height="${model.height-8}" stroke="#aebca7" stroke-dasharray="3 7" stroke-opacity="0.55"`);
     }
-    // Route in column gutters. A date conflict keeps its dates and gets a dashed red edge.
+    // Prefer one straight segment; otherwise use clear corridors around every card.
     for (const edge of model.edges) {
-      const {from:a,to:b}=edge, sx=a.x+a.width/2, sy=top+a.y+a.height, tx=b.x+b.width/2, ty=top+b.y;
-      const direct = a.x===b.x && ty > sy && !model.items.some(m=>m!==a&&m!==b&&m.x<=sx&&m.x+m.width>=sx&&top+m.y<ty&&top+m.y+m.height>sy);
-      const gutter=a.x+a.width+12, targetGutter=b.x-12;
-      let path=direct?`M${sx} ${sy}V${ty-3}`:`M${sx} ${sy}v10H${gutter}V${ty-12}H${targetGutter}H${tx}V${ty-3}`;
-      if(edge.fromSide||edge.toSide){
-        const start=anchor(a,edge.fromSide||'bottom',top),end=anchor(b,edge.toSide||'top',top);
-        const dirs={top:[0,-1],right:[1,0],bottom:[0,1],left:[-1,0]},sd=dirs[edge.fromSide||'bottom'],td=dirs[edge.toSide||'top'];
-        const reach=Math.max(32,Math.min(160,Math.hypot(end[0]-start[0],end[1]-start[1])/2));
-        path=`M${start[0]} ${start[1]}C${start[0]+sd[0]*reach} ${start[1]+sd[1]*reach} ${end[0]+td[0]*reach} ${end[1]+td[1]*reach} ${end[0]} ${end[1]}`;
-      }
+      const {from:a,to:b}=edge,routed=routeEdge(model,edge);
+      edge.routingBlocked=routed.blocked;if(routed.blocked)continue;
+      const path=routed.path;
       const warning=edge.conflict||edge.cycle;
       if(interactive)out+=`<g class="flow-edge" data-edge-from="${esc(a.id)}" data-edge-to="${esc(b.id)}" tabindex="0" role="button" aria-label="연결 선택: ${esc(a.title)} → ${esc(b.title)}"><path d="${path}" fill="none" stroke="transparent" stroke-width="18" class="flow-edge-hit"/>`;
       out+=`<path d="${path}" fill="none" stroke="${warning?'#b74736':'#647568'}" stroke-width="1.5" ${warning?'stroke-dasharray="5 4"':''} marker-end="url(#${warning?'dependency-warning':'dependency-arrow'})"><title>${esc(a.title)} → ${esc(b.title)}${edge.cycle?' · 순환 연결 확인':edge.conflict?' · 선행 일정 종료 전 시작':''}</title></path>`;
@@ -305,10 +393,10 @@ globalThis.DependencyMap = (() => {
       out+=`<g class="flow-port" data-port-node="${esc(m.id)}" data-side="${side}" data-x="${x}" data-y="${y}" role="button" tabindex="-1" aria-label="${esc(m.title)} ${sideName} 연결 핸들"><title>빈 곳으로 드래그: 연결된 새 카드 / 기존 카드로 드래그: 연결</title><rect x="${x-14}" y="${y-14}" width="28" height="28" fill="transparent"/><rect class="flow-port-mark" x="${x-6}" y="${y-6}" width="12" height="12" rx="1" fill="#fff" stroke="#4265ff" stroke-width="2"/></g>`;
     }
     if(!model.items.length)out+=text(170,top+78,'프로젝트에 일정을 추가하고 선행 일정을 연결해 보세요.',15);
-    const warnings=model.edges.filter(e=>e.conflict||e.cycle).length;
+    const warnings=model.edges.filter(e=>e.conflict||e.cycle||e.routingBlocked).length;
     out+=text(28,height-48,'일요일–토요일 기준 · 카드 높이는 작업 기간, 화살표는 선행 관계를 나타냅니다.',11);
     out+=text(28,height-27,`빨간 점선: 날짜 또는 연결 확인 ${warnings}건 · 화면 밖 선행 ${model.hiddenRefs}개${report?' (선택한 프로젝트만 포함)':''}`,11);
     return { markup:out+'</svg>',width,height,model };
   }
-  return { key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
+  return { key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
 })();

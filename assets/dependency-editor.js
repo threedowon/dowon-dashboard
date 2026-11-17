@@ -182,7 +182,12 @@ globalThis.DependencyEditor = {
       board.querySelectorAll('.is-target').forEach(el=>el.classList.remove('is-target'));
       board.querySelector('.flow-new-preview')?.remove();
       const hitNode=hit&&board.contains(hit)?hit.closest('.flow-node,[data-port-node]'):null;
-      if(hitNode){hitNode.classList.add('is-target');tell('기존 카드에 놓으면 두 일정을 연결합니다.');return;}
+      if(hitNode){
+        hitNode.classList.add('is-target');
+        const model=getModel(),source=model.items.find(m=>m.id===pending.id),target=model.items.find(m=>m.id===(hitNode.dataset.portNode||hitNode.dataset.m));
+        if(source&&target&&source!==target){const route=DependencyMap.routeEdge(model,{from:source,to:target,fromSide:pending.side,toSide:hitNode.dataset.side||'top'});line.setAttribute('d',route.path);}
+        tell('기존 카드에 놓으면 두 일정을 연결합니다.');return;
+      }
       const target=newCardTarget(clientX,clientY);if(!target)return;
       const model=getModel(),day=target.date?DependencyMap.dayPosition(model,target.date):null;
       const px=172+target.column*252,py=model.top+(day?.y??model.weeks.find(w=>w.start===null)?.y??0)+3;
