@@ -1,4 +1,4 @@
-/* Project reference boards. Binary images live in IndexedDB, outside milestone JSON. */
+/* Project reference boards with local cache and optional private GitHub sync. */
 globalThis.IdeaModel = (() => {
   const imageType=/^image\/(png|jpeg|gif|webp|avif)$/i;
   const MAX_IMAGE=20*1024*1024;
@@ -30,7 +30,9 @@ globalThis.IdeaModel = (() => {
     const finite=(v,fallback)=>Number.isFinite(v)?v:fallback;
     const clean={id:String(item.id||crypto.randomUUID()),kind:item.kind,title:String(item.title||'제목 없음').slice(0,200),text:String(item.text||'').slice(0,20000),x:clamp(finite(item.x,0),-100000,100000),y:clamp(finite(item.y,0),-100000,100000),width:clamp(finite(item.width,320),180,1200),ratio:clamp(finite(item.ratio,16/9),0.1,10)};
     if(item.kind==='note')return clean;
+    if(item.kind==='image'&&item.asset&&/^[a-f0-9]{40}$/.test(item.asset.sha)&&imageType.test(item.asset.type))clean.asset={sha:item.asset.sha,type:item.asset.type};
     if(item.kind==='image'&&item.blob){if(!imageType.test(item.blob.type)||item.blob.size>MAX_IMAGE)throw Error('이미지는 PNG/JPG/GIF/WebP/AVIF, 20MB 이하만 지원합니다.');clean.blob=item.blob;return clean;}
+    if(clean.asset&&!item.url)return clean;
     const source=media(item.url);if(!source)throw Error('올바른 http 또는 https 주소를 입력해 주세요.');
     if(item.kind==='image'){clean.url=source.url;return clean;}
     // Rebuild embed addresses from an allowlisted provider; never trust saved iframe HTML/URLs.
@@ -55,19 +57,20 @@ globalThis.IdeaModel = (() => {
 
 globalThis.IdeasBoard = {
   attach({getProjects,createProject,isActive,readonly=false,storage=IdeaModel.store()}){
+    if(globalThis.IdeaCloud&&!readonly)storage=IdeaCloud.create(storage);
     const $=id=>document.getElementById(id),viewport=$('ideasViewport'),world=$('ideasWorld'),selector=$('ideasProject');
     const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const uid=()=>crypto.randomUUID(),records=new Map(),histories=new Map(),objectUrls=new Map(),failures=new Set();
     let current=null,selected=null,loading=true,initialized=false,drag=null,space=false,saveQueue=Promise.resolve(),loadToken=0,modalKind=null,editing=null,lastPoint=null,viewTimer=null;
     const empty=project=>({projectId:project.id,name:project.name,items:[],view:{x:40,y:40,zoom:1},updatedAt:new Date().toISOString()});
-    const activeRecord=()=>records.get(current),history=()=>histories.get(current);
+    const activeRecord=()=>{const r=records.get(current);return r?._stub?undefined:r;},history=()=>histories.get(current);
     const message=(text,error=false)=>{$('ideasStatus').textContent=text;$('ideasStatus').classList.toggle('ideas-error',error);};
     function controls(){const ready=!!activeRecord()&&!loading&&!readonly;for(const name of ['ideasImage','ideasLink','ideasNote','ideasImport','ideasRetry'])$(name).disabled=!ready;$('ideasUndo').disabled=!ready||!history()?.canUndo;$('ideasRedo').disabled=!ready||!history()?.canRedo;$('ideasDelete').disabled=!ready||!selected;$('ideasEdit').disabled=!ready||!selected;$('ideasExport').disabled=!activeRecord()||loading;$('ideasNewProject').disabled=readonly;for(const name of ['ideasZoomIn','ideasZoomOut','ideasFit'])$(name).disabled=!activeRecord()||loading;}
     function queueSave(record){
       if(readonly)return Promise.resolve();
       record.updatedAt=new Date().toISOString();const snapshot={...record,view:{...record.view},items:record.items.map(i=>({...i}))};
       if(current===record.projectId)message('저장 중…');
-      saveQueue=saveQueue.catch(()=>{}).then(()=>storage.put(snapshot)).then(()=>{failures.delete(record.projectId);if(current===record.projectId)message('● 이 브라우저에 자동 저장됨');},()=>{failures.add(record.projectId);if(current===record.projectId)message('저장 실패 · 보드 백업으로 보관하거나 다시 저장해 주세요.',true);});
+      saveQueue=saveQueue.catch(()=>{}).then(()=>storage.put(snapshot)).then(()=>{failures.delete(record.projectId);if(current===record.projectId)message(storage.isCloud?storage.message(current):'● 이 브라우저에 자동 저장됨');},()=>{failures.add(record.projectId);if(current===record.projectId)message('저장 실패 · 보드 백업으로 보관하거나 다시 저장해 주세요.',true);});
       return saveQueue;
     }
     function applyView(){const r=activeRecord();if(!r)return;world.style.transform=`translate(${r.view.x}px,${r.view.y}px) scale(${r.view.zoom})`;viewport.style.backgroundPosition=`${r.view.x}px ${r.view.y}px`;viewport.style.backgroundSize=`${24*r.view.zoom}px ${24*r.view.zoom}px`;$('ideasZoom').textContent=Math.round(r.view.zoom*100)+'%';}
@@ -100,7 +103,7 @@ globalThis.IdeasBoard = {
       applyView();select(selected);
     }
     function options(){
-      const projects=getProjects(),list=[...projects,...[...records.values()].filter(r=>!projects.some(p=>p.id===r.projectId)).map(r=>({id:r.projectId,name:r.name+' (보관됨)'}))];
+      const projects=getProjects(),extra=[...records.values()].filter(r=>!projects.some(p=>p.id===r.projectId)),list=[...projects.map(p=>({...p,name:p.name+(storage.isCloud&&extra.some(r=>r.name===p.name)?' (이 기기 프로젝트)':'')})),...extra.map(r=>({id:r.projectId,name:r.name+(storage.isCloud?(projects.some(p=>p.name===r.name)?' (GitHub)':''):' (보관됨)')}))];
       selector.innerHTML=list.length?list.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join(''):'<option value="">프로젝트 없음</option>';
       selector.value=current||list[0]?.id||'';
       return list;
@@ -108,11 +111,12 @@ globalThis.IdeasBoard = {
     async function switchProject(projectId){
       cancelDrag();const token=++loadToken;drag=null;space=false;viewport.classList.remove('is-panning');selected=null;lastPoint=null;current=projectId||null;loading=true;render();
       try{
-        if(projectId&&!records.has(projectId)){const saved=await storage.get(projectId),project=getProjects().find(p=>p.id===projectId);if(saved){saved.items=saved.items.map(IdeaModel.cleanItem);saved.view=validView(saved.view);records.set(projectId,saved);}else if(project)records.set(projectId,empty(project));}
+        await saveQueue;
+        if(projectId&&(storage.isCloud||!records.has(projectId))){const saved=await storage.get(projectId),project=getProjects().find(p=>p.id===projectId);if(saved){saved.items=saved.items.map(IdeaModel.cleanItem);saved.view=validView(saved.view);records.set(projectId,saved);}else if(project)records.set(projectId,empty(project));else if(records.get(projectId)?._stub)throw Error('보드를 불러오지 못했어요.');}
         if(token!==loadToken)return;
         if(current&&!histories.has(current))histories.set(current,IdeaModel.history());
         try{localStorage.setItem('dowon-ideas:project',current||'');}catch{}
-        message(failures.has(current)?'이 보드에 저장하지 못한 변경이 있어요. 다시 저장하거나 백업해 주세요.':'● 이 브라우저에 자동 저장 · 프로젝트별 보드',failures.has(current));
+        message(failures.has(current)?'이 보드에 저장하지 못한 변경이 있어요. 다시 저장하거나 백업해 주세요.':storage.isCloud?storage.message(current):'● 이 브라우저에 자동 저장 · 프로젝트별 보드',failures.has(current));
       }catch{message('보드를 불러오지 못했어요. 페이지를 새로고침해 다시 시도해 주세요.',true);}
       finally{if(token===loadToken){loading=false;options();render();}}
     }
@@ -165,7 +169,7 @@ globalThis.IdeasBoard = {
     selector.onchange=()=>switchProject(selector.value);
     function remove(){const r=activeRecord();if(!readonly&&r?.items.some(i=>i.id===selected))mutate(r,items=>items.splice(items.findIndex(i=>i.id===selected),1));}
     function undoRedo(kind){if(readonly||loading)return;cancelDrag();const r=activeRecord(),next=r&&history()?.[kind](r.items);if(next){r.items=next;queueSave(r);render();}}
-    $('ideasDelete').onclick=remove;$('ideasUndo').onclick=()=>undoRedo('undo');$('ideasRedo').onclick=()=>undoRedo('redo');$('ideasRetry').onclick=()=>{if(activeRecord())queueSave(activeRecord());};
+    $('ideasDelete').onclick=remove;$('ideasUndo').onclick=()=>undoRedo('undo');$('ideasRedo').onclick=()=>undoRedo('redo');$('ideasRetry').onclick=async()=>{if(activeRecord()){await queueSave(activeRecord());if(storage.isCloud){await storage.retry(current);await syncCloud();}}};
     function zoom(next,anchor){const r=activeRecord();if(!r)return;const bounds=viewport.getBoundingClientRect();r.view=IdeaModel.zoomAt(r.view,next,anchor||{x:bounds.width/2,y:bounds.height/2});applyView();saveView();}
     $('ideasZoomIn').onclick=()=>zoom(activeRecord().view.zoom*1.2);$('ideasZoomOut').onclick=()=>zoom(activeRecord().view.zoom/1.2);
     $('ideasFit').onclick=()=>{const r=activeRecord();if(!r)return;const bounds=viewport.getBoundingClientRect();if(!r.items.length)r.view={x:40,y:40,zoom:1};else{const left=Math.min(...r.items.map(i=>i.x)),top=Math.min(...r.items.map(i=>i.y)),right=Math.max(...r.items.map(i=>i.x+i.width)),bottom=Math.max(...r.items.map(i=>i.y+(world.querySelector(`[data-idea-id="${CSS.escape(i.id)}"]`)?.offsetHeight||300)));const z=IdeaModel.clamp(Math.min((bounds.width-80)/(right-left),(bounds.height-80)/(bottom-top),1),.2,2);r.view={zoom:z,x:(bounds.width-(right-left)*z)/2-left*z,y:(bounds.height-(bottom-top)*z)/2-top*z};}applyView();saveView();};
@@ -213,7 +217,36 @@ globalThis.IdeasBoard = {
     $('ideasExport').onclick=async()=>{const r=activeRecord();if(!r)return;try{const items=await Promise.all(r.items.map(async i=>{const {blob,...item}=i;return blob?{...item,data:await dataUrl(blob)}:item;}));const blob=new Blob([JSON.stringify({version:1,name:r.name,items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(r.name||'레퍼런스').replace(/[<>:"/\\|?*]/g,'-')+'-보드.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('이미지를 포함한 보드 백업을 내려받았어요.');}catch{message('백업에 실패했어요. 다시 시도해 주세요.',true);}};
     $('ideasImport').onclick=()=>$('ideasBackupFile').click();
     $('ideasBackupFile').onchange=async()=>{const file=$('ideasBackupFile').files[0],r=activeRecord();$('ideasBackupFile').value='';if(!file||!r||readonly)return;try{if(file.size>100*1024*1024)throw Error('백업 파일은 100MB 이하만 불러올 수 있어요.');const data=JSON.parse(await file.text());if(data.version!==1||!Array.isArray(data.items)||data.items.length>1000)throw Error('올바른 보드 백업 파일이 아닙니다.');const items=data.items.map(item=>{let blob;if(item.data){const match=String(item.data).match(/^data:(image\/(?:png|jpeg|gif|webp|avif));base64,([A-Za-z0-9+/=]+)$/);if(!match)throw Error('지원하지 않는 이미지 데이터입니다.');const binary=atob(match[2]);blob=new Blob([Uint8Array.from(binary,c=>c.charCodeAt(0))],{type:match[1]});}return IdeaModel.cleanItem({...item,id:uid(),blob});});mutate(r,list=>list.push(...items));if(current===r.projectId)$('ideasFit').click();}catch(error){message('불러오기 실패: '+error.message,true);}};
-    const ready=(async()=>{try{if(readonly){loading=false;message('공유 문서에는 개인 레퍼런스 보드가 포함되지 않습니다.');controls();return;}const stored=await storage.all();for(const r of stored){r.items=r.items.map(IdeaModel.cleanItem);r.view=validView(r.view);records.set(r.projectId,r);}let remembered;try{remembered=localStorage.getItem('dowon-ideas:project');}catch{}initialized=true;const list=options();await switchProject(list.some(p=>p.id===remembered)?remembered:list[0]?.id);}catch{loading=false;message('보드 저장소를 열 수 없어요. 브라우저 저장 권한을 확인하고 새로고침해 주세요.',true);controls();}})();
-    controls();return {ready,refreshProjects,ingest,flush:()=>saveQueue};
+    let syncing=false;
+    function cloudStatus(){
+      if(!storage.isCloud)return;
+      if($('ideasConnect'))$('ideasConnect').hidden=storage.connected;
+      if($('ideasResolve'))$('ideasResolve').hidden=!storage.hasConflict(current);
+      if(!loading&&!failures.has(current))message(storage.message(current),storage.hasConflict(current));
+    }
+    const signature=r=>JSON.stringify(r&&{name:r.name,items:r.items.map(({blob,asset,...item})=>item),view:r.view});
+    async function syncCloud(){
+      if(!storage.isCloud||!initialized||syncing||loading||drag||$('ideasModal').open)return;
+      syncing=true;
+      try{
+        await saveQueue;const id=current,before=activeRecord(),stamp=before?.updatedAt,view=JSON.stringify(before?.view);
+        const stored=await storage.all();for(const r of stored)if(!records.has(r.projectId))records.set(r.projectId,r);
+        const next=id?await storage.get(id):null;
+        if(id===current&&next&&!drag&&!$('ideasModal').open&&activeRecord()?.updatedAt===stamp&&JSON.stringify(activeRecord()?.view)===view){
+          const changed=signature(next)!==signature(activeRecord())||next.items.some(item=>{const old=activeRecord()?.items.find(i=>i.id===item.id);return old?.blob&&item.blob!==old.blob&&item.asset?.sha!==old.asset?.sha;});records.set(id,next);
+          if(changed){histories.set(id,IdeaModel.history());render();}
+        }
+        options();cloudStatus();
+      }catch(error){message(error.message,true);}finally{syncing=false;}
+    }
+    if(storage.isCloud){
+      storage.subscribe(cloudStatus);
+      $('ideasConnect').onclick=()=>storage.connect();$('ideasRefresh').onclick=syncCloud;
+      $('ideasResolve').onclick=async()=>{if(loading||syncing||drag)return;loading=true;controls();try{await saveQueue;const next=await storage.resolve(current);records.set(current,next);for(const r of await storage.all())records.set(r.projectId,r);histories.set(current,IdeaModel.history());options();}catch(error){message(error.message,true);}finally{loading=false;render();cloudStatus();}};
+      window.addEventListener('online',()=>syncCloud());window.addEventListener('focus',()=>{if(isActive())syncCloud();});
+      setInterval(()=>{if(isActive()&&document.visibilityState!=='hidden')syncCloud();},30000);
+    }else for(const id of ['ideasConnect','ideasRefresh','ideasResolve'])if($(id))$(id).hidden=true;
+    const ready=(async()=>{try{if(readonly){loading=false;message('공유 문서에는 개인 레퍼런스 보드가 포함되지 않습니다.');controls();return;}const stored=await storage.all();for(const r of stored){r.items=r.items.map(IdeaModel.cleanItem);r.view=validView(r.view);records.set(r.projectId,r);}let remembered;try{remembered=localStorage.getItem('dowon-ideas:project');}catch{}initialized=true;const list=options();await switchProject(list.some(p=>p.id===remembered)&&(!storage.isCloud||records.has(remembered)||!stored.length)?remembered:stored.find(r=>r.items.length||r._stub)?.projectId||list[0]?.id);cloudStatus();}catch{loading=false;message('보드 저장소를 열 수 없어요. 브라우저 저장 권한을 확인하고 새로고침해 주세요.',true);controls();}})();
+    controls();return {ready,refreshProjects,ingest,flush:async()=>{await saveQueue;if(storage.isCloud)await storage.flush();},syncCloud};
   }
 };

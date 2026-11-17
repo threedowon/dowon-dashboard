@@ -137,7 +137,8 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/dependency-map.js?v=20261118-timeline-tone"></script>
 <script src="assets/dependency-editor.js?v=20261118-timeline-tone"></script>
 <link rel="stylesheet" href="assets/ideas-board.css?v=20261118-board">
-<script src="assets/ideas-board.js?v=20261118-board"></script>
+<script src="assets/ideas-board.js?v=20261118-cloud"></script>
+<script src="assets/ideas-sync.js?v=20261118-cloud"></script>
 </head>
 <body>
 <div class="app"><aside class="side"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div>
@@ -188,7 +189,8 @@ html[data-active-page="home"] .side{display:none}
 <div class="ideas-toolbar" role="toolbar" aria-label="레퍼런스 보드 도구"><button class="btn primary" id="ideasImage">＋ 이미지</button><button class="btn" id="ideasLink">영상·링크</button><button class="btn" id="ideasNote">메모</button><button class="btn" id="ideasUndo" title="Ctrl+Z" disabled>↶</button><button class="btn" id="ideasRedo" title="Ctrl+Shift+Z" disabled>↷</button><button class="btn" id="ideasEdit" disabled>내용 수정</button><button class="btn" id="ideasDelete" disabled>삭제</button><div class="ideas-zoom-tools"><button class="btn" id="ideasZoomOut" aria-label="보드 축소">−</button><output id="ideasZoom">100%</output><button class="btn" id="ideasZoomIn" aria-label="보드 확대">＋</button><button class="btn" id="ideasFit">전체 보기</button></div></div>
 <div class="ideas-viewport" id="ideasViewport" tabindex="0" aria-label="프로젝트 레퍼런스 보드. 이미지나 영상 URL을 붙여넣으세요."><div class="ideas-world" id="ideasWorld"></div><div class="ideas-empty" id="ideasEmpty"><span class="ideas-empty-symbol" aria-hidden="true">✧</span><h2 id="ideasEmptyTitle">프로젝트를 선택해 보드를 시작하세요</h2><p>이미지 복사 후 Ctrl+V · 영상 URL 붙여넣기<br>파일을 끌어놓거나 위의 도구로 자료를 추가할 수도 있어요.</p></div></div>
 <p class="ideas-help">카드를 끌어 자유롭게 배치 · 모서리로 크기 조절 · 빈 공간 드래그로 보드 이동 · Ctrl+휠로 확대/축소 · Ctrl+Z로 실행 취소<br>영상: YouTube / Vimeo / MP4·WebM URL · 이미지: 파일당 최대 20MB</p>
-<div class="ideas-save-row"><p class="small" id="ideasStatus" role="status" aria-live="polite">보드를 준비하고 있어요…</p><details><summary>보드 백업·불러오기</summary><p class="small">이 브라우저에 저장됩니다. 다른 기기에서는 보드 백업을 불러오세요.<br>마일스톤의 JSON·GitHub 백업과 별도로 관리됩니다.</p><div class="tools"><button class="btn" id="ideasExport">보드 백업</button><button class="btn" id="ideasImport">백업 추가하기</button><button class="btn" id="ideasRetry">다시 저장</button></div></details></div>
+<div class="tools" style="margin-top:12px"><button class="btn" id="ideasConnect">GitHub 연결</button><button class="btn" id="ideasRefresh">동기화</button><button class="btn" id="ideasResolve" hidden>내 변경을 복사해 보관하고 최신 보드 열기</button></div>
+<div class="ideas-save-row"><p class="small" id="ideasStatus" role="status" aria-live="polite">보드를 준비하고 있어요…</p><details><summary>보드 백업·불러오기</summary><p class="small">GitHub 연결 후 이미지·영상·메모와 배치가 비공개 저장소에 자동 저장됩니다.<br>다른 컴퓨터에서도 같은 GitHub 계정으로 연결하면 이어서 볼 수 있어요. 오프라인 변경은 이 기기에 보관됩니다.</p><div class="tools"><button class="btn" id="ideasExport">보드 백업</button><button class="btn" id="ideasImport">백업 추가하기</button><button class="btn" id="ideasRetry">다시 저장</button></div></details></div>
 </section>
 <section id="milestonesPage" data-screen="milestones" aria-labelledby="projectsTitle" hidden>
 <div id="projectOverview">
