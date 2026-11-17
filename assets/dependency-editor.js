@@ -268,6 +268,6 @@ globalThis.DependencyEditor = {
     control('edit').onclick=()=>{const target=lookup(selected);if(target)edit(target);};
     control('detail').onclick=()=>{const target=lookup(selected);if(target)navigate(target);};
     for(const [name,delta]of [['left',-1],['right',1]])control(name).onclick=()=>{const item=getModel()?.items?.find(m=>m.id===selected);if(item)moveCard(selected,item.column+delta);};
-    return { refresh, cancel };
+    return { refresh, cancel, get busy(){return !!drag||!!pending;} };
   }
 };

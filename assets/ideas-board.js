@@ -121,7 +121,13 @@ globalThis.IdeasBoard = {
       finally{if(token===loadToken){loading=false;options();render();}}
     }
     function validView(value){return {x:Number.isFinite(value?.x)?value.x:40,y:Number.isFinite(value?.y)?value.y:40,zoom:IdeaModel.clamp(Number.isFinite(value?.zoom)?value.zoom:1,0.2,2)};}
-    function refreshProjects(){const list=options();for(const p of getProjects()){const r=records.get(p.id);if(r)r.name=p.name;}if(initialized&&!current&&list.length)switchProject(list[0].id);}
+    function refreshProjects(){
+      const projects=getProjects(),r=records.get(current);
+      // A fresh device's empty placeholder disappears when the shared catalog arrives.
+      if(initialized&&current&&!projects.some(p=>p.id===current)&&r&&!r._stub&&!r._cloudRevision&&!r.items.length){records.delete(current);histories.delete(current);current=null;}
+      for(const p of projects){const record=records.get(p.id);if(record)record.name=p.name;}
+      const list=options();if(initialized&&!current&&list.length)switchProject(list[0].id);
+    }
     function mutate(record,change){if(readonly)return;let h=histories.get(record.projectId);if(!h){h=IdeaModel.history();histories.set(record.projectId,h);}h.push(record.items);change(record.items);queueSave(record);if(record.projectId===current)render();}
     function insertionPoint(){const r=activeRecord(),bounds=viewport.getBoundingClientRect();return lastPoint||IdeaModel.point(bounds.left+bounds.width/2,bounds.top+bounds.height/2,bounds,r.view);}
     function addItems(record,items,point){
