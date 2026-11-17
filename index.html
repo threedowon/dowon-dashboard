@@ -141,10 +141,10 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
 <script src="assets/milestone-sync.js?v=20261118-autosave"></script>
 <link rel="stylesheet" href="library.css?v=20261118-inline-upload">
-<link rel="stylesheet" href="assets/workspace-layout.css?v=20261118-calendar-nav">
+<link rel="stylesheet" href="assets/workspace-layout.css?v=20261118-header-save">
 </head>
 <body>
-<div class="app"><aside class="side"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div>
+<div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
 <div class="small">WORKSPACE</div>
 <nav class="workspace-nav" aria-label="주 메뉴">
 <a class="workspace-link" href="#home" data-page="home"><span class="nav-symbol" aria-hidden="true">⌂</span>대시보드 홈</a>
@@ -196,7 +196,7 @@ html[data-active-page="home"] .side{display:none}
 <div class="ideas-save-row"><details><summary>보드 백업·불러오기</summary><p class="small">GitHub 연결 후 이미지·영상·메모와 배치가 비공개 저장소에 자동 저장됩니다.<br>다른 컴퓨터에서도 같은 GitHub 계정으로 연결하면 이어서 볼 수 있어요. 오프라인 변경은 이 기기에 보관됩니다.</p><div class="tools"><button class="btn" id="ideasExport">보드 백업</button><button class="btn" id="ideasImport">백업 추가하기</button><button class="btn" id="ideasRetry">다시 저장</button></div></details></div>
 </section>
 <section id="milestonesPage" data-screen="milestones" aria-labelledby="projectsTitle" hidden>
-<div id="milestoneSync" class="sectionhead editable milestone-sync"><p class="small" id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p><div class="tools"><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave">동기화</button><button class="btn" id="cloudRestore" hidden>내 변경 JSON 보관 후 최신 일정 열기</button></div></div>
+<div id="milestoneSync" class="sectionhead editable milestone-sync"><div class="tools"><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave" title="GitHub의 최신 내용을 확인하고 미저장 변경을 지금 동기화합니다">동기화</button><button class="btn" id="cloudRestore" hidden>내 변경 JSON 보관 후 최신 일정 열기</button></div></div>
 <div id="projectOverview">
 <div class="page-top"><span class="eyebrow">PROJECTS / OVERVIEW</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="head projects-heading"><div><h1 id="projectsTitle" tabindex="-1">프로젝트</h1><p class="page-intro">전체 흐름은 한눈에, 자세한 일정은 프로젝트 안에서.</p></div><button class="btn primary editable" id="newProject">＋ 프로젝트 추가</button></div>
@@ -284,6 +284,7 @@ function route(focus=false){
  document.querySelectorAll("[data-screen]").forEach(el=>el.hidden=el.dataset.screen!==page);
  document.querySelectorAll("[data-page]").forEach(el=>{if(el.dataset.page===page)el.setAttribute("aria-current","page");else el.removeAttribute("aria-current");});
  document.documentElement.dataset.activePage=page;
+ $("cloudStatus").hidden=page!=="milestones"||readonly;
  document.documentElement.dataset.projectView=detailId?"detail":"overview";
  $("projectOverview").hidden=!!detailId;$("projectDetail").hidden=!detailId;
  $("milestonesPage").setAttribute("aria-labelledby",detailId?"title":"projectsTitle");
@@ -458,7 +459,7 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud=MilestoneCloud.create({read:()=>state,normalize:safe,key,
   canApply:()=>!$("modal").open&&!$("ideasModal").open&&!flowEditor?.busy&&!document.activeElement?.closest('input,textarea,select,[contenteditable="true"]'),
   apply:next=>{localStorage.setItem(key,JSON.stringify(next));flowEditor?.cancel();state=next;editHistory=EditHistory.create(editableSnapshot());syncUndo();render();},
-  notify:info=>{$("cloudStatus").textContent=info.message;$("connectGithub").hidden=info.connected;$("cloudRestore").hidden=!info.conflict;$("cloudSave").disabled=info.busy;$("cloudRestore").disabled=info.busy;$("saveState").textContent=info.conflict?"⚠ 다른 기기의 변경 확인 필요":info.error?"⚠ GitHub 저장 대기":info.connected&&!info.dirty?"● GitHub에 저장됨":"● 이 기기에 저장됨";try{$("cloudBackup").hidden=!localStorage.getItem(key+":before-sync");}catch{}}
+  notify:info=>{$("cloudStatus").textContent=info.message.startsWith("● GitHub 자동 저장")?"● GitHub 자동 저장":info.message;$("cloudStatus").title=info.message;$("connectGithub").hidden=info.connected;$("cloudRestore").hidden=!info.conflict;$("cloudSave").disabled=info.busy;$("cloudRestore").disabled=info.busy;$("saveState").textContent=info.conflict?"⚠ 다른 기기의 변경 확인 필요":info.error?"⚠ GitHub 저장 대기":info.connected&&!info.dirty?"● GitHub에 저장됨":"● 이 기기에 저장됨";try{$("cloudBackup").hidden=!localStorage.getItem(key+":before-sync");}catch{}}
  });
  $("connectGithub").onclick=()=>milestoneCloud.connect();$("cloudSave").onclick=()=>milestoneCloud.sync();
  $("cloudRestore").onclick=()=>milestoneCloud.resolve(data=>download("dowon-before-sync-"+day()+".json",JSON.stringify(data,null,2),"application/json"));

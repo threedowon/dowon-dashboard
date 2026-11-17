@@ -26,6 +26,9 @@
     gap: var(--space-3) var(--space-8);
   }
   .brand { margin: 0; font-size: 20px; }
+  .workspace-brand { display: flex; align-items: center; gap: var(--space-3); min-width: 0; max-width: 100%; }
+  .workspace-brand .brand { flex-shrink: 0; }
+  .workspace-save-status { margin: 0; min-width: 0; max-width: 300px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .workspace-nav { gap: var(--space-6); align-items: center; }
   .workspace-link { display: flex; align-items: center; min-height: 36px; padding: 6px 0; }
   .page-top { min-height: 42px; padding: var(--space-4) 0 0; border: 0; gap: var(--space-3); }
@@ -72,7 +75,7 @@
   .catalog-link { margin-top: var(--space-4); }
 
   /* Project list, roadmap controls and detail use a compact, shared rhythm. */
-  .milestone-sync, .ideas-sync-strip {
+  .ideas-sync-strip {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -84,8 +87,9 @@
     border: 1px solid #c3cebf;
     border-radius: 4px;
   }
-  .milestone-sync p, .ideas-sync-strip p { margin: 0; flex: 1 1 240px; }
-  .milestone-sync .tools, .ideas-sync-strip .tools { flex: 0 1 auto; }
+  .ideas-sync-strip p { margin: 0; flex: 1 1 240px; }
+  .ideas-sync-strip .tools { flex: 0 1 auto; }
+  .milestone-sync { justify-content: flex-end; margin: 0 0 var(--space-4); }
   #projectOverview > p.small { margin: 0 0 var(--space-3); }
   .project-list-row { padding: var(--space-4); gap: var(--space-6); }
   .project-check { flex-basis: 104px; }
@@ -224,8 +228,8 @@
   .catalog-details { grid-column: 1; grid-row: 2; margin: 0; }
   .catalog-details p { min-height: 0; }
   .catalog-link { grid-column: 1 / -1; margin-top: 0; }
-  .milestone-sync, .ideas-sync-strip { padding: var(--space-3); margin-bottom: var(--space-4); }
-  .milestone-sync p, .ideas-sync-strip p { flex-basis: 100%; }
+  .ideas-sync-strip { padding: var(--space-3); margin-bottom: var(--space-4); }
+  .ideas-sync-strip p { flex-basis: 100%; }
   .project-list-row { flex-direction: column; align-items: stretch; padding: var(--space-3); gap: var(--space-3); }
   .project-check { flex-basis: auto; min-height: 28px; }
   .project-detail-link { grid-template-columns: minmax(0, 1fr) 76px; gap: var(--space-3); }
@@ -268,4 +272,4 @@
   .calhead #today { padding-inline: 8px; }
 }
 
-@media print { .milestone-sync, .ideas-sync-strip { display: none !important; } }
+@media print { .workspace-save-status, .milestone-sync, .ideas-sync-strip { display: none !important; } }
