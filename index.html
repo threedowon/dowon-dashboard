@@ -205,7 +205,7 @@ html[data-active-page="home"] .side{display:none}
 <div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2>한눈에 보는 프로젝트 일정</h2><p class="small">목록에서 체크한 프로젝트만 모아 보고 공유하세요.</p></div><span class="small" id="selectionSummary" role="status"></span></div>
 <div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
-<div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">85%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
+<div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">100%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
 <div id="flowToolbar" class="flow-toolbar"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools"><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" id="mapAddColumn">＋ 열 추가</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
 <div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
 <p class="small roadmap-help" id="mapHelp">위·아래 테두리 드래그: 시작일·종료일 변경 / 카드 본문 드래그: 열 이동 / 네모 핸들: 빈 곳에 새 카드 만들기 · 기존 카드 연결. 테두리에 키보드 초점을 두고 ↑ ↓로도 날짜를 조절할 수 있어요.</p>
@@ -287,7 +287,7 @@ function route(focus=false){
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
 function selectedProjects(){return Roadmap.selectedProjects(state.projects,state.roadmapIds);}
-let mapScale=0.85,mapFit="width",flowEditor=null,mapDrawing=null,ideasBoard=null;
+let mapScale=1,mapFit=null,flowEditor=null,mapDrawing=null,ideasBoard=null;
 function applyMapZoom(){
  const board=$("roadmapBoard"),svg=board.querySelector("svg");
  document.querySelectorAll(".map-zoom button").forEach(b=>b.disabled=!svg);
