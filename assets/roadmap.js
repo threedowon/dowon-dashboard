@@ -17,6 +17,20 @@ globalThis.Roadmap = (() => {
     const n = Date.parse(value + 'T00:00:00Z');
     return Number.isFinite(n) && new Date(n).toISOString().slice(0, 10) === value ? n : null;
   }
+  function selectedProjects(projects, ids) {
+    return Array.isArray(ids) ? projects.filter(p => ids.includes(p.id)) : projects;
+  }
+  function portfolio(projects) {
+    return {
+      name: projects.length === 1 ? projects[0].name : '프로젝트 로드맵',
+      description: projects.map(p => p.name).join(' · '),
+      milestones: projects.flatMap(p => p.milestones.map(m => ({
+        ...m, id: JSON.stringify([p.id, m.id]), projectId: p.id,
+        group: p.name + (m.group ? '\n' + m.group : ''),
+        groupKey: JSON.stringify([p.id, m.group || '']),
+      }))),
+    };
+  }
   function layout(items, today) {
     const pending = [], groups = new Map(), dated = [];
     items.forEach(item => {
@@ -44,8 +58,9 @@ globalThis.Roadmap = (() => {
     }
     dated.sort((a, b) => a.startTime - b.startTime || a.endTime - b.endTime).forEach(m => {
       const name = m.group || '전체 일정';
-      if (!groups.has(name)) groups.set(name, { name, lanes: [], items: [] });
-      const group = groups.get(name);
+      const key = m.groupKey || name;
+      if (!groups.has(key)) groups.set(key, { name, lanes: [], items: [] });
+      const group = groups.get(key);
       let lane = group.lanes.findIndex(end => end < m.startTime);
       if (lane < 0) lane = group.lanes.length;
       group.lanes[lane] = m.endTime;
@@ -128,5 +143,5 @@ globalThis.Roadmap = (() => {
     out += text(width - 28, height - 23, '● 진행 중   ✓ 완료   빨간 주차 = 오늘', 11, '#537264', 'text-anchor="end"');
     return { markup: out + '</svg>', width, height, model };
   }
-  return { colors, escape, date, layout, svg };
+  return { colors, escape, date, layout, svg, selectedProjects, portfolio };
 })();

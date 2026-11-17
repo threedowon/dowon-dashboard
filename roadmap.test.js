@@ -61,4 +61,23 @@ test('JSON restore retains roadmap fields and accepts older backups', () => {
   for (const key of ['start','due','group','color']) assert.equal(restored[0][key], original[key]);
   assert.equal(restored[1].start, '');
   assert.equal(restored[1].color, 'blue');
+  assert.deepEqual(Array.from(context.safe({roadmapIds:[],projects:[]}).roadmapIds), []);
+  assert.equal(context.safe({projects:[]}).roadmapIds, null);
+});
+test('portfolio exports only selected projects and preserves distinct rows for identical names', () => {
+  const projects = [
+    {id:'a',name:'같은 이름',milestones:[milestone('same-id','2026-06-01','2026-06-07')]},
+    {id:'b',name:'같은 이름',milestones:[milestone('same-id','2026-06-01','2026-06-07')]},
+    {id:'private',name:'공유 제외',milestones:[milestone('excluded','','2027-01-01')]},
+  ];
+  assert.equal(Roadmap.selectedProjects(projects, null).length, 3);
+  assert.equal(Roadmap.selectedProjects(projects, []).length, 0);
+  const chosen = Roadmap.selectedProjects(projects, ['a','b','deleted']);
+  const combined = Roadmap.portfolio(chosen);
+  assert.equal(combined.milestones.length, 2);
+  assert.equal(new Set(combined.milestones.map(m=>m.id)).size, 2);
+  assert.equal(layout(combined.milestones,'2026-06-01').groups.length, 2);
+  assert.deepEqual(combined.milestones.map(m=>m.projectId), ['a','b']);
+  assert.ok(!svg(combined,'2026-06-01',{report:true}).markup.includes('공유 제외'));
+  assert.equal(projects[0].milestones[0].id, 'same-id');
 });
