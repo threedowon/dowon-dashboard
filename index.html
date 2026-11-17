@@ -171,6 +171,7 @@ html[data-active-page="home"] .side{display:none}
 <section id="pdfPage" data-screen="pdf" aria-labelledby="pdfTitle" hidden>
 <div class="page-top"><span class="eyebrow">DOCUMENT LIBRARY</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="placeholder-heading library-heading"><div><span class="availability">PRIVATE COLLECTION</span><h1 id="pdfTitle" tabindex="-1">PDF 자료실</h1><p class="page-intro">읽어야 할 문서와 다시 찾아볼 자료를 한곳에.<br>파일과 태그는 저장 즉시 다른 기기에서도 볼 수 있어요.</p></div><div class="tools editable"><button class="btn" id="pdfConnect">GitHub 연결</button><button class="btn primary" id="pdfAdd" disabled>＋ PDF 올리기</button></div></div>
+<button class="pdf-dropzone editable" id="pdfDropzone" type="button" disabled><strong>PDF를 여기로 끌어놓으세요</strong><span>놓으면 바로 업로드 · 여러 파일 가능 · 파일당 최대 10MB</span><span>또는 클릭하여 파일 선택과 태그 입력</span></button>
 <div class="library-toolbar"><label>자료 검색<input id="pdfSearch" type="search" placeholder="제목, 파일 이름, 태그 검색"></label><button class="btn" id="pdfRefresh">새로고침</button></div>
 <p class="small" id="pdfStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p>
 <div id="pdfTags" class="library-tags" aria-label="태그별 필터"></div><p class="small" id="pdfCount"></p><div id="pdfList" class="library-grid"></div>
