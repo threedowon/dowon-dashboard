@@ -132,6 +132,8 @@ html[data-active-page="home"] .side{display:none}
 #homePage{padding-top:64px;padding-bottom:48px}
 @media(max-width:650px){#homePage{padding-top:28px;padding-bottom:28px}}
 </style>
+<link rel="stylesheet" href="assets/roadmap.css">
+<script src="assets/roadmap.js"></script>
 </head>
 <body>
 <div class="app"><aside class="side"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div>
@@ -181,9 +183,16 @@ html[data-active-page="home"] .side{display:none}
 </section>
 <section id="milestonesPage" data-screen="milestones" aria-labelledby="title" hidden>
 <a class="back-link milestone-back" href="#home">← 대시보드 홈</a>
-<div class="top"><span class="small">PROJECT MANAGEMENT / MILESTONES</span><span class="small" id="saveState">● 로컬 저장</span></div><div class="head"><div><h1 id="title" tabindex="-1"></h1><div id="desc" class="muted"></div></div><div class="tools editable"><button class="btn" id="editProject">프로젝트 수정</button><button class="btn" id="import">JSON 불러오기</button><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave">☁ GitHub 백업</button><button class="btn" id="cloudRestore">↙ GitHub 복원</button><button class="btn" id="backup">JSON 백업</button><button class="btn primary" id="share">공유용 HTML</button></div></div>
+<div class="top"><span class="small">PROJECT MANAGEMENT / MILESTONES</span><span class="small" id="saveState">● 로컬 저장</span></div><div class="head"><div><h1 id="title" tabindex="-1"></h1><div id="desc" class="muted"></div></div><div class="tools editable"><button class="btn" id="editProject">프로젝트 수정</button><button class="btn" id="import">JSON 불러오기</button><button class="btn" id="connectGithub">GitHub 연결</button><button class="btn" id="cloudSave">☁ GitHub 백업</button><button class="btn" id="cloudRestore">↙ GitHub 복원</button><button class="btn" id="backup">JSON 백업</button><button class="btn primary" id="share">↓ 로드맵 HTML</button></div></div>
 <div class="small editable" id="cloudStatus" style="margin:-14px 0 18px">클라우드 백업: 연결 전 · 브라우저 로컬 저장은 계속 작동합니다.</div><div class="stats"><div class="stat"><span class="small">전체 진행률</span><b id="progress">0%</b><div class="bar"><i id="fill"></i></div></div><div class="stat"><span class="small">완료</span><b id="completed">0 / 0</b></div><div class="stat"><span class="small">마지막 업데이트</span><b style="font-size:16px" id="updated">—</b></div></div>
-<div class="tabs"><button class="tab active" data-tab="timeline">타임라인</button><button class="tab" data-tab="calendar">캘린더</button><button class="tab" data-tab="history">업데이트 히스토리</button></div>
+<div class="tabs"><button class="tab active" data-tab="roadmap">로드맵</button><button class="tab" data-tab="timeline">목록</button><button class="tab" data-tab="calendar">캘린더</button><button class="tab" data-tab="history">업데이트 히스토리</button></div>
+<section id="roadmapView">
+<div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2>한눈에 보는 프로젝트 일정</h2><p class="small">월·주차별로 흐름을 살펴보고, 이 로드맵을 그대로 공유하세요.</p></div><button class="btn primary editable" id="addRoadmap">＋ 일정 추가</button></div>
+<div class="roadmap-toolbar"><div class="roadmap-legend"><span style="--dot:#147a45">개발</span><span style="--dot:#315cab">제작</span><span style="--dot:#b85c17">테스트</span><span style="--dot:#c62239">주요 일정</span><span style="--dot:#515b57">기타</span></div><div class="tools"><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
+<div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
+<p class="small roadmap-help">막대를 선택하면 일정을 수정할 수 있어요. 겹치는 일정은 같은 업무 안에서 나누어 표시됩니다.</p>
+<p id="exportStatus" class="small" role="status" aria-live="polite"></p>
+</section>
 <section id="timelineView"><div class="sectionhead"><h2>마일스톤 타임라인</h2><button class="btn editable" id="addMilestone">＋ 마일스톤</button></div><div id="milestones" class="items"></div></section>
 <section id="calendarView" hidden><div class="calendar"><div class="calhead"><button class="btn" id="prevMonth">‹</button><strong id="month"></strong><div><button class="btn" id="today">오늘</button> <button class="btn" id="nextMonth">›</button></div></div><div class="calgrid" id="calgrid"></div></div><div class="daydetails"><div class="sectionhead"><h2 id="dayTitle"></h2><button class="btn editable" id="addOnDate">＋ 이 날짜에 추가</button></div><div id="dayItems"></div></div></section>
 <section id="historyView" hidden><div class="sectionhead"><h2>업데이트 히스토리</h2><button class="btn editable" id="addNote">＋ 메모 추가</button></div><div id="history"></div></section>
@@ -202,9 +211,9 @@ const API_KEY="dowon-dashboard:worker-url", key="dowon-dashboard:v1",readonly=do
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const id=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),iso=()=>new Date().toISOString(),day=()=>new Date().toLocaleDateString("sv-SE"),status={todo:"예정",doing:"진행 중",done:"완료"};
 function fresh(){let t=iso(),p={id:id(),name:"첫 번째 프로젝트",description:"프로젝트 목표와 마일스톤을 기록해 보세요.",updatedAt:t,milestones:[],history:[]};return {version:1,selectedId:p.id,projects:[p]};}
-function safe(v){if(!v||!Array.isArray(v.projects))throw Error("지원하지 않는 데이터 형식");return {version:1,selectedId:v.selectedId,projects:v.projects.map(p=>({id:String(p.id||id()),name:String(p.name||"제목 없음"),description:String(p.description||""),updatedAt:p.updatedAt||iso(),milestones:Array.isArray(p.milestones)?p.milestones.map(m=>({id:String(m.id||id()),title:String(m.title||""),details:String(m.details||""),due:String(m.due||""),status:status[m.status]?m.status:"todo"})):[],history:Array.isArray(p.history)?p.history:[]}))};}
+function safe(v){if(!v||!Array.isArray(v.projects))throw Error("지원하지 않는 데이터 형식");return {version:1,selectedId:v.selectedId,projects:v.projects.map(p=>({id:String(p.id||id()),name:String(p.name||"제목 없음"),description:String(p.description||""),updatedAt:p.updatedAt||iso(),milestones:Array.isArray(p.milestones)?p.milestones.map(m=>({id:String(m.id||id()),title:String(m.title||""),details:String(m.details||""),due:String(m.due||""),start:String(m.start||""),group:String(m.group||""),color:Object.hasOwn(Roadmap.colors,m.color)?m.color:"blue",status:status[m.status]?m.status:"todo"})):[],history:Array.isArray(p.history)?p.history:[]}))};}
 let state;try{state=safe(JSON.parse($("seed").textContent)||JSON.parse(localStorage.getItem(key)));}catch{state=fresh();}
-let tab="timeline",month=new Date(),selected=day(),edit=null;
+let tab="roadmap",month=new Date(),selected=day(),edit=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
 const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스"};
 function route(focus=false){
@@ -227,28 +236,32 @@ const p=current();if(!p){$("title").textContent="프로젝트 없음";return;}st
 $("projects").innerHTML=state.projects.map(q=>'<button class="project '+(q.id===p.id?"active":"")+'" data-p="'+esc(q.id)+'">'+esc(q.name)+'</button>').join("");
 $("title").textContent=p.name;$("desc").textContent=p.description;let n=p.milestones.length,k=p.milestones.filter(m=>m.status==="done").length,rate=n?Math.round(100*k/n):0;
 $("progress").textContent=rate+"%";$("fill").style.width=rate+"%";$("completed").textContent=k+" / "+n;$("updated").textContent=displayDate(p.updatedAt);
-document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["timeline","calendar","history"].forEach(x=>$(x+"View").hidden=x!==tab);
-$("milestones").innerHTML=p.milestones.length?p.milestones.slice().sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")).map(m=>'<div class="item"><div class="row"><div><h3>'+esc(m.title)+'</h3><span class="tag '+esc(m.status)+'">'+status[m.status]+'</span> <span class="small">목표일 '+esc(displayDate(m.due))+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(m.id)+'">수정</button>')+'</div>'+(m.details?'<p>'+esc(m.details)+'</p>':"")+'</div>').join(""):'<div class="empty">아직 마일스톤이 없어요. 첫 마일스톤을 추가해 보세요.</div>';
+document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["roadmap","timeline","calendar","history"].forEach(x=>$(x+"View").hidden=x!==tab);
+$("milestones").innerHTML=p.milestones.length?p.milestones.slice().sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")).map(m=>'<div class="item"><div class="row"><div><h3>'+esc(m.title)+'</h3><span class="tag '+esc(m.status)+'">'+status[m.status]+'</span> <span class="small">'+esc(m.group?m.group+" · ":"")+esc(m.start?m.start+" ~ ":"목표일 ")+esc(displayDate(m.due))+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(m.id)+'">수정</button>')+'</div>'+(m.details?'<p>'+esc(m.details)+'</p>':"")+'</div>').join(""):'<div class="empty">아직 마일스톤이 없어요. 첫 마일스톤을 추가해 보세요.</div>';
 $("history").innerHTML=p.history.length?p.history.map(h=>'<div class="log"><b>'+esc(h.title)+'</b><div class="small">'+esc(new Date(h.at).toLocaleString("ko-KR"))+'</div>'+(h.details?'<p>'+esc(h.details)+'</p>':"")+'</div>').join(""):'<div class="empty">아직 업데이트 기록이 없어요.</div>';
+$("roadmapBoard").innerHTML=Roadmap.svg(p,day(),{interactive:!readonly}).markup;
 drawCalendar();}
 function drawCalendar(){let p=current(),y=month.getFullYear(),m=month.getMonth();$("month").textContent=y+"년 "+(m+1)+"월";let first=new Date(y,m,1).getDay(),max=new Date(y,m+1,0).getDate();let s=["일","월","화","수","목","금","토"].map(x=>'<div class="weekday">'+x+'</div>').join("");
 for(let i=0;i<42;i++){let d=new Date(y,m,1-first+i),ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");let ms=p.milestones.filter(x=>x.due===ds);s+='<button class="day '+(d.getMonth()!==m?"out ":"")+(ds===selected?"selected ":"")+(ds===day()?"today":"")+'" data-day="'+ds+'"><span class="num">'+d.getDate()+'</span>'+ms.slice(0,3).map(x=>'<span class="event '+esc(x.status)+'">'+esc(x.title)+'</span>').join("")+(ms.length>3?'<span class="small">+'+(ms.length-3)+'개</span>':"")+'</button>';}
 $("calgrid").innerHTML=s;$("dayTitle").textContent=selected+" 마일스톤";let ms=p.milestones.filter(x=>x.due===selected);$("dayItems").innerHTML=ms.length?ms.map(x=>'<div class="item row"><div><b>'+esc(x.title)+'</b> <span class="tag '+esc(x.status)+'">'+status[x.status]+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(x.id)+'">수정</button>')+'</div>').join(""):'<p class="small">이 날짜에는 마일스톤이 없어요.</p>';}
 function field(label,name,value,type){return '<label>'+label+(type==="textarea"?'<textarea name="'+name+'">'+esc(value)+'</textarea>':'<input type="'+(type||"text")+'" name="'+name+'" value="'+esc(value)+'" '+(name==="title"||name==="name"?"required":"")+' />')+'</label>';}
 function open(kind,mid,due){if(readonly)return;let p=current(),m=kind==="milestone"?p.milestones.find(x=>x.id===mid):null;edit={kind,mid};$("modalTitle").textContent=kind==="project"?(mid?"프로젝트 수정":"프로젝트 추가"):kind==="note"?"업데이트 메모":m?"마일스톤 수정":"마일스톤 추가";
-let f=kind==="project"?field("프로젝트 이름","name",mid?p.name:"")+field("프로젝트 설명","description",mid?p.description:"","textarea"):kind==="note"?field("제목","title","")+field("내용","details","","textarea"):field("마일스톤 제목","title",m?.title||"")+field("상세 내용","details",m?.details||"","textarea")+field("목표 날짜","due",m?.due||due||"","date")+'<label>상태<select name="status">'+Object.keys(status).map(k=>'<option value="'+k+'" '+((m?.status||"todo")===k?"selected":"")+'>'+status[k]+'</option>').join("")+'</select></label>';
+let f=kind==="project"?field("프로젝트 이름","name",mid?p.name:"")+field("프로젝트 설명","description",mid?p.description:"","textarea"):kind==="note"?field("제목","title","")+field("내용","details","","textarea"):field("마일스톤 제목","title",m?.title||"")+field("상세 내용","details",m?.details||"","textarea")+field("업무 구분","group",m?.group||"")+'<p class="form-hint">예: 현장 운영, 보이스 오브. 같은 구분의 일정은 한 행에 모입니다.</p><div class="date-fields">'+field("시작일","start",m?.start||"","date")+field("종료일 / 목표일","due",m?.due||due||"","date")+'</div><p class="form-hint">시작일을 비우면 목표일 하루로 표시합니다. 날짜가 없으면 미정 일정으로 표시합니다.</p><label>막대 색상<select name="color">'+Object.entries(Roadmap.colors).map(([key,[label]])=>'<option value="'+key+'" '+((m?.color||"blue")===key?"selected":"")+'>'+label+'</option>').join("")+'</select></label>'+'<label>상태<select name="status">'+Object.keys(status).map(k=>'<option value="'+k+'" '+((m?.status||"todo")===k?"selected":"")+'>'+status[k]+'</option>').join("")+'</select></label>';
 $("fields").innerHTML=f;$("remove").hidden=!mid;$("modal").showModal();}
+$("form").oninput=()=>{const f=$("form").elements;if(f.due)f.due.setCustomValidity("");};
 $("form").onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),v=k=>String(f.get(k)||"").trim(),p=current(),{kind,mid}=edit;
+if(kind==="milestone"&&v("start")&&(!v("due")||v("start")>v("due"))){const input=e.target.elements.due;input.setCustomValidity("종료일은 시작일과 같거나 이후 날짜여야 합니다.");input.reportValidity();return;}
 if(kind==="project"){if(mid){p.name=v("name");p.description=v("description");record(p,"프로젝트 정보 수정");}else{let q={id:id(),name:v("name"),description:v("description"),updatedAt:iso(),milestones:[],history:[]};record(q,"프로젝트 생성");state.projects.push(q);state.selectedId=q.id;}}
 else if(kind==="note"){record(p,v("title"),v("details"));}
-else if(mid){let m=p.milestones.find(x=>x.id===mid);let old=JSON.stringify(m);Object.assign(m,{title:v("title"),details:v("details"),due:v("due"),status:v("status")});record(p,"마일스톤 수정: "+m.title,old===JSON.stringify(m)?"변경 없음":"상태: "+status[m.status]+", 목표일: "+displayDate(m.due));}
-else{p.milestones.push({id:id(),title:v("title"),details:v("details"),due:v("due"),status:v("status")});record(p,"마일스톤 추가: "+v("title"));}
+else if(mid){let m=p.milestones.find(x=>x.id===mid);let old=JSON.stringify(m);Object.assign(m,{title:v("title"),details:v("details"),due:v("due"),start:v("start"),group:v("group"),color:v("color"),status:v("status")});record(p,"마일스톤 수정: "+m.title,old===JSON.stringify(m)?"변경 없음":"상태: "+status[m.status]+", 목표일: "+displayDate(m.due));}
+else{p.milestones.push({id:id(),title:v("title"),details:v("details"),due:v("due"),start:v("start"),group:v("group"),color:v("color"),status:v("status")});record(p,"마일스톤 추가: "+v("title"));}
 $("modal").close();persist();render();};
 $("remove").onclick=()=>{let p=current(),{kind,mid}=edit;if(!confirm("삭제할까요?"))return;if(kind==="project"){state.projects=state.projects.filter(x=>x.id!==mid);if(!state.projects.length)state=fresh();state.selectedId=state.projects[0].id;}else if(kind==="milestone"){let m=p.milestones.find(x=>x.id===mid);p.milestones=p.milestones.filter(x=>x.id!==mid);record(p,"마일스톤 삭제: "+m.title);} $("modal").close();persist();render();};
-$("cancel").onclick=()=>$("modal").close();$("newProject").onclick=()=>open("project");$("editProject").onclick=()=>open("project",current().id);$("addMilestone").onclick=()=>open("milestone");$("addOnDate").onclick=()=>open("milestone",null,selected);$("addNote").onclick=()=>open("note");
+$("cancel").onclick=()=>$("modal").close();$("newProject").onclick=()=>open("project");$("editProject").onclick=()=>open("project",current().id);$("addMilestone").onclick=$("addRoadmap").onclick=()=>open("milestone");$("addOnDate").onclick=()=>open("milestone",null,selected);$("addNote").onclick=()=>open("note");
 $("projects").onclick=e=>{let b=e.target.closest("[data-p]");if(b){state.selectedId=b.dataset.p;persist();render();}};
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();});
-$("milestones").onclick=$("dayItems").onclick=e=>{let b=e.target.closest("[data-m]");if(b)open("milestone",b.dataset.m);};
+$("roadmapBoard").onkeydown=e=>{if(e.target.matches("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();open("milestone",e.target.dataset.m);}};
+$("roadmapBoard").onclick=$("milestones").onclick=$("dayItems").onclick=e=>{let b=e.target.closest("[data-m]");if(b)open("milestone",b.dataset.m);};
 $("calgrid").onclick=e=>{let b=e.target.closest("[data-day]");if(b){selected=b.dataset.day;drawCalendar();}};
 $("prevMonth").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);drawCalendar();};
 $("nextMonth").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);drawCalendar();};
@@ -298,22 +311,40 @@ $("cloudRestore").onclick=async()=>{
 };
 if(!readonly)cloudCheck();
 
-$("share").onclick=async()=>{const button=$("share");button.disabled=true;try{let copy=document.documentElement.cloneNode(true);copy.dataset.readonly="true";copy.querySelector("#seed").textContent=JSON.stringify(state).replace(/</g,"\\u003c");const images=new Map();
-for(const img of copy.querySelectorAll("img[src]")){
- const src=img.getAttribute("src");if(src.startsWith("data:"))continue;
- if(!images.has(src)){const response=await fetch(src);if(!response.ok)throw Error("이미지를 불러오지 못했습니다.");const blob=await response.blob();const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("이미지를 변환하지 못했습니다."));reader.readAsDataURL(blob);});images.set(src,data);}
- img.setAttribute("src",images.get(src));
+async function shareFont(){
+ const response=await fetch("assets/fonts/PretendardVariable.woff2");
+ if(!response.ok)throw Error("공유용 글꼴을 불러오지 못했습니다.");
+ const blob=await response.blob();
+ return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("글꼴 변환 실패"));reader.readAsDataURL(new Blob([blob],{type:"font/woff2"}));});
 }
-const fontStyle=copy.querySelector("#workspaceFont");
-if(fontStyle&&!fontStyle.textContent.includes("data:font/woff2")){
- const response=await fetch("assets/fonts/PretendardVariable.woff2");if(!response.ok)throw Error("글꼴을 불러오지 못했습니다.");
- const font=await response.blob();const embedded=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("글꼴을 변환하지 못했습니다."));reader.readAsDataURL(new Blob([font],{type:"font/woff2"}));});
- fontStyle.textContent=fontStyle.textContent.replace("assets/fonts/PretendardVariable.woff2",embedded);
+function shareFilename(extension){return current().name.replace(/[<>:"/\\|?*\x00-\x1f]/g,"-").slice(0,80)+"-로드맵-"+day()+"."+extension;}
+async function exportRoadmap(kind){
+ const button=$(kind==="png"?"exportPng":"share");button.disabled=true;$("exportStatus").textContent="공유 파일을 만드는 중…";
+ try{
+  const p=current(),drawing=Roadmap.svg(p,day(),{report:true}),font=await shareFont();
+  const fontCss="@font-face{font-family:'Pretendard Variable';src:url('"+font+"') format('woff2')}";
+  if(kind==="html"){
+   const html='<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(p.name)+' — 로드맵</title><style>'+fontCss+'body{margin:0;padding:24px;background:#eeece5;color:#11563f;font-family:"Pretendard Variable",sans-serif}main{overflow:auto}svg{display:block;width:100%;min-width:1000px;height:auto}p{font-size:12px} @media print{@page{size:A3 landscape;margin:10mm}body{padding:0}main{overflow:visible}svg{min-width:0}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><main>'+drawing.markup+'</main><p>공유한 시점의 읽기 전용 로드맵입니다. 변경 사항은 자동으로 반영되지 않습니다. · 색상: 개발(초록), 제작(파랑), 테스트(주황), 주요 일정(빨강), 기타(회색)</p></body></html>';
+   download(shareFilename("html"),html,"text/html;charset=utf-8");
+  }else{
+   const markup=drawing.markup.replace('><title>', '><style>'+fontCss+'</style><title>');
+   const url=URL.createObjectURL(new Blob([markup],{type:"image/svg+xml;charset=utf-8"}));
+   try{
+    const image=new Image();image.src=url;await image.decode();
+    const scale=Math.min(2,8192/drawing.width,8192/drawing.height,Math.sqrt(24000000/(drawing.width*drawing.height)));
+    const canvas=document.createElement("canvas");canvas.width=Math.ceil(drawing.width*scale);canvas.height=Math.ceil(drawing.height*scale);
+    canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));if(!blob)throw Error("이미지 생성 실패");
+    download(shareFilename("png"),blob,"image/png");
+   }finally{URL.revokeObjectURL(url);}
+  }
+  $("exportStatus").textContent="현재 프로젝트의 로드맵을 저장했어요. 내려받은 파일을 공유하세요.";
+ }catch(error){$("exportStatus").textContent="내보내기 실패: "+error.message;}finally{button.disabled=false;}
 }
-copy.querySelector('link[as="font"]')?.remove();
-copy.querySelector("#share").disabled=false;
-download("dowon-dashboard-share-"+day()+".html","<!doctype html>\n"+copy.outerHTML,"text/html;charset=utf-8");
-}catch(error){alert("공유 HTML 생성 실패: "+error.message);}finally{button.disabled=false;}};
+$("share").onclick=()=>exportRoadmap("html");
+$("exportPng").onclick=()=>exportRoadmap("png");
+$("printRoadmap").onclick=()=>window.print();
+
 render();persist();route();
 })();
 </script></body></html>
