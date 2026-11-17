@@ -132,8 +132,12 @@ html[data-active-page="home"] .side{display:none}
 #homePage{padding-top:64px;padding-bottom:48px}
 @media(max-width:650px){#homePage{padding-top:28px;padding-bottom:28px}}
 </style>
-<link rel="stylesheet" href="assets/roadmap.css?v=20261117-project-overview">
-<script src="assets/roadmap.js?v=20261117-project-overview"></script>
+<link rel="stylesheet" href="assets/roadmap.css?v=20261118-timeline-tone">
+<script src="assets/roadmap.js?v=20261118-timeline-tone"></script>
+<script src="assets/dependency-map.js?v=20261118-timeline-tone"></script>
+<script src="assets/dependency-editor.js?v=20261118-timeline-tone"></script>
+<link rel="stylesheet" href="assets/ideas-board.css?v=20261118-board">
+<script src="assets/ideas-board.js?v=20261118-board"></script>
 </head>
 <body>
 <div class="app"><aside class="side"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div>
@@ -163,7 +167,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="catalog-card" href="#ideas" aria-labelledby="ideasCardTitle">
 <div class="catalog-card-head"><div><h2 id="ideasCardTitle">아이디어·레퍼런스</h2><span class="catalog-en">Ideas &amp; references</span></div><span class="catalog-number">03</span></div>
 <div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M43 9h14v25l18-18 10 10-18 18h25v14H67l18 18-10 10-18-18v25H43V68L25 86 15 76l18-18H8V44h25L15 26l10-10 18 18Z"/><circle class="cutout" cx="50" cy="51" r="10"/></svg></div>
-<div class="catalog-details"><p>마음에 남은 이미지와 링크<br>아이디어를 모으는 수집 공간</p><div class="catalog-status"><span>준비 중 · 기본 페이지</span></div></div><div class="catalog-link"><span>수집 공간 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
+<div class="catalog-details"><p>마음에 남은 이미지와 링크<br>아이디어를 모으는 수집 공간</p><div class="catalog-status live"><span>프로젝트별 보드 · 이미지 붙여넣기 · 영상</span></div></div><div class="catalog-link"><span>수집 공간 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
 </a>
 </div>
 
@@ -179,8 +183,12 @@ html[data-active-page="home"] .side{display:none}
 </section>
 <section id="ideasPage" data-screen="ideas" aria-labelledby="ideasTitle" hidden>
 <div class="page-top"><span class="eyebrow">IDEAS &amp; REFERENCES</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
-<div class="placeholder-heading"><span class="availability">준비 중</span><h1 id="ideasTitle" tabindex="-1">아이디어·레퍼런스</h1><p class="page-intro">스쳐 지나가는 영감도, 오래 간직할 레퍼런스도.</p></div>
-<div class="placeholder-panel"><span class="feature-icon ideas-icon" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M43 9h14v25l18-18 10 10-18 18h25v14H67l18 18-10 10-18-18v25H43V68L25 86 15 76l18-18H8V44h25L15 26l10-10 18 18Z"/><circle cx="50" cy="51" r="10" fill="var(--paper)"/></svg></span><h2>다음 아이디어가 머물 공간이에요</h2><p>이미지와 링크, 메모를 모으는 기능을 준비 중입니다.<br>아직 자료를 추가하거나 저장할 수는 없어요.</p><div class="planned-features" aria-label="추가 예정 기능"><span>이미지·링크 수집</span><span>아이디어 메모</span><span>태그로 정리</span></div></div>
+<div class="ideas-heading"><div><span class="availability">PROJECT CANVAS</span><h1 id="ideasTitle" tabindex="-1">아이디어·레퍼런스</h1><p class="page-intro">이미지, 영상, 메모를 자유롭게 펼쳐놓고 연결되는 생각을 모으세요.</p></div></div>
+<div class="ideas-project-row"><label>프로젝트 보드<select id="ideasProject" aria-label="프로젝트 보드"></select></label><button class="btn" id="ideasNewProject">＋ 프로젝트 추가</button><span class="small" id="ideasCount"></span></div>
+<div class="ideas-toolbar" role="toolbar" aria-label="레퍼런스 보드 도구"><button class="btn primary" id="ideasImage">＋ 이미지</button><button class="btn" id="ideasLink">영상·링크</button><button class="btn" id="ideasNote">메모</button><button class="btn" id="ideasUndo" title="Ctrl+Z" disabled>↶</button><button class="btn" id="ideasRedo" title="Ctrl+Shift+Z" disabled>↷</button><button class="btn" id="ideasEdit" disabled>내용 수정</button><button class="btn" id="ideasDelete" disabled>삭제</button><div class="ideas-zoom-tools"><button class="btn" id="ideasZoomOut" aria-label="보드 축소">−</button><output id="ideasZoom">100%</output><button class="btn" id="ideasZoomIn" aria-label="보드 확대">＋</button><button class="btn" id="ideasFit">전체 보기</button></div></div>
+<div class="ideas-viewport" id="ideasViewport" tabindex="0" aria-label="프로젝트 레퍼런스 보드. 이미지나 영상 URL을 붙여넣으세요."><div class="ideas-world" id="ideasWorld"></div><div class="ideas-empty" id="ideasEmpty"><span class="ideas-empty-symbol" aria-hidden="true">✧</span><h2 id="ideasEmptyTitle">프로젝트를 선택해 보드를 시작하세요</h2><p>이미지 복사 후 Ctrl+V · 영상 URL 붙여넣기<br>파일을 끌어놓거나 위의 도구로 자료를 추가할 수도 있어요.</p></div></div>
+<p class="ideas-help">카드를 끌어 자유롭게 배치 · 모서리로 크기 조절 · 빈 공간 드래그로 보드 이동 · Ctrl+휠로 확대/축소 · Ctrl+Z로 실행 취소<br>영상: YouTube / Vimeo / MP4·WebM URL · 이미지: 파일당 최대 20MB</p>
+<div class="ideas-save-row"><p class="small" id="ideasStatus" role="status" aria-live="polite">보드를 준비하고 있어요…</p><details><summary>보드 백업·불러오기</summary><p class="small">이 브라우저에 저장됩니다. 다른 기기에서는 보드 백업을 불러오세요.<br>마일스톤의 JSON·GitHub 백업과 별도로 관리됩니다.</p><div class="tools"><button class="btn" id="ideasExport">보드 백업</button><button class="btn" id="ideasImport">백업 추가하기</button><button class="btn" id="ideasRetry">다시 저장</button></div></details></div>
 </section>
 <section id="milestonesPage" data-screen="milestones" aria-labelledby="projectsTitle" hidden>
 <div id="projectOverview">
@@ -191,9 +199,12 @@ html[data-active-page="home"] .side{display:none}
 <div id="projectList" class="project-list"></div>
 <section id="roadmapView">
 <div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2>한눈에 보는 프로젝트 일정</h2><p class="small">목록에서 체크한 프로젝트만 모아 보고 공유하세요.</p></div><span class="small" id="selectionSummary" role="status"></span></div>
-<div class="roadmap-toolbar"><div class="roadmap-legend"><span style="--dot:#147a45">개발</span><span style="--dot:#315cab">제작</span><span style="--dot:#b85c17">테스트</span><span style="--dot:#c62239">주요 일정</span><span style="--dot:#515b57">기타</span></div><div class="tools"><button class="btn primary" id="share">↓ 로드맵 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
+<div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
+<div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
+<div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">85%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
+<div id="flowToolbar" class="flow-toolbar"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools"><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" id="mapAddColumn">＋ 열 추가</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
 <div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
-<p class="small roadmap-help">막대를 선택하면 해당 프로젝트의 상세 페이지로 이동합니다.</p>
+<p class="small roadmap-help" id="mapHelp">위·아래 테두리 드래그: 시작일·종료일 변경 / 카드 본문 드래그: 열 이동 / 네모 핸들: 빈 곳에 새 카드 만들기 · 기존 카드 연결. 테두리에 키보드 초점을 두고 ↑ ↓로도 날짜를 조절할 수 있어요.</p>
 <p id="exportStatus" class="small" role="status" aria-live="polite"></p>
 </section>
 </div>
@@ -211,20 +222,40 @@ html[data-active-page="home"] .side{display:none}
 </section></main></div>
 <dialog id="modal"><h2 id="modalTitle"></h2><form id="form"><div class="formgrid" id="fields"></div><div class="footer"><button type="button" class="btn danger" id="remove">삭제</button><div><button type="button" class="btn" id="cancel">취소</button> <button class="btn primary" type="submit">저장</button></div></div></form></dialog>
 <input type="file" accept=".json,application/json" id="file" hidden>
+<input type="file" id="ideasFiles" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" multiple hidden><input type="file" id="ideasBackupFile" accept=".json,application/json" hidden>
+<dialog id="ideasModal" aria-labelledby="ideasModalTitle"><h2 id="ideasModalTitle"></h2><form id="ideasForm"><div class="formgrid"><label>이름<input id="ideasName" maxlength="200" placeholder="자료 이름 또는 프로젝트 이름"></label><label id="ideasTextLabel"><span id="ideasTextCaption">내용</span><textarea id="ideasText" maxlength="20000" placeholder="메모 또는 URL을 입력하세요"></textarea></label></div><p class="small ideas-error" id="ideasModalError" role="alert"></p><div class="footer"><button type="button" class="btn" id="ideasCancel">취소</button><button type="submit" class="btn primary">저장</button></div></form></dialog>
 <dialog id="pdfModal" aria-labelledby="pdfModalTitle"><h2 id="pdfModalTitle">PDF 올리기</h2><form id="pdfForm" class="formgrid"><label id="pdfFileLabel">PDF 파일 (여러 개 선택 가능)<input id="pdfFiles" type="file" accept=".pdf,application/pdf" multiple></label><p id="pdfSelected" class="small"></p><label id="pdfNameLabel">제목<input id="pdfName" maxlength="200"></label><label>태그<input id="pdfTagInput" placeholder="예: 설계, 참고자료, 회의" maxlength="820"><span class="small">쉼표로 구분해주세요. 최대 20개, 각 40자까지.</span></label><p id="pdfFormStatus" class="small" role="status" aria-live="polite"></p><div class="tools"><button type="button" class="btn" id="pdfCancel">취소</button><button class="btn primary" id="pdfSubmit">저장</button></div></form></dialog>
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
-<link rel="stylesheet" href="library.css"><script src="library.js?v=20261117-delete-dialog" defer></script>
+<link rel="stylesheet" href="library.css?v=20261118-inline-upload"><script src="library.js?v=20261118-inline-upload" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){
 "use strict";
 const API_KEY="dowon-dashboard:worker-url", key="dowon-dashboard:v1",readonly=document.documentElement.dataset.readonly==="true",$=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const id=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),iso=()=>new Date().toISOString(),day=()=>new Date().toLocaleDateString("sv-SE"),status={todo:"예정",doing:"진행 중",done:"완료"};
+const id=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),iso=()=>new Date().toISOString(),day=()=>new Date().toLocaleDateString("sv-SE"),status={todo:"시작 전",doing:"진행중",done:"완료"};
 function fresh(){let t=iso(),p={id:id(),name:"첫 번째 프로젝트",description:"프로젝트 목표와 마일스톤을 기록해 보세요.",updatedAt:t,milestones:[],history:[]};return {version:1,selectedId:p.id,projects:[p]};}
-function safe(v){if(!v||!Array.isArray(v.projects))throw Error("지원하지 않는 데이터 형식");return {version:1,selectedId:v.selectedId,roadmapIds:Array.isArray(v.roadmapIds)?v.roadmapIds.map(String):null,projects:v.projects.map(p=>({id:String(p.id||id()),name:String(p.name||"제목 없음"),description:String(p.description||""),updatedAt:p.updatedAt||iso(),milestones:Array.isArray(p.milestones)?p.milestones.map(m=>({id:String(m.id||id()),title:String(m.title||""),details:String(m.details||""),due:String(m.due||""),start:String(m.start||""),group:String(m.group||""),color:Object.hasOwn(Roadmap.colors,m.color)?m.color:"blue",status:status[m.status]?m.status:"todo"})):[],history:Array.isArray(p.history)?p.history:[]}))};}
+function safe(v){if(!v||!Array.isArray(v.projects))throw Error("지원하지 않는 데이터 형식");return {version:1,selectedId:v.selectedId,mapColumns:DependencyMap.columnCount(v.mapColumns),mapView:v.mapView==="timeline"?"timeline":"connections",roadmapIds:Array.isArray(v.roadmapIds)?v.roadmapIds.map(String):null,projects:v.projects.map(p=>({id:String(p.id||id()),name:String(p.name||"제목 없음"),description:String(p.description||""),updatedAt:p.updatedAt||iso(),milestones:Array.isArray(p.milestones)?p.milestones.map(m=>({id:String(m.id||id()),title:String(m.title||""),details:String(m.details||""),due:String(m.due||""),dependsOn:DependencyMap.normalize(m.dependsOn),flowColumn:DependencyMap.column(m.flowColumn),start:String(m.start||""),group:String(m.group||""),color:Object.hasOwn(Roadmap.colors,m.color)?m.color:"blue",status:status[m.status]?m.status:"todo"})):[],history:Array.isArray(p.history)?p.history:[]}))};}
 let state;try{state=safe(JSON.parse($("seed").textContent)||JSON.parse(localStorage.getItem(key)));}catch{state=fresh();}
+const editableSnapshot=()=>({projects:state.projects,mapColumns:DependencyMap.columnCount(state.mapColumns)});
+const editHistory=EditHistory.create(editableSnapshot());
+function syncUndo(){ $("mapUndo").disabled=readonly||!editHistory.canUndo;$("mapRedo").disabled=readonly||!editHistory.canRedo; }
+function restoreEdit(direction){
+ if(readonly)return;
+ flowEditor?.cancel();
+ const snapshot=editHistory[direction]();if(!snapshot)return;
+ state.projects=snapshot.projects;state.mapColumns=snapshot.mapColumns;
+ persist();render();
+ $("flowToolbar").querySelector("[data-flow-status]").textContent=direction==="undo"?"이전 작업을 되돌렸어요.":"작업을 다시 적용했어요.";
+}
+$("mapUndo").onclick=()=>restoreEdit("undo");$("mapRedo").onclick=()=>restoreEdit("redo");
+document.addEventListener("keydown",e=>{
+ if(readonly||document.documentElement.dataset.activePage!=="milestones"||!(e.ctrlKey||e.metaKey)||e.altKey||e.isComposing||$("modal").open)return;
+ if(e.target.closest?.('input,textarea,[contenteditable]:not([contenteditable="false"])'))return;
+ const key=e.key.toLowerCase(),direction=key==="z"?(e.shiftKey?"redo":"undo"):key==="y"?"redo":null;
+ if(!direction)return;e.preventDefault();restoreEdit(direction);
+});
 let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
 const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스"};
@@ -251,6 +282,25 @@ function route(focus=false){
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
 function selectedProjects(){return Roadmap.selectedProjects(state.projects,state.roadmapIds);}
+let mapScale=0.85,mapFit="width",flowEditor=null,mapDrawing=null,ideasBoard=null;
+function applyMapZoom(){
+ const board=$("roadmapBoard"),svg=board.querySelector("svg");
+ document.querySelectorAll(".map-zoom button").forEach(b=>b.disabled=!svg);
+ if(!svg){$("mapZoomValue").textContent="—";return;}
+ const width=Number(svg.getAttribute("width")),height=Number(svg.getAttribute("height"));
+ const availableWidth=board.clientWidth||900,availableHeight=Math.min(window.innerHeight*0.68,720)-4;
+ if(mapFit)mapScale=Math.max(0.05,Math.min(0.85,(availableWidth-4)/width,mapFit==="all"?availableHeight/height:Infinity));
+ svg.style.width=(width*mapScale)+"px";
+ $("mapZoomValue").textContent=Math.round(mapScale*100)+"%";
+ $("mapZoomOut").disabled=mapScale<=0.1;$("mapZoomIn").disabled=mapScale>=1.6;
+ $("mapFitWidth").setAttribute("aria-pressed",String(mapFit==="width"));$("mapFitAll").setAttribute("aria-pressed",String(mapFit==="all"));
+}
+function zoomMap(delta){mapFit=null;mapScale=Math.max(0.1,Math.min(1.6,Math.round((mapScale+delta)*100)/100));applyMapZoom();}
+$("mapZoomOut").onclick=()=>zoomMap(-0.1);$("mapZoomIn").onclick=()=>zoomMap(0.1);
+$("mapFitWidth").onclick=()=>{mapFit="width";applyMapZoom();$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;};
+$("mapFitAll").onclick=()=>{mapFit="all";applyMapZoom();$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;};
+window.addEventListener("resize",applyMapZoom);
+function drawOverview(project,options){return state.mapView==="timeline"?Roadmap.svg(project,day(),options):DependencyMap.svg({...project,mapColumns:state.mapColumns,name:project.name==="프로젝트 로드맵"?"프로젝트 연결 맵":project.name},day(),options);}
 function renderOverview(){
  const chosen=selectedProjects(),ids=new Set(chosen.map(p=>p.id));
  $("projectCount").textContent=state.projects.length+"개";
@@ -261,47 +311,77 @@ function renderOverview(){
  }).join(""):'<div class="empty">프로젝트를 추가해 목표와 일정을 모아 보세요.</div>';
  $("selectionSummary").textContent=chosen.length+" / "+state.projects.length+"개 프로젝트 표시 중";
  for(const name of ["share","exportPng","printRoadmap"])$(name).disabled=!chosen.length;
- $("roadmapBoard").innerHTML=chosen.length?Roadmap.svg(Roadmap.portfolio(chosen),day(),{interactive:true}).markup:'<div class="empty">로드맵에 표시할 프로젝트를 목록에서 선택해 주세요.</div>';
+ document.querySelectorAll("[data-map-view]").forEach(b=>{const active=b.dataset.mapView===(state.mapView||"connections");b.classList.toggle("primary",active);b.setAttribute("aria-pressed",String(active));});
+ $("timelineLegend").hidden=true;
+ $("roadmapBoard").dataset.view=state.mapView||"connections";
+ $("mapHelp").textContent=state.mapView==="timeline"?"막대를 선택하면 해당 프로젝트의 상세 페이지로 이동합니다.":"위·아래 테두리 드래그: 시작일·종료일 변경 / 카드 본문 드래그: 열 이동 / 네모 핸들: 빈 곳에 새 카드 만들기 · 기존 카드 연결. 테두리에 키보드 초점을 두고 ↑ ↓로도 날짜를 조절할 수 있어요.";
+ $("roadmapBoard").setAttribute("aria-label",state.mapView==="timeline"?"월별 기간 로드맵":"주차별 프로젝트 연결 맵");
+ mapDrawing=chosen.length?drawOverview(Roadmap.portfolio(chosen),{interactive:true}):null;
+ $("roadmapBoard").innerHTML=mapDrawing?mapDrawing.markup:'<div class="empty">로드맵에 표시할 프로젝트를 목록에서 선택해 주세요.</div>';
+ applyMapZoom();
+ flowEditor?.refresh();
+ syncUndo();
+ $("mapAddColumn").disabled=readonly||!mapDrawing?.model?.columns||mapDrawing.model.columns.length>=100;
 }
 
-function persist(){if(readonly)return;try{localStorage.setItem(key,JSON.stringify(state));$("saveState").textContent="● 자동 저장됨";}catch{$("saveState").textContent="⚠ 저장 실패 — JSON 백업 필요";}}
+function persist(){if(readonly)return;editHistory.record(editableSnapshot());syncUndo();try{localStorage.setItem(key,JSON.stringify(state));$("saveState").textContent="● 자동 저장됨";}catch{$("saveState").textContent="⚠ 저장 실패 — JSON 백업 필요";}}
 function record(p,title,details){p.updatedAt=iso();p.history.unshift({id:id(),at:p.updatedAt,title,details:details||""});}
 function displayDate(d){return d?d.slice(0,10):"날짜 미정";}
 function render(){
-route();renderOverview();
+route();renderOverview();ideasBoard?.refreshProjects();
 const ongoing=state.projects.reduce((sum,p)=>sum+p.milestones.filter(m=>m.status==="doing").length,0);
 $("homeMilestoneSummary").textContent="프로젝트 "+state.projects.length+"개 · 진행 중인 마일스톤 "+ongoing+"개";
 const p=current();if(!p){$("title").textContent="프로젝트 없음";return;}state.selectedId=p.id;
 $("title").textContent=p.name;$("desc").textContent=p.description;let n=p.milestones.length,k=p.milestones.filter(m=>m.status==="done").length,rate=n?Math.round(100*k/n):0;
 $("progress").textContent=rate+"%";$("fill").style.width=rate+"%";$("completed").textContent=k+" / "+n;$("updated").textContent=displayDate(p.updatedAt);
 document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["timeline","calendar","history"].forEach(x=>$(x+"View").hidden=x!==tab);
-$("milestones").innerHTML=p.milestones.length?p.milestones.slice().sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")).map(m=>'<div class="item"><div class="row"><div><h3>'+esc(m.title)+'</h3><span class="tag '+esc(m.status)+'">'+status[m.status]+'</span> <span class="small">'+esc(m.group?m.group+" · ":"")+esc(m.start?m.start+" ~ ":"목표일 ")+esc(displayDate(m.due))+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(m.id)+'">수정</button>')+'</div>'+(m.details?'<p>'+esc(m.details)+'</p>':"")+'</div>').join(""):'<div class="empty">아직 마일스톤이 없어요. 첫 마일스톤을 추가해 보세요.</div>';
+$("milestones").innerHTML=p.milestones.length?p.milestones.slice().sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")).map(m=>'<div class="item"><div class="row"><div><h3>'+esc(m.title)+'</h3><span class="tag '+esc(m.status)+'">'+status[m.status]+'</span> <span class="small">'+esc(m.group?m.group+" · ":"")+esc(m.start?m.start+" ~ ":"목표일 ")+esc(displayDate(m.due))+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(m.id)+'">수정</button>')+'</div>'+(m.details?'<p>'+esc(m.details)+'</p>':"")+dependencySummary(m)+'</div>').join(""):'<div class="empty">아직 마일스톤이 없어요. 첫 마일스톤을 추가해 보세요.</div>';
 $("history").innerHTML=p.history.length?p.history.map(h=>'<div class="log"><b>'+esc(h.title)+'</b><div class="small">'+esc(new Date(h.at).toLocaleString("ko-KR"))+'</div>'+(h.details?'<p>'+esc(h.details)+'</p>':"")+'</div>').join(""):'<div class="empty">아직 업데이트 기록이 없어요.</div>';
 drawCalendar();}
 function drawCalendar(){let p=current(),y=month.getFullYear(),m=month.getMonth();$("month").textContent=y+"년 "+(m+1)+"월";let first=new Date(y,m,1).getDay(),max=new Date(y,m+1,0).getDate();let s=["일","월","화","수","목","금","토"].map(x=>'<div class="weekday">'+x+'</div>').join("");
 for(let i=0;i<42;i++){let d=new Date(y,m,1-first+i),ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");let ms=p.milestones.filter(x=>x.due===ds);s+='<button class="day '+(d.getMonth()!==m?"out ":"")+(ds===selected?"selected ":"")+(ds===day()?"today":"")+'" data-day="'+ds+'"><span class="num">'+d.getDate()+'</span>'+ms.slice(0,3).map(x=>'<span class="event '+esc(x.status)+'">'+esc(x.title)+'</span>').join("")+(ms.length>3?'<span class="small">+'+(ms.length-3)+'개</span>':"")+'</button>';}
 $("calgrid").innerHTML=s;$("dayTitle").textContent=selected+" 마일스톤";let ms=p.milestones.filter(x=>x.due===selected);$("dayItems").innerHTML=ms.length?ms.map(x=>'<div class="item row"><div><b>'+esc(x.title)+'</b> <span class="tag '+esc(x.status)+'">'+status[x.status]+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(x.id)+'">수정</button>')+'</div>').join(""):'<p class="small">이 날짜에는 마일스톤이 없어요.</p>';}
+function dependencyFields(project,milestone){
+ const refs=DependencyMap.normalize(milestone?.dependsOn),chosen=new Set(refs.map(r=>DependencyMap.key(r.projectId,r.milestoneId))),seen=new Set();
+ const groups=state.projects.map(p=>{
+  const options=p.milestones.filter(m=>!(p.id===project.id&&m.id===milestone?.id)).map(m=>{
+   const ref=DependencyMap.key(p.id,m.id);seen.add(ref);
+   return '<label class="dependency-option"><input type="checkbox" name="dependsOn" value="'+esc(ref)+'" '+(chosen.has(ref)?'checked':'')+'><span>'+esc(m.title)+'<small>'+esc(m.due||"날짜 미정")+' · '+status[m.status]+'</small></span></label>';
+  }).join("");
+  return options?'<div class="dependency-project"><b>'+esc(p.name)+'</b>'+options+'</div>':"";
+ }).join("");
+ const missing=[...chosen].filter(ref=>!seen.has(ref)).map(ref=>'<label class="dependency-option"><input type="checkbox" name="dependsOn" value="'+esc(ref)+'" checked><span>연결 대상을 찾을 수 없음<small>선택을 해제하면 이 연결이 삭제됩니다.</small></span></label>').join("");
+ return '<fieldset class="dependency-fields"><legend>선행 일정</legend><p class="form-hint">이 작업보다 먼저 끝나야 하는 일정을 선택하세요. 다른 프로젝트도 연결할 수 있어요.</p><div class="dependency-list">'+(groups+missing||'<p class="small">연결할 다른 일정을 먼저 추가해 주세요.</p>')+'</div><p id="dependencyError" role="alert" class="dependency-error"></p></fieldset>';
+}
+function dependencySummary(m){
+ const refs=DependencyMap.normalize(m.dependsOn);if(!refs.length)return "";
+ return '<div class="dependency-summary"><span class="small">선행 일정</span>'+refs.map(r=>{const p=state.projects.find(p=>p.id===r.projectId),source=p?.milestones.find(m=>m.id===r.milestoneId);return source?'<a href="'+esc(projectHref(p.id))+'">'+esc(p.name)+' / '+esc(source.title)+' <span class="tag '+esc(source.status)+'">'+status[source.status]+'</span></a>':'<span class="small">연결 대상 없음</span>';}).join("")+'</div>';
+}
 function field(label,name,value,type){return '<label>'+label+(type==="textarea"?'<textarea name="'+name+'">'+esc(value)+'</textarea>':'<input type="'+(type||"text")+'" name="'+name+'" value="'+esc(value)+'" '+(name==="title"||name==="name"?"required":"")+' />')+'</label>';}
 function open(kind,mid,due){if(readonly)return;let p=current(),m=kind==="milestone"?p.milestones.find(x=>x.id===mid):null;edit={kind,mid};$("modalTitle").textContent=kind==="project"?(mid?"프로젝트 수정":"프로젝트 추가"):kind==="note"?"업데이트 메모":m?"마일스톤 수정":"마일스톤 추가";
 let f=kind==="project"?field("프로젝트 이름","name",mid?p.name:"")+field("프로젝트 설명","description",mid?p.description:"","textarea"):kind==="note"?field("제목","title","")+field("내용","details","","textarea"):field("마일스톤 제목","title",m?.title||"")+field("상세 내용","details",m?.details||"","textarea")+field("업무 구분","group",m?.group||"")+'<p class="form-hint">예: 현장 운영, 보이스 오브. 같은 구분의 일정은 한 행에 모입니다.</p><div class="date-fields">'+field("시작일","start",m?.start||"","date")+field("종료일 / 목표일","due",m?.due||due||"","date")+'</div><p class="form-hint">시작일을 비우면 목표일 하루로 표시합니다. 날짜가 없으면 미정 일정으로 표시합니다.</p><label>막대 색상<select name="color">'+Object.entries(Roadmap.colors).map(([key,[label]])=>'<option value="'+key+'" '+((m?.color||"blue")===key?"selected":"")+'>'+label+'</option>').join("")+'</select></label>'+'<label>상태<select name="status">'+Object.keys(status).map(k=>'<option value="'+k+'" '+((m?.status||"todo")===k?"selected":"")+'>'+status[k]+'</option>').join("")+'</select></label>';
+if(kind==="milestone")f+=dependencyFields(p,m);
 $("fields").innerHTML=f;$("remove").hidden=!mid;$("modal").showModal();}
-$("form").oninput=()=>{const f=$("form").elements;if(f.due)f.due.setCustomValidity("");};
+$("form").oninput=()=>{const f=$("form").elements;if(f.due)f.due.setCustomValidity("");if($("dependencyError"))$("dependencyError").textContent="";};
 $("form").onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),v=k=>String(f.get(k)||"").trim(),p=current(),{kind,mid}=edit;
+const dependsOn=DependencyMap.normalize(f.getAll("dependsOn").map(value=>{try{const [projectId,milestoneId]=JSON.parse(value);const previous=DependencyMap.normalize(p.milestones.find(m=>m.id===mid)?.dependsOn).find(r=>r.projectId===projectId&&r.milestoneId===milestoneId);return {...previous,projectId,milestoneId};}catch{return null;}}));
+if(kind==="milestone"){const error=DependencyMap.validate(state.projects,p.id,mid||"__new__",dependsOn);if(error){$("dependencyError").textContent=error;$("dependencyError").scrollIntoView?.({block:"nearest"});return;}}
 if(kind==="milestone"&&v("start")&&(!v("due")||v("start")>v("due"))){const input=e.target.elements.due;input.setCustomValidity("종료일은 시작일과 같거나 이후 날짜여야 합니다.");input.reportValidity();return;}
 if(kind==="project"){if(mid){p.name=v("name");p.description=v("description");record(p,"프로젝트 정보 수정");}else{let q={id:id(),name:v("name"),description:v("description"),updatedAt:iso(),milestones:[],history:[]};record(q,"프로젝트 생성");state.projects.push(q);state.selectedId=q.id;if(Array.isArray(state.roadmapIds))state.roadmapIds.push(q.id);}}
 else if(kind==="note"){record(p,v("title"),v("details"));}
-else if(mid){let m=p.milestones.find(x=>x.id===mid);let old=JSON.stringify(m);Object.assign(m,{title:v("title"),details:v("details"),due:v("due"),start:v("start"),group:v("group"),color:v("color"),status:v("status")});record(p,"마일스톤 수정: "+m.title,old===JSON.stringify(m)?"변경 없음":"상태: "+status[m.status]+", 목표일: "+displayDate(m.due));}
-else{p.milestones.push({id:id(),title:v("title"),details:v("details"),due:v("due"),start:v("start"),group:v("group"),color:v("color"),status:v("status")});record(p,"마일스톤 추가: "+v("title"));}
+else if(mid){let m=p.milestones.find(x=>x.id===mid);let old=JSON.stringify(m);Object.assign(m,{title:v("title"),details:v("details"),due:v("due"),dependsOn,start:v("start"),group:v("group"),color:v("color"),status:v("status")});record(p,"마일스톤 수정: "+m.title,old===JSON.stringify(m)?"변경 없음":"상태: "+status[m.status]+", 목표일: "+displayDate(m.due));}
+else{p.milestones.push({id:id(),title:v("title"),details:v("details"),due:v("due"),dependsOn,start:v("start"),group:v("group"),color:v("color"),status:v("status")});record(p,"마일스톤 추가: "+v("title"));}
 $("modal").close();persist();render();if(kind==="project"&&!mid)location.hash=projectHref(state.selectedId);};
-$("remove").onclick=()=>{let p=current(),{kind,mid}=edit;if(!confirm("삭제할까요?"))return;if(kind==="project"){state.projects=state.projects.filter(x=>x.id!==mid);state.selectedId=state.projects[0]?.id||null;}else if(kind==="milestone"){let m=p.milestones.find(x=>x.id===mid);p.milestones=p.milestones.filter(x=>x.id!==mid);record(p,"마일스톤 삭제: "+m.title);} $("modal").close();persist();render();};
+$("remove").onclick=()=>{let p=current(),{kind,mid}=edit;if(!confirm("삭제할까요?"))return;if(kind==="project"){DependencyMap.unlink(state.projects,mid).forEach(q=>record(q,"삭제된 프로젝트의 선행 일정 연결 해제"));state.projects=state.projects.filter(x=>x.id!==mid);state.selectedId=state.projects[0]?.id||null;}else if(kind==="milestone"){DependencyMap.unlink(state.projects,p.id,mid).forEach(q=>record(q,"삭제된 선행 일정 연결 해제"));let m=p.milestones.find(x=>x.id===mid);p.milestones=p.milestones.filter(x=>x.id!==mid);record(p,"마일스톤 삭제: "+m.title);} $("modal").close();persist();render();};
 $("cancel").onclick=()=>$("modal").close();$("newProject").onclick=()=>open("project");$("editProject").onclick=()=>open("project",current().id);$("addMilestone").onclick=$("addDetailMilestone").onclick=()=>open("milestone");$("addOnDate").onclick=()=>open("milestone",null,selected);$("addNote").onclick=()=>open("note");
 $("projectList").onchange=e=>{const input=e.target.closest("[data-project-check]");if(!input)return;const ids=new Set(selectedProjects().map(p=>p.id));if(input.checked)ids.add(input.dataset.projectCheck);else ids.delete(input.dataset.projectCheck);state.roadmapIds=[...ids];persist();renderOverview();$("projectList").querySelectorAll("[data-project-check]").forEach(el=>{if(el.dataset.projectCheck===input.dataset.projectCheck)el.focus();});};
 $("selectAllProjects").onclick=()=>{state.roadmapIds=state.projects.map(p=>p.id);persist();renderOverview();};
 $("clearProjects").onclick=()=>{state.roadmapIds=[];persist();renderOverview();};
+document.querySelectorAll("[data-map-view]").forEach(b=>b.onclick=()=>{state.mapView=b.dataset.mapView;persist();renderOverview();});
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();});
 function openRoadmapProject(e){const bar=e.target.closest("[data-m]");if(!bar)return;const m=Roadmap.portfolio(selectedProjects()).milestones.find(m=>m.id===bar.dataset.m);if(m)location.hash=projectHref(m.projectId);}
-$("roadmapBoard").onkeydown=e=>{if(e.target.closest("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRoadmapProject(e);}};
-$("roadmapBoard").onclick=openRoadmapProject;
+$("roadmapBoard").onkeydown=e=>{if(state.mapView!=="timeline")return;if(e.target.closest("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRoadmapProject(e);}};
+$("roadmapBoard").onclick=e=>{if(state.mapView==="timeline")openRoadmapProject(e);};
 $("milestones").onclick=$("dayItems").onclick=e=>{let b=e.target.closest("[data-m]");if(b)open("milestone",b.dataset.m);};
 $("calgrid").onclick=e=>{let b=e.target.closest("[data-day]");if(b){selected=b.dataset.day;drawCalendar();}};
 $("prevMonth").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);drawCalendar();};
@@ -358,15 +438,15 @@ async function shareFont(){
  const blob=await response.blob();
  return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("글꼴 변환 실패"));reader.readAsDataURL(new Blob([blob],{type:"font/woff2"}));});
 }
-function shareFilename(project,extension){return project.name.replace(/[<>:"/\\|?*\x00-\x1f]/g,"-").slice(0,80)+"-로드맵-"+day()+"."+extension;}
+function shareFilename(project,extension){return project.name.replace(/[<>:"/\\|?*\x00-\x1f]/g,"-").slice(0,80)+(state.mapView==="timeline"?"-로드맵-":"-연결맵-")+day()+"."+extension;}
 async function exportRoadmap(kind){
  const button=$(kind==="png"?"exportPng":"share");button.disabled=true;$("exportStatus").textContent="공유 파일을 만드는 중…";
  try{
   const chosen=selectedProjects();if(!chosen.length)throw Error("공유할 프로젝트를 선택해 주세요.");
-  const p=Roadmap.portfolio(chosen),drawing=Roadmap.svg(p,day(),{report:true}),font=await shareFont();
+  const p=Roadmap.portfolio(chosen),drawing=drawOverview(p,{report:true}),font=await shareFont();
   const fontCss="@font-face{font-family:'Pretendard Variable';src:url('"+font+"') format('woff2')}";
   if(kind==="html"){
-   const html='<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(p.name)+' — 로드맵</title><style>'+fontCss+'body{margin:0;padding:24px;background:#eeece5;color:#11563f;font-family:"Pretendard Variable",sans-serif}main{overflow:auto}svg{display:block;width:100%;min-width:1000px;height:auto}p{font-size:12px} @media print{@page{size:A3 landscape;margin:10mm}body{padding:0}main{overflow:visible}svg{min-width:0}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><main>'+drawing.markup+'</main><p>공유한 시점의 읽기 전용 로드맵입니다. 변경 사항은 자동으로 반영되지 않습니다. · 색상: 개발(초록), 제작(파랑), 테스트(주황), 주요 일정(빨강), 기타(회색)</p></body></html>';
+   const html='<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(p.name)+' — 로드맵</title><style>'+fontCss+'body{margin:0;padding:24px;background:#eeece5;color:#11563f;font-family:"Pretendard Variable",sans-serif}main{overflow:auto}svg{display:block;width:100%;min-width:1000px;height:auto}p{font-size:12px} @media print{@page{size:A3 landscape;margin:10mm}body{padding:0}main{overflow:visible}svg{min-width:0}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><main>'+drawing.markup+'</main><p>공유한 시점의 읽기 전용 일정입니다. 선택한 프로젝트만 포함하며 변경 사항은 자동으로 반영되지 않습니다.</p></body></html>';
    download(shareFilename(p,"html"),html,"text/html;charset=utf-8");
   }else{
    const markup=drawing.markup.replace('><title>', '><style>'+fontCss+'</style><title>');
@@ -387,6 +467,22 @@ $("share").onclick=()=>exportRoadmap("html");
 $("exportPng").onclick=()=>exportRoadmap("png");
 $("printRoadmap").onclick=()=>window.print();
 
+$("mapAddColumn").onclick=()=>{
+ if(readonly||!mapDrawing?.model?.columns)return;
+ const count=mapDrawing.model.columns.length;if(count>=100)return;
+ state.mapColumns=count+1;persist();renderOverview();
+ $("flowToolbar").querySelector("[data-flow-status]").textContent=(count+1)+"열을 추가했어요. 카드나 네모 핸들을 끌어 놓으세요.";
+};
+flowEditor=DependencyEditor.attach({
+ board:$("roadmapBoard"),toolbar:$("flowToolbar"),getProjects:()=>state.projects,getModel:()=>mapDrawing?.model,createId:id,
+ isActive:()=>state.mapView!=="timeline"&&!readonly,
+ commit:(project,message)=>{record(project,message);persist();render();},
+ edit:({project,milestone})=>{state.selectedId=project.id;open("milestone",milestone.id);},
+ navigate:({project})=>{location.hash=projectHref(project.id);}
+});
+ideasBoard=IdeasBoard.attach({getProjects:()=>state.projects,isActive:()=>document.documentElement.dataset.activePage==="ideas",readonly,
+ createProject:name=>{const project={id:id(),name,description:"",updatedAt:iso(),milestones:[],history:[]};record(project,"프로젝트 생성");state.projects.push(project);if(Array.isArray(state.roadmapIds))state.roadmapIds.push(project.id);persist();render();return project;}
+});
 render();persist();route();
 })();
 </script></body></html>

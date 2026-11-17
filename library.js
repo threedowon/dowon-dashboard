@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),base='https://api.3dowon.com';
 if(document.documentElement.dataset.readonly==='true'){$('pdfStatus').textContent='공유 HTML에는 비공개 PDF 자료실이 포함되지 않습니다.';$('pdfRefresh').disabled=true;return;}
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let docs=[],filter=null,ready=false,busy=false,editing=null,pending=[],viewerUrl=null;
+let docs=[],filter=null,ready=false,busy=false,editing=null,pending=[],viewerUrl=null,dropUploads=[],uploadSequence=0;
 const tags=v=>[...new Set(v.split(/[,，\n]/).map(t=>t.trim().normalize('NFC')).filter(Boolean))];
 const size=n=>n<1024*1024?Math.max(1,Math.round(n/1024))+' KB':(n/1024/1024).toFixed(1)+' MB';
 function message(s,error=false){$('pdfStatus').textContent=s;$('pdfStatus').classList.toggle('library-error',error);}
@@ -17,7 +17,39 @@ function render(){
  const q=$('pdfSearch').value.trim().toLocaleLowerCase();
  const shown=docs.filter(d=>(filter===null||(filter===''?!d.tags.length:d.tags.includes(filter)))&&[d.title,d.filename,...d.tags].join(' ').toLocaleLowerCase().includes(q));
  $('pdfCount').textContent=ready?shown.length+'개 문서'+(filter!==null?' · '+(filter||'태그 없음'):''):'';
- $('pdfList').innerHTML=shown.length?shown.map(d=>'<article class="pdf-card"><div class="pdf-emblem">PDF / '+esc(size(d.size))+'</div><h2>'+esc(d.title)+'</h2><p class="small">'+esc(d.filename)+'<br>'+esc(d.createdAt.slice(0,10))+' 추가</p><div class="pdf-card-tags">'+d.tags.map(t=>'<button class="tag" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join('')+'</div><div class="tools"><button class="btn primary" data-open="'+d.id+'">PDF 열기</button><button class="btn" data-edit="'+d.id+'">제목·태그 수정</button><button class="btn danger" data-delete="'+d.id+'">삭제</button></div></article>').join(''):'<div class="empty">'+(!ready?'GitHub 연결 후 자료실을 불러와 주세요.':docs.length?'조건에 맞는 문서가 없어요.<br>검색어나 태그를 바꿔보세요.':'아직 보관한 PDF가 없어요.<br>PDF를 올리고 태그로 정리해 보세요.')+'</div>';
+ const completedIds=new Set(dropUploads.filter(job=>job.document).map(job=>job.document.id));
+ const rows=dropUploads.map(job=>{const doc=job.document&&shown.find(d=>d.id===job.document.id);return job.document?(doc?documentCard(doc):''):uploadCard(job);}).join('')+shown.filter(d=>!completedIds.has(d.id)).map(documentCard).join('');
+ const active=dropUploads.filter(job=>!job.document).length;
+ if(ready&&active)$('pdfCount').textContent+=' · 업로드 '+active+'개';
+ $('pdfList').innerHTML=rows||'<div class="empty">'+(!ready?'GitHub 연결 후 자료실을 불러와 주세요.':docs.length?'조건에 맞는 문서가 없어요.<br>검색어나 태그를 바꿔보세요.':'아직 보관한 PDF가 없어요.<br>PDF를 올리고 태그로 정리해 보세요.')+'</div>';
+}
+function documentCard(d){return '<article class="pdf-card"><div class="pdf-emblem">PDF / '+esc(size(d.size))+'</div><h2>'+esc(d.title)+'</h2><p class="small">'+esc(d.filename)+'<br>'+esc(d.createdAt.slice(0,10))+' 추가</p><div class="pdf-card-tags">'+d.tags.map(t=>'<button class="tag" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join('')+'</div><div class="tools"><button class="btn primary" data-open="'+d.id+'">PDF 열기</button><button class="btn" data-edit="'+d.id+'">제목·태그 수정</button><button class="btn danger" data-delete="'+d.id+'">삭제</button></div></article>';}
+function uploadCard(job){
+ const failed=job.state==='error',uploading=job.state==='uploading';
+ return '<article class="pdf-card pdf-upload-card '+(failed?'is-error':'')+'" aria-busy="'+uploading+'"><div class="pdf-emblem">PDF / '+esc(size(job.file.size))+'</div><h2>'+esc(job.file.name.replace(/\.pdf$/i,''))+'</h2><p class="small">'+esc(job.file.name)+'</p>'+(failed?'<p class="library-error">'+esc(job.error)+'</p><div class="tools"><button class="btn" data-upload-retry="'+job.id+'" '+(busy?'disabled':'')+'>다시 시도</button><button class="btn" data-upload-dismiss="'+job.id+'" '+(busy?'disabled':'')+'>목록에서 빼기</button></div>':'<div class="pdf-upload-state"><span>'+ (uploading?'업로드 중…':'업로드 대기 중')+'</span><progress '+(uploading?'':'value="0" max="1"')+' aria-label="'+esc(job.file.name)+' 업로드 진행"></progress></div>')+'</article>';
+}
+async function uploadFile(file,selectedTags=[]){
+ const form=new FormData();form.set('file',file);form.set('title',file.name.replace(/\.pdf$/i,'').slice(0,200)||'제목 없음');form.set('tags',JSON.stringify(selectedTags));
+ return (await(await request('/api/library',{method:'POST',body:form})).json()).document;
+}
+function settleUploads(){
+ if(!dropUploads.length||dropUploads.some(job=>!job.document))return;
+ const completed=dropUploads.map(job=>docs.find(d=>d.id===job.document.id)).filter(Boolean),ids=new Set(completed.map(d=>d.id));
+ docs=[...completed,...docs.filter(d=>!ids.has(d.id))];dropUploads=[];
+}
+async function uploadDropped(jobs){
+ if(busy)return;formBusy(true);filter=null;$('pdfSearch').value='';let saved=0;
+ try{
+  for(const job of jobs){
+   job.state='uploading';job.error='';message(job.file.name+' 업로드 중…');render();
+   try{job.document=await uploadFile(job.file);job.state='done';docs.unshift(job.document);saved++;}
+   catch(error){job.state='error';job.error=error.message||'업로드에 실패했어요.';}
+   render();
+  }
+  const failed=dropUploads.filter(job=>job.state==='error').length;
+  message(saved+'개 PDF를 저장했습니다.'+(failed?' · '+failed+'개 업로드 실패. 아래 카드에서 다시 시도해 주세요.':''),!!failed);
+  settleUploads();
+ }finally{formBusy(false);render();}
 }
 async function load(){if(busy)return;busy=true;$('pdfRefresh').disabled=true;message('자료실 불러오는 중…');try{const data=await(await request('/api/library')).json();docs=data.documents;ready=true;message('비공개 자료실 · 업로드와 수정 내용은 바로 저장됩니다.');}catch(e){message(e.message,true);}finally{busy=false;$('pdfRefresh').disabled=false;$('pdfAdd').disabled=$('pdfDropzone').disabled=!ready;render();}}
 $('pdfConnect').onclick=()=>{sessionStorage.setItem('dowon:open-pdf','1');location.href=base+'/auth/login';};
@@ -34,7 +66,7 @@ async function saveForm(){
  formBusy(true);let saved=0;
  try{
   if(editing){const result=await(await request('/api/library/'+editing.id,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('pdfName').value,tags:selectedTags,revision:editing.revision})})).json();docs=docs.map(d=>d.id===editing.id?result.document:d);}
-  else{while(pending.length){const file=pending[0];$('pdfFormStatus').textContent=file.name+' 저장 중… ('+(saved+1)+' / '+(saved+pending.length)+')';const form=new FormData();form.set('file',file);form.set('title',file.name.replace(/\.pdf$/i,'').slice(0,200)||'제목 없음');form.set('tags',JSON.stringify(selectedTags));const result=await(await request('/api/library',{method:'POST',body:form})).json();docs.unshift(result.document);pending.shift();saved++;}}
+  else{while(pending.length){const file=pending[0];$('pdfFormStatus').textContent=file.name+' 저장 중… ('+(saved+1)+' / '+(saved+pending.length)+')';docs.unshift(await uploadFile(file,selectedTags));pending.shift();saved++;}}
   $('pdfModal').close();message(editing?'제목과 태그를 저장했습니다.':saved+'개 PDF를 저장했습니다.');filter=null;$('pdfSearch').value='';
  }catch(err){$('pdfFormStatus').textContent=(saved?saved+'개 저장 완료. 남은 파일: '+pending.map(f=>f.name).join(', ')+'\n':'')+err.message;}finally{formBusy(false);render();}
 }
@@ -50,11 +82,12 @@ $('pdfPage').addEventListener('dragenter',e=>{if(!fileDrag(e))return;e.preventDe
 $('pdfPage').addEventListener('dragleave',e=>{if(fileDrag(e)&&--dragDepth<=0)clearDrag();});
 $('pdfPage').addEventListener('drop',e=>{
  if(!fileDrag(e))return;e.preventDefault();clearDrag();
- if(busy||$('pdfModal').open||$('pdfViewer').open){message('현재 작업을 마친 뒤 파일을 다시 놓아주세요.',true);return;}
+ if(busy||$('pdfModal').open||$('pdfViewer').open||$('pdfDeleteModal').open){message('현재 작업을 마친 뒤 파일을 다시 놓아주세요.',true);return;}
  if(!ready){message('먼저 GitHub에 연결하고 자료실을 불러와 주세요.',true);return;}
  const files=Array.from(e.dataTransfer.files);
  if(!files.length||files.some(f=>!f.name.toLowerCase().endsWith('.pdf')||f.size>10*1024*1024||!f.size)){message('폴더 대신 10MB 이하의 PDF 파일을 선택해서 놓아주세요.',true);return;}
- openForm();pending=files;$('pdfFiles').required=false;$('pdfSelected').textContent=files.map(f=>f.name+' ('+size(f.size)+')').join(' · ');saveForm();
+ const jobs=files.map(file=>({id:String(++uploadSequence),file,state:'waiting',error:'',document:null}));
+ dropUploads.push(...jobs);uploadDropped(jobs);
 });
 window.addEventListener('dragend',clearDrag);
 let deleting=null;
@@ -69,6 +102,10 @@ $('pdfDeleteConfirm').onclick=async()=>{
 };
 $('pdfList').onclick=async e=>{
  if(busy)return;
+ const retry=e.target.closest('[data-upload-retry]');
+ if(retry){const job=dropUploads.find(job=>job.id===retry.dataset.uploadRetry);if(job?.state==='error')await uploadDropped([job]);return;}
+ const dismiss=e.target.closest('[data-upload-dismiss]');
+ if(dismiss){dropUploads=dropUploads.filter(job=>job.id!==dismiss.dataset.uploadDismiss);settleUploads();render();return;}
  const deletion=e.target.closest('[data-delete]');
  if(deletion){
   deleting=docs.find(d=>d.id===deletion.dataset.delete);if(!deleting)return;

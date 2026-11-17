@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import './assets/roadmap.js';
+import './assets/dependency-map.js';
 const { layout, svg, date } = globalThis.Roadmap;
 const milestone = (id, start, due, group = '개발') => ({ id, title: id, start, due, group, status: 'todo', color: 'green' });
 
@@ -54,11 +55,13 @@ test('empty projects render the current month and inline application script pars
 test('JSON restore retains roadmap fields and accepts older backups', () => {
   const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
   const source = html.slice(html.indexOf('function safe('), html.indexOf('let state;'));
-  const context = vm.createContext({ Roadmap:globalThis.Roadmap, id:()=> 'id', iso:()=> '2026-11-17', status:{todo:'예정',doing:'진행 중',done:'완료'} });
+  const context = vm.createContext({ Roadmap:globalThis.Roadmap, DependencyMap:globalThis.DependencyMap, id:()=> 'id', iso:()=> '2026-11-17', status:{todo:'예정',doing:'진행 중',done:'완료'} });
   vm.runInContext(source, context);
   const original = milestone('restore', '2026-06-01', '2026-06-30');
+  original.flowColumn=2;
   const restored = context.safe({projects:[{milestones:[original, {title:'old', due:'2026-07-01'}]}]}).projects[0].milestones;
-  for (const key of ['start','due','group','color']) assert.equal(restored[0][key], original[key]);
+  for (const key of ['start','due','group','color','flowColumn']) assert.equal(restored[0][key], original[key]);
+  assert.equal(restored[1].flowColumn,null);
   assert.equal(restored[1].start, '');
   assert.equal(restored[1].color, 'blue');
   assert.deepEqual(Array.from(context.safe({roadmapIds:[],projects:[]}).roadmapIds), []);
