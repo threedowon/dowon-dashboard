@@ -203,7 +203,7 @@ html[data-active-page="home"] .side{display:none}
 <input type="file" accept=".json,application/json" id="file" hidden>
 <dialog id="pdfModal" aria-labelledby="pdfModalTitle"><h2 id="pdfModalTitle">PDF 올리기</h2><form id="pdfForm" class="formgrid"><label id="pdfFileLabel">PDF 파일 (여러 개 선택 가능)<input id="pdfFiles" type="file" accept=".pdf,application/pdf" multiple></label><p id="pdfSelected" class="small"></p><label id="pdfNameLabel">제목<input id="pdfName" maxlength="200"></label><label>태그<input id="pdfTagInput" placeholder="예: 설계, 참고자료, 회의" maxlength="820"><span class="small">쉼표로 구분해주세요. 최대 20개, 각 40자까지.</span></label><p id="pdfFormStatus" class="small" role="status" aria-live="polite"></p><div class="tools"><button type="button" class="btn" id="pdfCancel">취소</button><button class="btn primary" id="pdfSubmit">저장</button></div></form></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
-<link rel="stylesheet" href="library.css"><script src="library.js" defer></script>
+<link rel="stylesheet" href="library.css"><script src="library.js?v=20261117-delete" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){
