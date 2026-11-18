@@ -36,8 +36,10 @@ export async function largeTransfers(req,bucket,json){
       const number=Number(new URL(req.url).searchParams.get('number'));
       if(!Number.isInteger(number)||number<1||number>count)fail('조각 번호가 올바르지 않습니다.');
       const expected=number===count?session.size-PART_SIZE*(count-1):PART_SIZE;
-      const bytes=await read(req,expected);if(bytes.length!==expected)fail('파일 조각 크기가 일치하지 않습니다.');
-      return json(await upload.uploadPart(number,bytes));
+      if(!req.body||Number(req.headers.get('content-length'))!==expected)fail('파일 조각 크기가 일치하지 않습니다.');
+      // Cloudflare validates Content-Length; stream the fixed-length request directly to R2.
+      // Copying multi-MiB chunks in JS can exceed the Workers Free CPU budget.
+      return json(await upload.uploadPart(number,req.body));
     }
     const {parts}=await body(req);
     if(!Array.isArray(parts)||parts.length!==count||parts.some((p,i)=>p.partNumber!==i+1||typeof p.etag!=='string'||!p.etag))fail('업로드 조각이 누락되었습니다.');
