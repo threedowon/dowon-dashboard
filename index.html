@@ -141,7 +141,7 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
 <script src="assets/milestone-sync.js?v=20261118-autosave"></script>
 <link rel="stylesheet" href="library.css?v=20261118-inline-upload">
-<link rel="stylesheet" href="assets/workspace-layout.css?v=20261118-header-save">
+<link rel="stylesheet" href="assets/workspace-layout.css?v=20261118-wirenest">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -151,6 +151,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="workspace-link" href="#milestones" data-page="milestones"><span class="nav-symbol" aria-hidden="true">☷</span>마일스톤</a>
 <a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF 자료실</a>
 <a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>아이디어·레퍼런스</a>
+<a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
 </nav>
 
 <p class="small side-note">계획부터 영감까지,<br>나의 작업을 한곳에서.</p></aside>
@@ -173,8 +174,22 @@ html[data-active-page="home"] .side{display:none}
 <div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M43 9h14v25l18-18 10 10-18 18h25v14H67l18 18-10 10-18-18v25H43V68L25 86 15 76l18-18H8V44h25L15 26l10-10 18 18Z"/><circle class="cutout" cx="50" cy="51" r="10"/></svg></div>
 <div class="catalog-details"><p>마음에 남은 이미지와 링크<br>아이디어를 모으는 수집 공간</p><div class="catalog-status live"><span>프로젝트별 보드 · 이미지 붙여넣기 · 영상</span></div></div><div class="catalog-link"><span>수집 공간 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
 </a>
+<a class="catalog-card" href="#wirenest" aria-labelledby="wireNestCardTitle">
+<div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB Harness Studio</span></div><span class="catalog-number">04</span></div>
+<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><rect x="10" y="19" width="30" height="42" rx="3"/><rect x="60" y="39" width="30" height="42" rx="3"/><path d="M35 29h18v30h12v6H47V35H35zm0 16h9v29h21v6H38V51h-3z"/><path class="cutout" d="M18 27h14v5H18zm0 12h14v5H18zm0 12h14v5H18zm50-4h14v5H68zm0 12h14v5H68zm0 12h14v5H68z"/></svg></div>
+<div class="catalog-details"><p>하우징·PCB 배치와 배선 계획<br>3D로 설계하는 나만의 하네스</p><div class="catalog-status live"><span>배선 작업 · .wnest 파일 백업</span></div></div><div class="catalog-link"><span id="wireNestCardAction">백업 보관함 열기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
+</a>
 </div>
 
+</section>
+<section id="wirenestPage" data-screen="wirenest" aria-labelledby="wirenestTitle" hidden>
+<div class="page-top"><span class="eyebrow">WIRENEST / BACKUPS</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
+<div class="placeholder-heading library-heading"><div><h1 id="wirenestTitle" tabindex="-1">WireNest</h1><p class="page-intro">배선 작업을 시작하고, 직접 저장한 .wnest 파일을 보관하세요.</p></div><div class="tools"><button class="btn editable" id="wnConnect">GitHub 연결</button><a class="btn primary" href="https://threedowon.github.io/WireNest/" data-window-link target="_blank" rel="noopener noreferrer">＋ 새 작업 (새 창) ↗</a></div></div>
+<button class="pdf-dropzone editable" id="wnUpload" type="button" disabled><strong>.wnest 파일을 여기에 놓아 백업하세요</strong><span>또는 클릭하여 파일 선택 · 파일당 최대 25MB</span><span>WireNest에서 파일 → 저장한 뒤 올려주세요. 같은 이름도 별도 백업으로 보관합니다.</span></button>
+<input id="wnFiles" type="file" accept=".wnest" multiple hidden>
+<div class="library-toolbar"><label>백업 검색<input id="wnSearch" type="search" placeholder="파일 이름으로 검색"></label><button class="btn" id="wnRefresh">새로고침</button></div>
+<p class="small" id="wnStatus" role="status" aria-live="polite"></p><p class="small" id="wnCount"></p><div id="wnList" class="library-grid"></div>
+<p class="small library-note">직접 업로드한 파일만 이 목록에 표시됩니다. WireNest에서 수정한 내용은 자동으로 백업되지 않습니다.<br>이어서 작업하려면 백업을 내려받고, 새 작업 창의 <strong>파일 → 열기</strong>에서 선택하세요.</p>
 </section>
 <section id="pdfPage" data-screen="pdf" aria-labelledby="pdfTitle" hidden>
 <div class="page-top"><span class="eyebrow">DOCUMENT LIBRARY</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
@@ -234,11 +249,17 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfModal" aria-labelledby="pdfModalTitle"><h2 id="pdfModalTitle">PDF 올리기</h2><form id="pdfForm" class="formgrid"><label id="pdfFileLabel">PDF 파일 (여러 개 선택 가능)<input id="pdfFiles" type="file" accept=".pdf,application/pdf" multiple></label><p id="pdfSelected" class="small"></p><label id="pdfNameLabel">제목<input id="pdfName" maxlength="200"></label><label>태그<input id="pdfTagInput" placeholder="예: 설계, 참고자료, 회의" maxlength="820"><span class="small">쉼표로 구분해주세요. 최대 20개, 각 40자까지.</span></label><p id="pdfFormStatus" class="small" role="status" aria-live="polite"></p><div class="tools"><button type="button" class="btn" id="pdfCancel">취소</button><button class="btn primary" id="pdfSubmit">저장</button></div></form></dialog>
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
+<script src="assets/wirenest.js?v=20261118-backups" defer></script>
 <script src="library.js?v=20261118-inline-upload" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){
 "use strict";
+document.querySelectorAll("[data-window-link]").forEach(link=>link.addEventListener("click",event=>{
+ if(event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+ event.preventDefault();
+ window.open(link.href,"_blank","popup=yes,width=1280,height=900,resizable=yes,scrollbars=yes,noopener,noreferrer");
+}));
 const key="dowon-dashboard:v1",readonly=document.documentElement.dataset.readonly==="true",$=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const id=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),iso=()=>new Date().toISOString(),day=()=>new Date().toLocaleDateString("sv-SE"),status={todo:"시작 전",doing:"진행중",done:"완료"};
@@ -266,7 +287,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스"};
+const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스",wirenest:"WireNest"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");

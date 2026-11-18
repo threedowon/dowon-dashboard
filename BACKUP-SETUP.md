@@ -38,6 +38,10 @@ A missing/inaccessible backup returns an error, never a misleading successful em
 Moving from a previous origin does not move browser-local data: export JSON on the old address and import on the new address.
 
 ## Verification
+WireNest: open #wirenest. The new-work button opens the existing WireNest app in a separate window. Save a `.wnest` there, then manually upload it to the dashboard (25 MiB per file). Each upload is a separate backup, including repeated filenames; there is no automatic sync. Download a backup and use File → Open in WireNest to continue working. Search, upload retry and confirmed deletion are available. Localhost is a screen preview only; production-origin authentication remains required for backup operations.
+
+WireNest uses `/api/wirenest`, `wirenest/index.json` and `wirenest/files/<UUID>.wnest` in the same private data repository. It shares the library's atomic commit and revision-conflict handling, with separate metadata and file paths. Uploads must be JSON with the WireNest app marker, a positive integer version, and boards/nodes/wires records. Bytes are preserved on download. Deploy both the Worker and dashboard to enable this feature; no new credentials or permissions are needed.
+
 PDF library: open #pdf, connect GitHub, upload PDFs (10 MiB per file), then filter by tags or search title/filename/tags. Titles and tags save immediately. Other devices load the library directly; milestone backup/restore does not include or overwrite PDFs. Shared HTML does not include private PDF content. Up to 1,000 documents / 900 KB metadata are supported.
 
 Storage: library/index.json and library/files/<UUID>.pdf in the same private data repository. No new secrets or App permissions are needed. Upload commits file and metadata atomically using a base tree and non-force branch update. Concurrent branch changes retry from the newest commit; stale edits to the same document are rejected by revision. Files are returned only through authenticated, origin-restricted API responses with no-store headers. The PDF header check is a format check, not malware scanning.

@@ -47,6 +47,7 @@ export default {async fetch(req,env){
  let session;try{session=await unseal(env,cookies["__Host-dowon_session"])}catch{return j({error:"로그인이 필요합니다."},401,cors)}
  if(session.expires<Date.now()||session.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"로그인 만료"},401,cors);
  if(u.pathname==="/api/me")return j({login:session.login},200,cors);
+ if(u.pathname==='/api/wirenest'||u.pathname.startsWith('/api/wirenest/'))return library(req,session.token,gh,cors,'wnest');
  if(u.pathname==='/api/library'||u.pathname.startsWith('/api/library/'))return library(req,session.token,gh,cors);
  if(u.pathname==='/api/ideas'||u.pathname.startsWith('/api/ideas/'))return ideas(req,session.token,gh,cors);
  if(u.pathname==="/api/backup"&&req.method==="GET"){
