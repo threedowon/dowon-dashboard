@@ -2,7 +2,7 @@
 
 ## Temporary file transfers
 
-The `#transfers` page uses a separate private Cloudflare R2 bucket, never the GitHub data repository. The existing GitHub session authenticates all list/upload/download/delete requests. Files are limited to 5 GiB each (8 MiB multipart chunks; zero-byte files use the legacy small-file endpoint), with 1-minute, 5-minute, or 10-minute (default and maximum) retention. Retention starts at upload completion. Failed parts retry up to three times; interrupted uploads expire after 24 hours. Downloads stream directly to the browser without a full-file Blob in JavaScript. Downloads already started before expiration can finish; downloaded PC copies are unaffected by expiration.
+The `#transfers` page uses a separate private Cloudflare R2 bucket, never the GitHub data repository. The existing GitHub session authenticates all list/upload/download/delete requests. Files are limited to 5 GiB each (8 MiB multipart chunks; zero-byte files use the legacy small-file endpoint), with 1-minute, 5-minute, or 10-minute (default and maximum) retention. Retention starts at upload completion. Four parts upload concurrently; failed parts retry up to five times with backoff. The same open page retains completed parts and offers an explicit resume button after failure (reloading the page discards that local progress). Interrupted server upload sessions expire after 24 hours. Part requests stream directly into R2 to stay within the Worker CPU limit. Downloads stream directly to the browser without a full-file Blob in JavaScript. Downloads already started before expiration can finish; downloaded PC copies are unaffected by expiration.
 
 One-time setup, using Node 22.12+ and an authenticated Wrangler CLI:
 
