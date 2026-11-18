@@ -35,8 +35,14 @@ export async function library(req, token, gh, cors, kind='pdf') {
       if(!r.ok)fail('파일을 불러오지 못했습니다.',502);
       return new Response(r.body,{headers:{...cors,'content-type':backup?'application/octet-stream':'application/pdf','content-disposition':"attachment; filename=\"download\"; filename*=UTF-8''"+encodeURIComponent(doc.filename),'cache-control':'no-store','x-content-type-options':'nosniff'}});
     }
-    let upload=null,edit=null,blob=null,remove=null;
-    if(path===api&&req.method==='POST'){
+    let upload=null,edit=null,blob=null,remove=null,batch=null;
+    if(!backup&&path==='/api/library/batch'&&req.method==='POST'){
+      const body=await req.json();
+      if(!['delete','tags'].includes(body.action)||!Array.isArray(body.documents)||!body.documents.length||body.documents.length>1000)fail('선택한 문서를 확인해주세요.');
+      if(body.documents.some(d=>!d||typeof d.id!=='string'||!/^([a-f0-9-]{36})$/.test(d.id)||typeof d.revision!=='string'||!d.revision)||new Set(body.documents.map(d=>d.id)).size!==body.documents.length)fail('선택한 문서 정보가 올바르지 않습니다.');
+      batch={action:body.action,documents:body.documents,tags:body.action==='tags'?metadata('tags',body.tags).tags:[]};
+      if(batch.action==='tags'&&!batch.tags.length)fail('추가할 태그를 입력해주세요.');
+    }else if(path===api&&req.method==='POST'){
       if(Number(req.headers.get('content-length'))>limit+65536)fail(sizeError,413);
       const form=await req.formData(),file=form.get('file');
       if(!file||typeof file.arrayBuffer!=='function'||!file.name.toLowerCase().endsWith('.'+extension))fail(backup?'.wnest 파일을 선택해주세요.':'PDF 파일을 선택해주세요.');
@@ -54,8 +60,16 @@ export async function library(req, token, gh, cors, kind='pdf') {
       const body=await req.json();edit={id:match[1],...metadata(body.title,body.tags),revision:body.revision};
     }else return json({error:'Not found'},404);
     for(let attempt=0;attempt<3;attempt++){
-      const snap=await snapshot();let doc;
-      if(upload){if(snap.data.documents.length>=1000)fail('자료실은 최대 1,000개 문서를 지원합니다.');doc=upload;snap.data.documents.unshift(doc);}
+      const snap=await snapshot();let doc,changed=[];
+      if(batch){
+        changed=batch.documents.map(item=>{
+          const found=snap.data.documents.find(d=>d.id===item.id);
+          if(!found||found.revision!==item.revision)fail('선택한 문서 중 변경되거나 삭제된 파일이 있습니다. 새로고침 후 다시 선택해주세요. 아무 문서도 변경하지 않았습니다.',409);
+          return found;
+        });
+        if(batch.action==='delete'){const ids=new Set(changed.map(d=>d.id));snap.data.documents=snap.data.documents.filter(d=>!ids.has(d.id));}
+        else for(const d of changed){const merged=[...new Set([...d.tags,...batch.tags])];if(merged.length>20)fail('“'+d.title+'”의 태그가 20개를 초과합니다. 아무 문서도 변경하지 않았습니다.');Object.assign(d,{tags:metadata(d.title,merged).tags,revision:crypto.randomUUID(),updatedAt:new Date().toISOString()});}
+      }else if(upload){if(snap.data.documents.length>=1000)fail('자료실은 최대 1,000개 문서를 지원합니다.');doc=upload;snap.data.documents.unshift(doc);}
       else {
         const change=remove||edit;doc=snap.data.documents.find(d=>d.id===change.id);
         if(!doc)fail('문서를 찾을 수 없습니다.',404);
@@ -68,11 +82,12 @@ export async function library(req, token, gh, cors, kind='pdf') {
       const tree=[{path:indexPath,mode:'100644',type:'blob',content}];
       if(upload)tree.push({path:collection+'/files/'+upload.id+'.'+extension,mode:'100644',type:'blob',sha:blob.sha});
       if(remove)tree.push({path:collection+'/files/'+remove.id+'.'+extension,mode:'100644',type:'blob',sha:null});
+      if(batch?.action==='delete')for(const d of changed)tree.push({path:collection+'/files/'+d.id+'.'+extension,mode:'100644',type:'blob',sha:null});
       const built=await checked(await call('/git/trees',{base_tree:snap.tree,tree}));
-      const commit=await checked(await call('/git/commits',{message:(upload?'Add ':remove?'Delete ':'Update ')+(backup?'WireNest backup':'PDF library document'),tree:built.sha,parents:[snap.head]}));
+      const commit=await checked(await call('/git/commits',{message:batch?'Bulk PDF '+batch.action:(upload?'Add ':remove?'Delete ':'Update ')+(backup?'WireNest backup':'PDF library document'),tree:built.sha,parents:[snap.head]}));
       const saved=await call('/git/refs/heads/main',{sha:commit.sha,force:false},'PATCH');
       if(saved.status===409||saved.status===422)continue;
-      await checked(saved);return json(remove?{deleted:remove.id,commit:commit.sha}:{document:doc,commit:commit.sha});
+      await checked(saved);return json(batch?{documents:batch.action==='tags'?changed:[],deleted:batch.action==='delete'?changed.map(d=>d.id):[],commit:commit.sha}:remove?{deleted:remove.id,commit:commit.sha}:{document:doc,commit:commit.sha});
     }
     fail('다른 저장 작업과 겹쳤습니다. 잠시 후 다시 저장해주세요.',409);
   }catch(e){return json({error:e.status?e.message:'자료실 요청을 처리하지 못했습니다. 다시 시도해주세요.'},e.status||500);}
