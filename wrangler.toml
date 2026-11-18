@@ -8,3 +8,11 @@ routes = [{ pattern = "api.3dowon.com", custom_domain = true }]
 DASHBOARD_ORIGIN = "https://dashboard.3dowon.com"
 DASHBOARD_URL = "https://dashboard.3dowon.com/"
 ALLOWED_GITHUB_LOGIN = "threedowon"
+
+# Create this private bucket before deploying. Do not enable public access.
+[[r2_buckets]]
+binding = "TRANSFERS"
+bucket_name = "dowon-dashboard-transfers"
+
+[triggers]
+crons = ["* * * * *"]

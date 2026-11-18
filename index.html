@@ -152,6 +152,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF 자료실</a>
 <a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>아이디어·레퍼런스</a>
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
+<a class="workspace-link" href="#transfers" data-page="transfers">⇄ 파일 전달</a>
 </nav>
 
 <p class="small side-note">계획부터 영감까지,<br>나의 작업을 한곳에서.</p></aside>
@@ -181,6 +182,13 @@ html[data-active-page="home"] .side{display:none}
 </a>
 </div>
 
+</section>
+<section id="transfersPage" data-screen="transfers" aria-labelledby="transfersTitle" hidden>
+<div class="page-top"><span class="eyebrow">TEMPORARY FILE TRANSFER</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
+<div class="placeholder-heading library-heading"><div><h1 id="transfersTitle" tabindex="-1">파일 전달</h1><p class="page-intro">이 PC에서 올리고, 다른 PC에서 받으세요.<br>같은 계정으로 연결하면 보관 시간 안에 파일을 받을 수 있어요.</p></div><button class="btn editable" id="transferConnect">GitHub 연결</button></div>
+<div class="library-toolbar editable"><label>보관 시간 <select id="transferMinutes"><option value="1">1분</option><option value="5">5분</option><option value="10" selected>10분</option></select></label><button class="btn primary" id="transferUpload" disabled>＋ 파일 선택</button><input type="file" id="transferFiles" multiple hidden><button class="btn" id="transferRefresh">새로고침</button></div>
+<p class="small library-note">여기에 파일을 끌어 놓아도 됩니다. 파일당 최대 25MB · 여러 파일 선택 가능<br>Git에 백업되지 않습니다. 만료 즉시 새 다운로드가 차단되고, 서버 파일은 만료 후 1분 주기로 정리됩니다.</p>
+<p class="small" id="transferStatus" role="status" aria-live="polite"></p><div id="transferList" class="library-grid"></div>
 </section>
 <section id="wirenestPage" data-screen="wirenest" aria-labelledby="wirenestTitle" hidden>
 <div class="page-top"><span class="eyebrow">WIRENEST / BACKUPS</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
@@ -251,6 +259,7 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
 <script src="assets/wirenest.js?v=20261118-backups" defer></script>
+<script src="assets/transfers.js?v=20261118-10min" defer></script>
 <script src="library.js?v=20261118-bulk" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
@@ -288,7 +297,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스",wirenest:"WireNest"};
+const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스",wirenest:"WireNest",transfers:"파일 전달"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");

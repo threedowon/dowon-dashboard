@@ -1,5 +1,19 @@
 # Dowon Dashboard backup deployment
 
+## Temporary file transfers
+
+The `#transfers` page uses a separate private Cloudflare R2 bucket, never the GitHub data repository. The existing GitHub session authenticates all list/upload/download/delete requests. Files are limited to 25 MiB each, with 1-minute, 5-minute, or 10-minute (default and maximum) retention. Downloads already started before expiration can finish; downloaded PC copies are unaffected by expiration.
+
+One-time setup, using Node 22.12+ and an authenticated Wrangler CLI:
+
+1. Enable R2 in the Cloudflare account if needed (review any billing requirements in Cloudflare).
+2. Run `npx wrangler r2 bucket create dowon-dashboard-transfers`. Keep public access disabled; no r2.dev or custom public domain is needed.
+3. Deploy the Worker with `npm run deploy` and publish the updated dashboard through its existing GitHub Pages workflow. The `TRANSFERS` binding and 1-minute Cron Trigger are in `wrangler.toml`.
+4. As a storage safety net, configure a bucket lifecycle rule removing objects under `transfers/` after 1 day. The API independently checks the selected expiry on every download; lifecycle deletion alone is not the access control.
+5. Log in on both PCs, upload a disposable file, refresh the second PC, and verify its downloaded bytes. Verify manual deletion and check scheduled Worker logs for cleanup failures.
+
+Expired objects are immediately excluded from the list and rejected for new downloads, even if cleanup is delayed. The scheduled handler removes expired objects every minute when Cloudflare runs the trigger. Missing R2 configuration shows a setup message, not an empty successful list. Do not store transfer files in this checkout. R2 storage/operation charges depend on account usage; this feature does not enforce a total storage quota. Local previews do not access production storage.
+
 ## Production addresses
 - Dashboard: https://dashboard.3dowon.com (GitHub Pages, main / root)
 - API: https://api.3dowon.com (Cloudflare Worker dowon-dashboard-backup)

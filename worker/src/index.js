@@ -1,6 +1,7 @@
 
 import {library} from './library.js';
 import {ideas} from './ideas.js';
+import {transfers, cleanupTransfers} from './transfers.js';
 const repo="threedowon/dowon-dashboard-data",file="projects.json";
 const j=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{"content-type":"application/json","cache-control":"no-store",...h}});
 const ck=r=>Object.fromEntries((r.headers.get("cookie")||"").split(";").map(x=>x.trim().split("=")).filter(x=>x.length>1).map(([k,...v])=>[k,decodeURIComponent(v.join("="))]));
@@ -12,7 +13,7 @@ async function aes(env){return crypto.subtle.importKey("raw",deb64(env.SESSION_K
 async function seal(env,obj){const iv=crypto.getRandomValues(new Uint8Array(12)),out=await crypto.subtle.encrypt({name:"AES-GCM",iv},await aes(env),new TextEncoder().encode(JSON.stringify(obj)));return b64(iv)+"."+b64(out)}
 async function unseal(env,enc){const [iv,v]=String(enc||"").split(".");if(!iv||!v)throw Error("Missing session");return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:deb64(iv)},await aes(env),deb64(v))))}
 async function gh(path,token,options={}){return fetch("https://api.github.com"+path,{...options,headers:{"accept":"application/vnd.github+json","authorization":"Bearer "+token,"user-agent":"dowon-dashboard","x-github-api-version":"2022-11-28",...(options.headers||{})}})}
-export default {async fetch(req,env){
+export default {async scheduled(event,env,ctx){ctx.waitUntil(cleanupTransfers(env));},async fetch(req,env){
  const u=new URL(req.url),origin=req.headers.get("origin"),site=env.DASHBOARD_ORIGIN||"https://threedowon.github.io",home=env.DASHBOARD_URL||"https://threedowon.github.io/dowon-dashboard/";
  const cors=origin===site?{"access-control-allow-origin":site,"access-control-allow-credentials":"true","access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","vary":"Origin"}:{};
  const cb=u.origin+"/auth/callback";
@@ -47,6 +48,7 @@ export default {async fetch(req,env){
  let session;try{session=await unseal(env,cookies["__Host-dowon_session"])}catch{return j({error:"로그인이 필요합니다."},401,cors)}
  if(session.expires<Date.now()||session.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"로그인 만료"},401,cors);
  if(u.pathname==="/api/me")return j({login:session.login},200,cors);
+ if(u.pathname==='/api/transfers'||u.pathname.startsWith('/api/transfers/'))return transfers(req,env,cors);
  if(u.pathname==='/api/wirenest'||u.pathname.startsWith('/api/wirenest/'))return library(req,session.token,gh,cors,'wnest');
  if(u.pathname==='/api/library'||u.pathname.startsWith('/api/library/'))return library(req,session.token,gh,cors);
  if(u.pathname==='/api/ideas'||u.pathname.startsWith('/api/ideas/'))return ideas(req,session.token,gh,cors);
