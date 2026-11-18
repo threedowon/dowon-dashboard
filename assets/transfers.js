@@ -4,7 +4,8 @@
   const readonly=document.documentElement.dataset.readonly==='true';
   const local=location.hostname!=='dashboard.3dowon.com';
   const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let documents=[],busy=false,ready=false;
+  let documents=[],busy=false,ready=false,pending=[];
+  const uploads=new WeakMap();
   const message=text=>{$('transferStatus').textContent=text;};
   async function request(path='',options={}){
     const response=await fetch(base+'/api/transfers'+path,{credentials:'include',...options});
@@ -16,6 +17,8 @@
     $('transferRefresh').disabled=busy||readonly||local;
     $('transferUpload').disabled=busy||!ready||readonly||local;
     $('transferMinutes').disabled=busy;
+    $('transferRetry').hidden=!pending.length;
+    $('transferRetry').disabled=busy||!ready;
     $('transferList').innerHTML=documents.length?documents.map(d=>{
       const remaining=d.expiresAt-Date.now(),expired=remaining<=0;
       return '<article class="library-card"><h2 style="overflow-wrap:anywhere">'+esc(d.filename)+'</h2><p class="small">'+(d.size/1024/1024).toFixed(2)+' MB · '+(expired?'만료됨':Math.ceil(remaining/60000)+'분 남음')+'</p><p class="small">'+new Date(d.expiresAt).toLocaleString('ko-KR')+' 만료</p><div class="tools"><button class="btn primary" data-download="'+esc(d.id)+'"'+(busy||expired||!ready?' disabled':'')+'>내려받기</button><button class="btn danger editable" data-delete="'+esc(d.id)+'"'+(busy||!ready?' disabled':'')+'>삭제</button></div></article>';
@@ -31,7 +34,7 @@
   async function upload(files){
     if(busy||!ready||readonly||local)return;
     const selected=Array.from(files);if(!selected.length)return;
-    busy=true;render();let saved=0;const errors=[];
+    pending=[];busy=true;render();let saved=0;const errors=[];
     for(const file of selected){
       message('전송 중 ('+(saved+errors.length+1)+'/'+selected.length+'): '+file.name);
       try{
@@ -40,27 +43,42 @@
         let result;
         if(!file.size){const form=new FormData();form.set('file',file);form.set('minutes',$('transferMinutes').value);result=await(await request('',{method:'POST',body:form})).json();}
         else{
-          const session=await post('/uploads',{filename:file.name,size:file.size,minutes:Number($('transferMinutes').value)});
-          try{
-            const parts=[];
-            for(let offset=0;offset<file.size;offset+=session.partSize){
-              const chunk=file.slice(offset,Math.min(offset+session.partSize,file.size));let part;
-              for(let attempt=0;attempt<3;attempt++){
-                try{part=await(await request('/uploads/'+session.id+'/part?number='+(parts.length+1),{method:'POST',headers:{'content-type':'application/octet-stream'},body:chunk})).json();break;}
-                catch(e){if(attempt===2||!ready)throw e;await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}
+          let session=uploads.get(file);
+          if(!session){session={...await post('/uploads',{filename:file.name,size:file.size,minutes:Number($('transferMinutes').value)}),parts:[]};uploads.set(file,session);}
+          const count=Math.ceil(file.size/session.partSize);let next=0,failed=null;
+          const retry=async action=>{
+            for(let attempt=0;;attempt++){
+              try{return await action();}catch(e){
+                if(attempt===5||!ready)throw e;
+                message('연결 재시도 중: '+file.name+' ('+(attempt+1)+'/5)');
+                await new Promise(resolve=>setTimeout(resolve,Math.min(15000,2000*2**attempt)));
               }
-              parts.push(part);message('전송 중: '+file.name+' · '+Math.round(Math.min(offset+chunk.size,file.size)/file.size*100)+'%');
             }
-            for(let attempt=0;attempt<3;attempt++){try{result=await post('/uploads/'+session.id+'/complete',{parts});break;}catch(e){if(attempt===2||!ready)throw e;}}
-          }catch(e){await post('/uploads/'+session.id+'/abort',{}).catch(()=>{});throw e;}
+          };
+          const send=async()=>{
+            while(!failed){
+              const index=next++;if(index>=count)return;if(session.parts[index])continue;
+              const offset=index*session.partSize,chunk=file.slice(offset,Math.min(offset+session.partSize,file.size));
+              try{
+                const part=await retry(async()=> (await request('/uploads/'+session.id+'/part?number='+(index+1),{method:'POST',headers:{'content-type':'application/octet-stream'},body:chunk,signal:AbortSignal.timeout(120000)})).json());
+                session.parts[index]=part;
+                message('전송 중: '+file.name+' · '+Math.floor(session.parts.filter(Boolean).length/count*100)+'%');
+              }catch(e){failed=e;}
+            }
+          };
+          await Promise.all(Array.from({length:4},()=>send()));
+          if(failed)throw failed;
+          result=await retry(()=>post('/uploads/'+session.id+'/complete',{parts:session.parts}));
+          uploads.delete(file);
         }
         documents.unshift(result.document);saved++;
-      }catch(e){errors.push(file.name+': '+e.message);}
+      }catch(e){pending.push(file);errors.push(file.name+': '+e.message);}
     }
-    busy=false;render();message(saved+'개 전송 완료.'+(errors.length?' 실패한 파일을 다시 선택해주세요. '+errors.join(' / '):' 다른 PC에서 새로고침하면 받을 수 있어요.'));
+    busy=false;render();message(saved+'개 전송 완료.'+(errors.length?' 아래 이어서 재시도 버튼으로 완료된 부분부터 다시 전송할 수 있습니다. '+errors.join(' / '):' 다른 PC에서 새로고침하면 받을 수 있어요.'));
   }
   $('transferConnect').onclick=()=>{sessionStorage.setItem('dowon:open-transfers','1');location.href=base+'/auth/login';};
   $('transferRefresh').onclick=load;
+  $('transferRetry').onclick=()=>upload(pending.slice());
   $('transferUpload').onclick=()=>$('transferFiles').click();
   $('transferFiles').onchange=()=>{upload($('transferFiles').files);$('transferFiles').value='';};
   $('transfersPage').addEventListener('dragover',e=>{if(Array.from(e.dataTransfer?.types||[]).includes('Files'))e.preventDefault();});

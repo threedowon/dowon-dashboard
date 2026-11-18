@@ -188,7 +188,7 @@ html[data-active-page="home"] .side{display:none}
 <div class="placeholder-heading library-heading"><div><h1 id="transfersTitle" tabindex="-1">파일 전달</h1><p class="page-intro">이 PC에서 올리고, 다른 PC에서 받으세요.<br>같은 계정으로 연결하면 보관 시간 안에 파일을 받을 수 있어요.</p></div><button class="btn editable" id="transferConnect">GitHub 연결</button></div>
 <div class="library-toolbar editable"><label>보관 시간 <select id="transferMinutes"><option value="1">1분</option><option value="5">5분</option><option value="10" selected>10분</option></select></label><button class="btn primary" id="transferUpload" disabled>＋ 파일 선택</button><input type="file" id="transferFiles" multiple hidden><button class="btn" id="transferRefresh">새로고침</button></div>
 <p class="small library-note">여기에 파일을 끌어 놓아도 됩니다. 파일당 최대 5GB · 여러 파일 선택 가능<br>보관 시간은 업로드 완료부터 계산됩니다. 전송 중에는 페이지를 열어 두세요.<br>Git에 백업되지 않습니다. 만료 즉시 새 다운로드가 차단되고, 서버 파일은 만료 후 1분 주기로 정리됩니다.</p>
-<p class="small" id="transferStatus" role="status" aria-live="polite"></p><div id="transferList" class="library-grid"></div>
+<button class="btn" id="transferRetry" hidden>이어서 재시도</button><p class="small" id="transferStatus" role="status" aria-live="polite"></p><div id="transferList" class="library-grid"></div>
 </section>
 <section id="wirenestPage" data-screen="wirenest" aria-labelledby="wirenestTitle" hidden>
 <div class="page-top"><span class="eyebrow">WIRENEST / BACKUPS</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
@@ -259,7 +259,7 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
 <script src="assets/wirenest.js?v=20261118-backups" defer></script>
-<script src="assets/transfers.js?v=20261118-large" defer></script>
+<script src="assets/transfers.js?v=20261118-resume" defer></script>
 <script src="library.js?v=20261118-bulk" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
