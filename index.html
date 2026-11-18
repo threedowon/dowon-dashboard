@@ -140,7 +140,7 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/ideas-board.js?v=20261118-inline"></script>
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
 <script src="assets/milestone-sync.js?v=20261118-autosave"></script>
-<link rel="stylesheet" href="library.css?v=20261118-inline-upload">
+<link rel="stylesheet" href="library.css?v=20261118-bulk">
 <link rel="stylesheet" href="assets/workspace-layout.css?v=20261118-header-save">
 </head>
 <body>
@@ -182,7 +182,7 @@ html[data-active-page="home"] .side{display:none}
 <button class="pdf-dropzone editable" id="pdfDropzone" type="button" disabled><strong>PDF를 여기로 끌어놓으세요</strong><span>놓으면 바로 업로드 · 여러 파일 가능 · 파일당 최대 10MB</span><span>또는 클릭하여 파일 선택과 태그 입력</span></button>
 <div class="library-toolbar"><label>자료 검색<input id="pdfSearch" type="search" placeholder="제목, 파일 이름, 태그 검색"></label><button class="btn" id="pdfRefresh">새로고침</button></div>
 <p class="small" id="pdfStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p>
-<div id="pdfTags" class="library-tags" aria-label="태그별 필터"></div><p class="small" id="pdfCount"></p><div id="pdfList" class="library-grid"></div>
+<div id="pdfTags" class="library-tags" aria-label="태그별 필터"></div><p class="small" id="pdfCount"></p><div class="pdf-bulkbar editable" id="pdfBulkbar"><label class="pdf-select-label"><input type="checkbox" id="pdfSelectAll"> 현재 목록 전체 선택</label><span id="pdfSelectionCount" role="status">0개 선택</span><button class="btn" id="pdfClearSelection" disabled>선택 해제</button><button class="btn" id="pdfBulkTags" disabled>선택한 PDF에 태그 추가</button><button class="btn danger" id="pdfBulkDelete" disabled>선택 삭제</button><span class="small">검색·태그를 바꾸면 선택이 해제됩니다.</span></div><div id="pdfList" class="library-grid"></div>
 <p class="small library-note">PDF 한 개당 최대 10MB · 비공개 저장소에 보관됩니다.<br>자료실은 업로드·수정 시 바로 저장되며, 마일스톤의 백업·복원과 별도로 관리됩니다.</p>
 </section>
 <section id="ideasPage" data-screen="ideas" aria-labelledby="ideasTitle" hidden>
@@ -232,9 +232,10 @@ html[data-active-page="home"] .side{display:none}
 <input type="file" id="ideasFiles" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" multiple hidden><input type="file" id="ideasBackupFile" accept=".json,application/json" hidden>
 <dialog id="ideasModal" aria-labelledby="ideasModalTitle"><h2 id="ideasModalTitle"></h2><form id="ideasForm"><div class="formgrid"><label>프로젝트 이름<input id="ideasName" maxlength="200" placeholder="프로젝트 이름"></label><label id="ideasTextLabel"><span id="ideasTextCaption">내용</span><textarea id="ideasText" maxlength="20000" placeholder="https://…"></textarea></label></div><p class="small ideas-error" id="ideasModalError" role="alert"></p><div class="footer"><button type="button" class="btn" id="ideasCancel">취소</button><button type="submit" class="btn primary">저장</button></div></form></dialog>
 <dialog id="pdfModal" aria-labelledby="pdfModalTitle"><h2 id="pdfModalTitle">PDF 올리기</h2><form id="pdfForm" class="formgrid"><label id="pdfFileLabel">PDF 파일 (여러 개 선택 가능)<input id="pdfFiles" type="file" accept=".pdf,application/pdf" multiple></label><p id="pdfSelected" class="small"></p><label id="pdfNameLabel">제목<input id="pdfName" maxlength="200"></label><label>태그<input id="pdfTagInput" placeholder="예: 설계, 참고자료, 회의" maxlength="820"><span class="small">쉼표로 구분해주세요. 최대 20개, 각 40자까지.</span></label><p id="pdfFormStatus" class="small" role="status" aria-live="polite"></p><div class="tools"><button type="button" class="btn" id="pdfCancel">취소</button><button class="btn primary" id="pdfSubmit">저장</button></div></form></dialog>
+<dialog id="pdfBulkTagModal" aria-labelledby="pdfBulkTagTitle"><h2 id="pdfBulkTagTitle">선택한 PDF에 태그 추가</h2><p id="pdfBulkTagNames" class="pdf-bulk-names"></p><form id="pdfBulkTagForm" class="formgrid"><label>추가할 태그<input id="pdfBulkTagInput" required placeholder="예: 설계, 참고자료" maxlength="820"></label><p class="small">쉼표로 구분해주세요. 기존 태그는 유지하고, 중복 태그는 한 번만 추가합니다.</p><p id="pdfBulkTagStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" type="button" id="pdfBulkTagCancel">취소</button><button class="btn primary" id="pdfBulkTagConfirm">태그 추가</button></div></form></dialog>
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
-<script src="library.js?v=20261118-inline-upload" defer></script>
+<script src="library.js?v=20261118-bulk" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){

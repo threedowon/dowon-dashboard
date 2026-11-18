@@ -13,9 +13,9 @@ function fixture(){
   if(path.includes('/contents/library/index.json'))return index?Response.json({content:Buffer.from(JSON.stringify(index)).toString('base64')}):new Response('',{status:404});
   if(path.includes('/contents/library/files/'))return new Response(files.get(path.split('/').pop()),{headers:{'content-type':'application/octet-stream'}});
   if(path.endsWith('/git/blobs')){const sha='blob'+blobs.size;blobs.set(sha,Buffer.from(body.content,'base64'));return Response.json({sha});}
-  if(path.endsWith('/git/trees')){assert.equal(body.base_tree,tree);pendingIndex=JSON.parse(body.tree.find(t=>t.path==='library/index.json').content);const pdf=body.tree.find(t=>t.path.endsWith('.pdf'));return Response.json({sha:JSON.stringify({index:pendingIndex,pdf})});}
+  if(path.endsWith('/git/trees')){assert.equal(body.base_tree,tree);pendingIndex=JSON.parse(body.tree.find(t=>t.path==='library/index.json').content);const pdfs=body.tree.filter(t=>t.path.endsWith('.pdf'));return Response.json({sha:JSON.stringify({index:pendingIndex,pdfs})});}
   if(path.endsWith('/git/commits')){const sha='c'+(++revision);commits.set(sha,JSON.parse(body.tree));return Response.json({sha});}
-  if(path.endsWith('/git/refs/heads/main')){assert.equal(body.force,false);if(race){race=false;head='concurrent';tree='concurrent-tree';return new Response('',{status:422});}const commit=commits.get(body.sha);index=commit.index;if(commit.pdf){const name=commit.pdf.path.split('/').pop();if(commit.pdf.sha===null)files.delete(name);else files.set(name,blobs.get(commit.pdf.sha));}head=body.sha;writes++;return Response.json({object:{sha:head}});}
+  if(path.endsWith('/git/refs/heads/main')){assert.equal(body.force,false);if(race){race=false;head='concurrent';tree='concurrent-tree';return new Response('',{status:422});}const commit=commits.get(body.sha);index=commit.index;for(const pdf of commit.pdfs){const name=pdf.path.split('/').pop();if(pdf.sha===null)files.delete(name);else files.set(name,blobs.get(pdf.sha));}head=body.sha;writes++;return Response.json({object:{sha:head}});}
   throw Error('Unexpected '+path);
  };
  const request=(path,options={})=>library(new Request('https://api.3dowon.com/api/library'+path,options),'private-token',gh,{'access-control-allow-origin':origin});
@@ -58,4 +58,33 @@ test('delete removes only the selected PDF atomically and rejects stale revision
  assert.deepEqual(f.index.documents.map(d=>d.id),[second.id]);
  assert.equal((await f.request('/'+first.id+'/file')).status,404);
  assert.equal((await f.request('/'+first.id+'/delete',deletion(first.revision))).status,404);
+});
+
+test('batch tags merge without duplicates and batch deletion removes only selected files in one commit',async()=>{
+ const f=fixture(),docs=[];
+ for(let i=0;i<3;i++)docs.push((await(await f.request('',upload())).json()).document);
+ const batch=(action,documents,tags)=>f.request('/batch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,documents,tags})});
+ const tagged=await batch('tags',docs.slice(0,2),['설계','공통']);
+ assert.equal(tagged.status,200);
+ const updated=(await tagged.json()).documents;
+ assert.equal(f.writes,4);
+ for(const d of updated){assert.deepEqual(d.tags,['설계','참고','공통']);assert.notEqual(d.revision,docs.find(x=>x.id===d.id).revision);}
+ assert.equal((await batch('delete',docs.slice(0,2))).status,409);
+ assert.equal(f.files.size,3);assert.equal(f.writes,4);
+ f.race();
+ assert.equal((await batch('delete',updated)).status,200);
+ assert.equal(f.writes,5);assert.equal(f.files.size,1);
+ assert.deepEqual(f.index.documents.map(d=>d.id),[docs[2].id]);
+ assert.ok(f.files.has(docs[2].id+'.pdf'));
+});
+test('batch invalid selection and tag overflow never partially save',async()=>{
+ const f=fixture(),docs=[];
+ for(let i=0;i<2;i++)docs.push((await(await f.request('',upload())).json()).document);
+ const batch=(action,documents,tags)=>f.request('/batch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,documents,tags})});
+ assert.equal((await batch('delete',[docs[0],docs[0]])).status,400);
+ assert.equal((await batch('tags',docs,['x'.repeat(41)])).status,400);
+ assert.equal((await batch('tags',docs,Array.from({length:20},(_,i)=>'tag'+i))).status,400);
+ assert.equal((await batch('tags',[docs[0],{...docs[1],revision:'stale'}],['common'])).status,409);
+ assert.equal(f.writes,2);assert.equal(f.files.size,2);
+ assert.ok(f.index.documents.every(d=>d.tags.length===2));
 });
