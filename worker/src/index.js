@@ -44,7 +44,8 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil(cleanupTransfers(en
  return j({ok:true},200,{"set-cookie":cookie("__Host-dowon_session","","SameSite=Lax; Max-Age=0"),...cors});
  }
  if(u.pathname.startsWith("/api/")){
- if(origin!==site)return j({error:"Origin denied"},403,cors);
+ const nativeDownload=req.method==='GET'&&/^\/api\/transfers\/[a-f0-9-]{36}\/file$/.test(u.pathname)&&!origin&&req.headers.get('sec-fetch-site')==='same-site'&&req.headers.get('referer')?.startsWith(site+'/');
+ if(origin!==site&&!nativeDownload)return j({error:"Origin denied"},403,cors);
  let session;try{session=await unseal(env,cookies["__Host-dowon_session"])}catch{return j({error:"로그인이 필요합니다."},401,cors)}
  if(session.expires<Date.now()||session.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"로그인 만료"},401,cors);
  if(u.pathname==="/api/me")return j({login:session.login},200,cors);

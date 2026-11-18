@@ -35,9 +35,26 @@
     for(const file of selected){
       message('전송 중 ('+(saved+errors.length+1)+'/'+selected.length+'): '+file.name);
       try{
-        if(file.size>25*1024*1024)throw Error('25MB를 초과합니다.');
-        const form=new FormData();form.set('file',file);form.set('minutes',$('transferMinutes').value);
-        const result=await(await request('',{method:'POST',body:form})).json();documents.unshift(result.document);saved++;
+        if(file.size>5*1024**3)throw Error('5GB를 초과합니다.');
+        const post=async(path,data)=> (await request(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)})).json();
+        let result;
+        if(!file.size){const form=new FormData();form.set('file',file);form.set('minutes',$('transferMinutes').value);result=await(await request('',{method:'POST',body:form})).json();}
+        else{
+          const session=await post('/uploads',{filename:file.name,size:file.size,minutes:Number($('transferMinutes').value)});
+          try{
+            const parts=[];
+            for(let offset=0;offset<file.size;offset+=session.partSize){
+              const chunk=file.slice(offset,Math.min(offset+session.partSize,file.size));let part;
+              for(let attempt=0;attempt<3;attempt++){
+                try{part=await(await request('/uploads/'+session.id+'/part?number='+(parts.length+1),{method:'POST',headers:{'content-type':'application/octet-stream'},body:chunk})).json();break;}
+                catch(e){if(attempt===2||!ready)throw e;await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}
+              }
+              parts.push(part);message('전송 중: '+file.name+' · '+Math.round(Math.min(offset+chunk.size,file.size)/file.size*100)+'%');
+            }
+            for(let attempt=0;attempt<3;attempt++){try{result=await post('/uploads/'+session.id+'/complete',{parts});break;}catch(e){if(attempt===2||!ready)throw e;}}
+          }catch(e){await post('/uploads/'+session.id+'/abort',{}).catch(()=>{});throw e;}
+        }
+        documents.unshift(result.document);saved++;
       }catch(e){errors.push(file.name+': '+e.message);}
     }
     busy=false;render();message(saved+'개 전송 완료.'+(errors.length?' 실패한 파일을 다시 선택해주세요. '+errors.join(' / '):' 다른 PC에서 새로고침하면 받을 수 있어요.'));
@@ -57,8 +74,7 @@
     try{
       if(deleting){await request('/'+doc.id+'/delete',{method:'POST'});documents=documents.filter(d=>d.id!==doc.id);message('삭제했습니다.');}
       else{
-        const blob=await(await request('/'+doc.id+'/file')).blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
-        a.href=url;a.download=doc.filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);message('다운로드를 요청했습니다. 브라우저 다운로드 목록을 확인해주세요.');
+        const a=document.createElement('a');a.href=base+'/api/transfers/'+doc.id+'/file';a.referrerPolicy='strict-origin-when-cross-origin';document.body.append(a);a.click();a.remove();message('다운로드를 요청했습니다. 브라우저 다운로드 목록을 확인해주세요.');
       }
     }catch(error){message(error.message);}finally{busy=false;render();}
   };

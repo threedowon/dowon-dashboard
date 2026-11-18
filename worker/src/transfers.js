@@ -1,23 +1,26 @@
+import {largeTransfers,cleanupLargeUploads} from './large-transfers.js';
 export const MAX_TRANSFER = 25 * 1024 * 1024;
 const prefix = 'transfers/';
 const active = object => Number(object.customMetadata?.expiresAt) > Date.now();
-const describe = object => ({id:object.key.slice(prefix.length),filename:object.customMetadata.filename,size:object.size,createdAt:Number(object.customMetadata.createdAt),expiresAt:Number(object.customMetadata.expiresAt)});
+const describe = object => ({id:object.key.slice(prefix.length),filename:object.customMetadata.filename,size:Number(object.customMetadata.size ?? object.size),createdAt:Number(object.customMetadata.createdAt),expiresAt:Number(object.customMetadata.expiresAt)});
 
 export async function cleanupTransfers(env) {
   if (!env.TRANSFERS) return;
   let cursor;
   do {
     const page = await env.TRANSFERS.list({prefix,cursor,include:['customMetadata']});
-    const expired = page.objects.filter(o=>!active(o)).map(o=>o.key);
+    const expired = page.objects.filter(o=>!active(o)).flatMap(o=>[o.key,...(o.customMetadata?.payloadKey?[o.customMetadata.payloadKey]:[])]);
     if(expired.length) await env.TRANSFERS.delete(expired);
     cursor = page.truncated ? page.cursor : undefined;
   } while(cursor);
+  await cleanupLargeUploads(env.TRANSFERS);
 }
 
 export async function transfers(req, env, cors) {
   const json=(data,status=200)=>Response.json(data,{status,headers:{...cors,'cache-control':'no-store'}});
   if(!env.TRANSFERS)return json({error:'파일 전달 저장소 연결이 필요합니다. 관리자 설정에서 R2를 연결해주세요.'},503);
   const bucket=env.TRANSFERS, url=new URL(req.url);
+  if(url.pathname.startsWith('/api/transfers/uploads'))return largeTransfers(req,bucket,json);
   try {
     if(url.pathname==='/api/transfers' && req.method==='GET') {
       const documents=[];let cursor;
@@ -44,12 +47,14 @@ export async function transfers(req, env, cors) {
       return json({document:{id,filename:file.name,size:file.size,createdAt,expiresAt}},201);
     }
     const match=url.pathname.match(/^\/api\/transfers\/([a-f0-9-]{36})\/(file|delete)$/);
-    if(match && match[2]==='delete' && req.method==='POST'){await bucket.delete(prefix+match[1]);return json({ok:true});}
+    if(match && match[2]==='delete' && req.method==='POST'){const item=await bucket.get(prefix+match[1]);if(item?.customMetadata?.payloadKey)await bucket.delete(item.customMetadata.payloadKey);await bucket.delete(prefix+match[1]);return json({ok:true});}
     if(match && match[2]==='file' && req.method==='GET'){
       const object=await bucket.get(prefix+match[1]);
       if(!object)return json({error:'삭제되었거나 만료된 파일입니다.'},404);
-      if(!active(object)){await object.body.cancel();await bucket.delete(object.key);return json({error:'보관 시간이 지나 받을 수 없습니다.'},410);}
-      return new Response(object.body,{headers:{...cors,'content-type':'application/octet-stream','content-disposition':"attachment; filename=download; filename*=UTF-8''"+encodeURIComponent(object.customMetadata.filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16)),'cache-control':'no-store','x-content-type-options':'nosniff'}});
+      if(!active(object)){await object.body.cancel();await bucket.delete([object.key,...(object.customMetadata.payloadKey?[object.customMetadata.payloadKey]:[])]);return json({error:'보관 시간이 지나 받을 수 없습니다.'},410);}
+      const payload=object.customMetadata.payloadKey?await bucket.get(object.customMetadata.payloadKey):object;
+      if(!payload)return json({error:'파일을 찾을 수 없습니다.'},404);
+      return new Response(payload.body,{headers:{...cors,'content-length':String(payload.size),'content-type':'application/octet-stream','content-disposition':"attachment; filename=download; filename*=UTF-8''"+encodeURIComponent(object.customMetadata.filename).replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16)),'cache-control':'no-store','x-content-type-options':'nosniff'}});
     }
     return json({error:'Not found'},404);
   }catch{return json({error:'파일 전달 요청에 실패했습니다. 잠시 후 다시 시도해주세요.'},500);}
