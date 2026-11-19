@@ -24,6 +24,7 @@ globalThis.Roadmap = (() => {
     return {
       name: projects.length === 1 ? projects[0].name : '프로젝트 로드맵',
       description: projects.map(p => p.name).join(' · '),
+      projects: projects.map(p=>({id:p.id,name:p.name,flowColumns:p.flowColumns})),
       milestones: projects.flatMap(p => p.milestones.map(m => ({
         ...m, id: JSON.stringify([p.id, m.id]), projectId: p.id, projectName: p.name,
         group: p.name + (m.group ? '\n' + m.group : ''),

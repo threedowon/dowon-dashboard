@@ -132,10 +132,10 @@ html[data-active-page="home"] .side{display:none}
 #homePage{padding-top:64px;padding-bottom:48px}
 @media(max-width:650px){#homePage{padding-top:28px;padding-bottom:28px}}
 </style>
-<link rel="stylesheet" href="assets/roadmap.css?v=20261119-orthogonal-routes">
-<script src="assets/roadmap.js?v=20261118-timeline-tone"></script>
-<script src="assets/dependency-map.js?v=20261119-centered-cards"></script>
-<script src="assets/dependency-editor.js?v=20261119-orthogonal-routes"></script>
+<link rel="stylesheet" href="assets/roadmap.css?v=20261119-project-regions">
+<script src="assets/roadmap.js?v=20261119-project-regions"></script>
+<script src="assets/dependency-map.js?v=20261119-project-regions"></script>
+<script src="assets/dependency-editor.js?v=20261119-project-regions"></script>
 <link rel="stylesheet" href="assets/ideas-board.css?v=20261118-inline">
 <script src="assets/ideas-board.js?v=20261118-inline"></script>
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
@@ -274,7 +274,7 @@ const key="dowon-dashboard:v1",readonly=document.documentElement.dataset.readonl
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const id=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),iso=()=>new Date().toISOString(),day=()=>new Date().toLocaleDateString("sv-SE"),status={todo:"시작 전",doing:"진행중",done:"완료"};
 function fresh(){let t=iso(),p={id:id(),name:"첫 번째 프로젝트",description:"프로젝트 목표와 마일스톤을 기록해 보세요.",updatedAt:t,milestones:[],history:[]};return {version:1,selectedId:p.id,projects:[p]};}
-function safe(v){if(!v||!Array.isArray(v.projects))throw Error("지원하지 않는 데이터 형식");return {version:1,selectedId:v.selectedId,mapColumns:DependencyMap.columnCount(v.mapColumns),mapView:v.mapView==="timeline"?"timeline":"connections",roadmapIds:Array.isArray(v.roadmapIds)?v.roadmapIds.map(String):null,projects:v.projects.map(p=>({id:String(p.id||id()),name:String(p.name||"제목 없음"),description:String(p.description||""),updatedAt:p.updatedAt||iso(),milestones:Array.isArray(p.milestones)?p.milestones.map(m=>({id:String(m.id||id()),title:String(m.title||""),details:String(m.details||""),due:String(m.due||""),dependsOn:DependencyMap.normalize(m.dependsOn),flowColumn:DependencyMap.column(m.flowColumn),start:String(m.start||""),group:String(m.group||""),color:Object.hasOwn(Roadmap.colors,m.color)?m.color:"blue",status:status[m.status]?m.status:"todo"})):[],history:Array.isArray(p.history)?p.history:[]}))};}
+function safe(v){if(!v||!Array.isArray(v.projects))throw Error("지원하지 않는 데이터 형식");return {version:1,selectedId:v.selectedId,mapColumns:DependencyMap.columnCount(v.mapColumns),mapView:v.mapView==="timeline"?"timeline":"connections",roadmapIds:Array.isArray(v.roadmapIds)?v.roadmapIds.map(String):null,projects:v.projects.map(p=>({id:String(p.id||id()),name:String(p.name||"제목 없음"),flowColumns:Number.isInteger(p.flowColumns)&&DependencyMap.column(p.flowColumns-1)!==null?p.flowColumns:null,description:String(p.description||""),updatedAt:p.updatedAt||iso(),milestones:Array.isArray(p.milestones)?p.milestones.map(m=>({id:String(m.id||id()),title:String(m.title||""),details:String(m.details||""),due:String(m.due||""),dependsOn:DependencyMap.normalize(m.dependsOn),flowColumn:DependencyMap.column(m.flowColumn),flowProjectColumn:DependencyMap.column(m.flowProjectColumn),start:String(m.start||""),group:String(m.group||""),color:Object.hasOwn(Roadmap.colors,m.color)?m.color:"blue",status:status[m.status]?m.status:"todo"})):[],history:Array.isArray(p.history)?p.history:[]}))};}
 let state;try{state=safe(JSON.parse($("seed").textContent)||JSON.parse(localStorage.getItem(key)));}catch{state=fresh();}
 const editableSnapshot=()=>({projects:state.projects,mapColumns:DependencyMap.columnCount(state.mapColumns)});
 let editHistory=EditHistory.create(editableSnapshot());
@@ -364,7 +364,7 @@ function renderOverview(){
  applyMapZoom();
  flowEditor?.refresh();
  syncUndo();
- if($("mapAddColumn"))$("mapAddColumn").disabled=readonly||mapDrawing.model.columns.length>=100;
+ if($("mapAddColumn"))$("mapAddColumn").disabled=readonly||mapDrawing.model.lanes[0]?.columnCount>=100;
 }
 
 function persist(){if(readonly)return;editHistory.record(editableSnapshot());syncUndo();try{localStorage.setItem(key,JSON.stringify(state));$("saveState").textContent="● 이 기기에 저장됨";}catch{$("saveState").textContent="⚠ 저장 실패 — JSON 백업 필요";}milestoneCloud?.changed();}
@@ -441,7 +441,7 @@ document.querySelectorAll("[data-map-view]").forEach(b=>b.onclick=()=>{state.map
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();});
 function openRoadmapProject(e){const bar=e.target.closest("[data-m]");if(!bar)return;const m=Roadmap.portfolio(selectedProjects()).milestones.find(m=>m.id===bar.dataset.m);if(m)location.hash=projectHref(m.projectId);}
 $("roadmapBoard").onkeydown=e=>{if(state.mapView!=="timeline")return;if(e.target.closest("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRoadmapProject(e);}};
-$("roadmapBoard").onclick=e=>{if(e.target.closest("#mapAddColumn")){addMapColumn();return;}if(state.mapView==="timeline")openRoadmapProject(e);};
+$("roadmapBoard").onclick=e=>{const add=e.target.closest("#mapAddColumn,[data-add-project-column]");if(add){addMapColumn(add.dataset.addProjectColumn);return;}if(state.mapView==="timeline")openRoadmapProject(e);};
 $("milestones").onclick=$("dayItems").onclick=e=>{let b=e.target.closest("[data-m]");if(b)open("milestone",b.dataset.m);};
 $("calgrid").onclick=e=>{let b=e.target.closest("[data-day]");if(b){selected=b.dataset.day;drawCalendar();}};
 $("prevMonth").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);drawCalendar();};
@@ -487,13 +487,17 @@ $("share").onclick=()=>exportRoadmap("html");
 $("exportPng").onclick=()=>exportRoadmap("png");
 $("printRoadmap").onclick=()=>window.print();
 
-function addMapColumn(){
- if(readonly||!mapDrawing?.model?.columns)return;
- const count=mapDrawing.model.columns.length;if(count>=100)return;
- state.mapColumns=count+1;persist();renderOverview();
- $("mapAddColumn")?.focus({preventScroll:true});
- $("flowToolbar").querySelector("[data-flow-status]").textContent=(count+1)+"열을 추가했어요. 카드나 네모 핸들을 끌어 놓으세요.";
-};
+function addMapColumn(projectId){
+ if(readonly||!mapDrawing?.model?.lanes)return;
+ const lane=mapDrawing.model.lanes.find(l=>l.id===(projectId||selectedProjects()[0]?.id));
+ const project=state.projects.find(p=>p.id===lane?.id);
+ if(!project||lane.columnCount>=100)return;
+ for(const region of mapDrawing.model.lanes){const owner=state.projects.find(p=>p.id===region.id);if(owner)owner.flowColumns=region.columnCount;}
+ project.flowColumns=lane.columnCount+1;persist();renderOverview();
+ const button=projectId?[...$("roadmapBoard").querySelectorAll('[data-add-project-column]')].find(b=>b.dataset.addProjectColumn===projectId):$("mapAddColumn");
+ button?.focus({preventScroll:true});
+ $("flowToolbar").querySelector("[data-flow-status]").textContent=project.name+" 영역에 열을 추가했어요.";
+}
 flowEditor=DependencyEditor.attach({
  board:$("roadmapBoard"),toolbar:$("flowToolbar"),getProjects:()=>state.projects,getModel:()=>mapDrawing?.model,createId:id,
  isActive:()=>state.mapView!=="timeline"&&!readonly,

@@ -39,7 +39,7 @@ globalThis.DependencyEditor = {
       control('cancel').hidden=!pending;
       for(const select of board.querySelectorAll('[data-flow-status-select]'))select.disabled=!isActive();
     }
-    function selectedEdge(){return getModel()?.edges.find(item=>item.from.id===edge?.from&&item.to.id===edge?.to);}
+    function selectedEdge(){return getModel()?.edges?.find(item=>item.from.id===edge?.from&&item.to.id===edge?.to);}
     function drawEdgeControls(preview){
       board.querySelector('.flow-edge-controls')?.remove();
       const item=selectedEdge(),svg=board.querySelector('svg');if(!item||!svg||!isActive())return;
@@ -176,7 +176,8 @@ globalThis.DependencyEditor = {
       const date=week?.start===null?'':DependencyMap.dateAt(model,y);
       if(date===null)return null;
       const column=DependencyMap.creationColumn(model,Number(col.dataset.flowColumn),date);
-      return column===null?null:{column,date};
+      const destination=model.columns.find(c=>c.index===column);
+      return !destination?null:{column,date,projectId:destination.projectId,projectColumn:destination.localIndex};
     }
     function createLinked(clientX,clientY){
       const target=newCardTarget(clientX,clientY);

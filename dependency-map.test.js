@@ -133,16 +133,16 @@ test('moving a card to a spare column preserves dates and dependencies, includin
   const before=structuredClone(projects[0].milestones[1]);
   const initial=DependencyMap.layout(Roadmap.portfolio(projects),'2026-11-17');
   assert.ok(initial.columns.length>=3);
-  const target=initial.columns.at(-1).index;
+  const target=initial.columns.filter(c=>c.projectId==='hardware').at(-1).index;
   assert.equal(DependencyMap.move(projects,id,target,initial).changed,true);
-  assert.deepEqual(projects[0].milestones[1],{...before,flowColumn:target});
+  assert.deepEqual(projects[0].milestones[1],{...before,flowProjectColumn:initial.columns[target].localIndex});
   const restored=JSON.parse(JSON.stringify(projects));
   const result=DependencyMap.svg(Roadmap.portfolio(restored),'2026-11-17',{report:true});
   const moved=result.model.items.find(m=>m.id===id),original=initial.items.find(m=>m.id===id);
   assert.equal(moved.column,target);assert.equal(moved.y,original.y);assert.equal(moved.height,original.height);
   assert.ok(moved.x>original.x);
   assert.equal(result.model.edges.find(e=>e.from.id===id).from.x,moved.x);
-  assert.ok(result.model.columns.length>target+1);
+  assert.ok(result.model.columns.length>target);
   assert.ok(!result.markup.includes('flow-column'));
 });
 
@@ -156,9 +156,17 @@ test('occupied columns reject a drop without mutating projects; non-overlapping 
   assert.equal(JSON.stringify(projects),original);
   assert.equal(DependencyMap.move(projects,id,0,model).changed,false);
   const later=DependencyMap.key('video','integration');
-  assert.equal(DependencyMap.move(projects,later,0,model).changed,true);
+  let videoColumn=model.columns.find(c=>c.projectId==='video').index;
+  assert.ok(DependencyMap.move(projects,later,0,model).error);
+  projects[1].flowColumns=2;
   model=DependencyMap.layout(Roadmap.portfolio(projects),'2026-11-17');
-  assert.equal(model.items.find(m=>m.id===later).column,0);
+  videoColumn=model.columns.find(c=>c.projectId==='video').index;
+  const spare=model.columns.filter(c=>c.projectId==='video').at(-1).index;
+  assert.equal(DependencyMap.move(projects,later,spare,model).changed,true);
+  model=DependencyMap.layout(Roadmap.portfolio(projects),'2026-11-17');
+  assert.equal(DependencyMap.move(projects,later,videoColumn,model).changed,true);
+  model=DependencyMap.layout(Roadmap.portfolio(projects),'2026-11-17');
+  assert.equal(model.items.find(m=>m.id===later).column,videoColumn);
   assert.equal(model.items.find(m=>m.id===id).column,0);
 });
 
@@ -175,11 +183,11 @@ test('new linked cards use the source project and chosen date and ports without 
   for(const side of ['top','bottom','left','right']){
     const projects=fixture(),before=JSON.stringify(projects),id=DependencyMap.key('hardware','sensor');
     const model=DependencyMap.layout(Roadmap.portfolio(projects),'2026-11-18');
-    const col=DependencyMap.creationColumn(model,0,'2026-11-19');assert.equal(col,2);
+    const col=DependencyMap.creationColumn(model,0,'2026-11-19');assert.equal(col,1);
     const result=DependencyMap.createLinked(projects,id,{id:'new',column:col,date:'2026-11-19',side});
     assert.equal(result.changed,true);assert.equal(result.project.id,'hardware');
     assert.equal(result.milestone.start,'2026-11-19');assert.equal(result.milestone.due,'2026-11-19');
-    assert.equal(result.milestone.status,'todo');assert.equal(result.milestone.flowColumn,2);
+    assert.equal(result.milestone.status,'todo');assert.equal(result.milestone.flowColumn,col);
     assert.deepEqual(result.milestone.dependsOn,[{projectId:'hardware',milestoneId:'sensor',fromSide:side,toSide:{top:'bottom',bottom:'top',left:'right',right:'left'}[side]}]);
     assert.ok(DependencyMap.createLinked(projects,id,{id:'new',column:2,date:'2026-11-19',side}).error);
     assert.equal(DependencyMap.validate(projects,'hardware','new',result.milestone.dependsOn),'');

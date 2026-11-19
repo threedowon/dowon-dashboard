@@ -27,3 +27,6 @@ html[data-active-page="milestones"] .app{max-width:1600px}
 .roadmap-board[data-view="connections"] svg{margin:0}
 
 .flow-edge-handle{cursor:move;touch-action:none;outline:none}.flow-edge-handle:focus circle:last-child,.flow-edge-handle:hover circle:last-child{r:6;stroke:#2443d6}.flow-edge-controls{touch-action:none}@media print{.flow-edge-controls{display:none!important}}
+.flow-add-column [data-add-project-column]{padding:0;font-size:16px}.flow-project-region{pointer-events:none}.flow-project-region .flow-add-column{pointer-events:auto}
+
+.flow-column{stroke-opacity:.2}

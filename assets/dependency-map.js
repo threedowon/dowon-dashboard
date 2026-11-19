@@ -46,19 +46,22 @@ globalThis.DependencyMap = (() => {
     return null;
   }
   function creationColumn(model,targetColumn,date){
-    if(column(targetColumn)===null||(date!==''&&Roadmap.date(date)===null))return null;
+    if(!Number.isInteger(targetColumn)||targetColumn<0||(date!==''&&Roadmap.date(date)===null))return null;
     const time=Roadmap.date(date);
     let col=targetColumn;
-    while(col<100&&model.items.some(m=>m.column===col&&(date===''?!m.resizable:m.resizable&&m.startTime<=time&&m.endTime>=time)))col++;
-    return col<100?col:null;
+    while(col<model.columns.length&&model.items.some(m=>m.column===col&&(date===''?!m.resizable:m.resizable&&m.startTime<=time&&m.endTime>=time)))col++;
+    const target=model.columns.find(c=>c.index===targetColumn);
+    return model.columns.some(c=>c.index===col&&c.projectId===target?.projectId)?col:null;
   }
-  function createLinked(projects,from,{id,column:col,date,side='bottom'}){
+  function createLinked(projects,from,{id,column:col,date,side='bottom',projectId,projectColumn}){
     const source=find(projects,from);
-    if(!source||!id||source.project.milestones.some(m=>m.id===id)||column(col)===null||(date!==''&&Roadmap.date(date)===null)||!sides.includes(side))return {error:'새 카드를 만들 위치를 확인해 주세요.'};
+    const destination=projectId?projects.find(p=>p.id===projectId):source?.project;
+    if(!source||!destination||!id||destination.milestones.some(m=>m.id===id)||(column(projectColumn)===null&&column(col)===null)||(date!==''&&Roadmap.date(date)===null)||!sides.includes(side))return {error:'새 카드를 만들 위치를 확인해 주세요.'};
     const milestone={id,title:'새 일정',details:'',start:date,due:date,status:'todo',group:source.milestone.group||'',color:source.milestone.color||'blue',flowColumn:col,
       dependsOn:[{projectId:source.project.id,milestoneId:source.milestone.id,fromSide:side,toSide:{top:'bottom',bottom:'top',left:'right',right:'left'}[side]}]};
-    source.project.milestones.push(milestone);
-    return {project:source.project,milestone,source,changed:true};
+    if(column(projectColumn)!==null){milestone.flowProjectColumn=projectColumn;milestone.flowColumn=null;}
+    destination.milestones.push(milestone);
+    return {project:destination,milestone,source,changed:true};
   }
   function connect(projects, from, to, anchors={}) {
     const source=find(projects,from),target=find(projects,to);
@@ -232,7 +235,8 @@ globalThis.DependencyMap = (() => {
   }
   function placement(model,id,targetColumn) {
     const item=model?.items.find(m=>m.id===id);
-    if(!item||column(targetColumn)===null||!model.columns.some(c=>c.index===targetColumn))return '이동할 열을 찾을 수 없어요.';
+    if(!item||!Number.isInteger(targetColumn)||!model.columns.some(c=>c.index===targetColumn))return '이동할 열을 찾을 수 없어요.';
+    if(model.columns.find(c=>c.index===targetColumn).projectId!==item.projectId)return '카드는 같은 프로젝트 영역 안에서 옮겨 주세요.';
     const overlap=model.items.some(m=>m.id!==id&&m.column===targetColumn&&m.y<item.y+item.height+4&&m.y+m.height+4>item.y);
     return overlap?'이 열의 같은 기간에 다른 카드가 있어요. 비어 있는 열로 옮겨 주세요.':'';
   }
@@ -240,7 +244,7 @@ globalThis.DependencyMap = (() => {
     const target=find(projects,id),error=placement(model,id,targetColumn);
     if(!target||error)return {error:error||'이동할 일정을 찾을 수 없어요.'};
     if(model.items.find(m=>m.id===id).column===targetColumn)return {...target,changed:false};
-    target.milestone.flowColumn=targetColumn;
+    target.milestone.flowProjectColumn=model.columns.find(c=>c.index===targetColumn).localIndex;
     return {...target,changed:true};
   }
   function resize(projects,id,edge,value) {
@@ -289,7 +293,7 @@ globalThis.DependencyMap = (() => {
     return result;
   }
   function layout(project, today) {
-    const items = project.milestones.map(m => ({ ...m, refs: normalize(m.dependsOn).map(r => key(r.projectId, r.milestoneId)) }));
+    const items = project.milestones.map(m => ({ ...m, projectId:m.projectId??project.id??'project', projectName:m.projectName??project.name, refs: normalize(m.dependsOn).map(r => key(r.projectId, r.milestoneId)) }));
     const byId = new Map(items.map(m => [m.id, m]));
     const calendar = Roadmap.layout(items, today);
     const times = calendar.dated.flatMap(m => [m.startTime, m.endTime]);
@@ -324,8 +328,7 @@ globalThis.DependencyMap = (() => {
         if (parent.last === m.first) m.rank = Math.max(m.rank, (parent.first === parent.last ? parent.rank || 0 : 0) + 1);
       }
       m.titleLines = wrap(m.title, 190, 13);
-      m.projectLines = wrap((m.projectName || m.group || '').split('\n')[0], 190, 10);
-      m.nodeHeight = Math.max(110, 86 + m.titleLines.length * 18 + m.projectLines.length * 13 + (m.hiddenRefs ? 32 : 0));
+      m.nodeHeight = Math.max(110, 82 + m.titleLines.length * 18 + (m.hiddenRefs ? 32 : 0));
     }
     const slot = Math.max(130, ...items.map(m => m.nodeHeight + cardInset*2));
     const days=weeks.flatMap(w=>{
@@ -352,28 +355,42 @@ globalThis.DependencyMap = (() => {
       }
       y += week.height;
     }
-    const lanes = new Map();
+    const lanes = new Map((project.projects?.length?project.projects:[{id:project.id??'project',name:project.name}]).map(p=>[p.id,{id:p.id,name:p.name,items:[],flowColumns:p.flowColumns}]));
     for (const m of items) {
       const first=days.find(d=>d.time===m.startTime),last=days.find(d=>d.time===m.endTime);
       const dated=first&&last&&m.startTime<=m.endTime;
       m.y = dated?first.y+cardInset:weeks[m.first].y+24+m.rank*slot;
       m.height = dated?last.y+last.height-cardInset-m.y:m.nodeHeight;
       m.resizable=!!dated;
-      if (!lanes.has(m.projectId)) lanes.set(m.projectId, { id:m.projectId, name:m.projectName || m.group.split('\n')[0], items:[], ends:[] });
+      if (!lanes.has(m.projectId)) lanes.set(m.projectId, { id:m.projectId, name:m.projectName || (m.group||'').split('\n')[0], items:[], ends:[] });
       lanes.get(m.projectId).items.push(m);
     }
-    const projectColumns=new Map([...lanes.keys()].map((id,i)=>[id,i])),occupied=new Map();
-    // Respect explicit placements first; automatically place the remaining cards around them.
-    const positioned=items.slice().sort((a,b)=>(column(a.flowColumn)===null)-(column(b.flowColumn)===null)||a.y-b.y||a.height-b.height);
-    for(const m of positioned){
-      let col=column(m.flowColumn)??projectColumns.get(m.projectId);
-      while((occupied.get(col)||[]).some(other=>other.y<m.y+m.height+4&&other.y+other.height+4>m.y))col++;
-      m.column=col;m.x=172+col*252;m.width=218;
-      if(!occupied.has(col))occupied.set(col,[]);occupied.get(col).push(m);
+    const columns=[];
+    // Legacy placements are read as relative order within each project. New edits persist local slots.
+    // Global display indices are derived, so filtering/reordering projects cannot change saved placement.
+    for(const lane of lanes.values()){
+      const legacy=[...new Set(lane.items.map(m=>column(m.flowColumn)).filter(c=>c!==null))].sort((a,b)=>a-b);
+      const occupied=new Map();
+      const preferred=m=>column(m.flowProjectColumn)??(column(m.flowColumn)===null?null:legacy.indexOf(m.flowColumn));
+      for(const m of lane.items.slice().sort((a,b)=>(preferred(a)===null)-(preferred(b)===null)||a.y-b.y||a.height-b.height)){
+        let local=preferred(m)??0;
+        while((occupied.get(local)||[]).some(other=>other.y<m.y+m.height+4&&other.y+other.height+4>m.y))local++;
+        m.localColumn=local;m.width=218;
+        if(!occupied.has(local))occupied.set(local,[]);occupied.get(local).push(m);
+      }
+      const used=Math.max(-1,...lane.items.map(m=>m.localColumn))+1;
+      lane.columnCount=Math.max(1,used,Number.isInteger(lane.flowColumns)&&column(lane.flowColumns-1)!==null?lane.flowColumns:0);
     }
-    // Keep a spare drop column available, even for a single-project map.
-    const count=Math.max(columnCount(project.mapColumns),Math.max(-1,...items.map(m=>m.column))+2);
-    const columns=Array.from({length:count},(_,index)=>({index,x:160+index*252,width:242}));
+    // Previously added empty columns remain available in the first visible project.
+    const firstLane=[...lanes.values()][0];
+    firstLane.columnCount+=Math.max(0,columnCount(project.mapColumns)-[...lanes.values()].reduce((n,l)=>n+l.columnCount,0));
+    for(const lane of lanes.values()){
+      const offset=columns.length;
+      lane.startColumn=offset;lane.x=160+offset*252;lane.width=lane.columnCount*252-10;
+      for(const m of lane.items){m.column=offset+m.localColumn;m.x=172+m.column*252;}
+      for(let local=0;local<lane.columnCount;local++)columns.push({index:offset+local,localIndex:local,projectId:lane.id,x:160+(offset+local)*252,width:242});
+    }
+    const count=columns.length;
     const edges = items.flatMap(to => to.parents.map(id => {
       const from = byId.get(id), start = Roadmap.date(to.start) ?? Roadmap.date(to.due), end = Roadmap.date(from.due);
       const ref=normalize(to.dependsOn).find(r=>key(r.projectId,r.milestoneId)===id);
@@ -383,21 +400,35 @@ globalThis.DependencyMap = (() => {
   }
   function svg(project, today, { interactive = false, report = false } = {}) {
     const model = layout(project, today), width = model.width;
-    const top = 48, height = top + model.height + 16;
+    const headerHeight=Math.max(64,...model.lanes.map(l=>28+wrap(l.name,l.width-76,15).length*19+18));
+    const top = 48+headerHeight, height = top + model.height + 16;
     model.top=top;
     const rect = (x,y,w,h,fill,extra='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
     const text = (x,y,value,size=12,fill='#334b3d',extra='') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${extra}>${esc(value)}</text>`;
     let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="${interactive?'group':'img'}" aria-label="프로젝트 연결 맵" style="font-family:'Pretendard Variable','Malgun Gothic',sans-serif"><title>${esc(project.name)} — 프로젝트 연결 맵</title>`;
     out += '<defs><marker id="dependency-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#647568"/></marker><marker id="dependency-warning" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b74736"/></marker></defs>';
     out += rect(0,0,width,height,'#faf8e9');
-    out += rect(172,top-29,12,12,'#fffdf2','stroke="#9ca995"') + text(190,top-18,'시작 전',11);
-    out += rect(244,top-29,12,12,'#ffe27a','stroke="#9ca995"') + text(262,top-18,'진행중',11);
-    out += rect(316,top-29,12,12,'#d5e5fc','stroke="#9ca995"') + text(334,top-18,'완료',11);
-    if(report)out += text(396,top-18,'공유 시점 '+today,11);
-    if(interactive)out+=`<foreignObject class="flow-add-column" x="24" y="${top-35}" width="120" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" id="mapAddColumn" aria-label="오른쪽에 열 추가" ${model.columns.length>=100?'disabled="disabled"':''}>＋ 열 추가</button></foreignObject>`;
+    out += rect(172,19,12,12,'#fffdf2','stroke="#9ca995"') + text(190,30,'시작 전',11);
+    out += rect(244,19,12,12,'#ffe27a','stroke="#9ca995"') + text(262,30,'진행중',11);
+    out += rect(316,19,12,12,'#d5e5fc','stroke="#9ca995"') + text(334,30,'완료',11);
+    if(report)out += text(396,30,'공유 시점 '+today,11);
+    if(interactive)out+=`<foreignObject class="flow-add-column" x="24" y="13" width="120" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" id="mapAddColumn" aria-label="오른쪽에 열 추가" ${model.lanes[0]?.columnCount>=100?'disabled="disabled"':''}>＋ 열 추가</button></foreignObject>`;
+    const palette=[['#edf3e9','#dce9d5','#789a77'],['#f0edf7','#e1d9ee','#9680b3'],['#eaf2f6','#d5e7ee','#7596a6'],['#f8eee5','#eedecd','#b29174'],['#f5edf0','#ead9e1','#aa8094']];
+    for(const lane of model.lanes){
+      const hash=Array.from(String(lane.id)).reduce((n,c)=>(n*31+c.charCodeAt(0))>>>0,0),[fill,header,border]=palette[hash%palette.length];
+      out+=`<g class="flow-project-region" data-project-region="${esc(lane.id)}" aria-label="${esc(lane.name)} 영역">`;
+      out+=rect(lane.x,48,lane.width,headerHeight+model.height-8,fill,`stroke="${border}"`);
+      out+=rect(lane.x+1,49,lane.width-2,headerHeight-1,header);
+      out+=rect(lane.x+14,65,10,10,border);
+      const lines=wrap(lane.name,lane.width-76,15);
+      lines.forEach((line,i)=>{out+=text(lane.x+34,77+i*19,line,15,'#253b30','font-weight="650"');});
+      out+=text(lane.x+34,77+lines.length*19,`${lane.items.length}개 일정`,11,'#536c5b');
+      if(interactive)out+=`<foreignObject class="flow-add-column" x="${lane.x+lane.width-34}" y="61" width="24" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" data-add-project-column="${esc(lane.id)}" aria-label="${esc(lane.name)} 열 추가" ${lane.columnCount>=100?'disabled="disabled"':''}>＋</button></foreignObject>`;
+      out+='</g>';
+    }
     for (const week of model.weeks) {
       const active = week.start !== null && Roadmap.date(today) >= week.start && Roadmap.date(today) < week.end;
-      out += rect(14,top+week.y,width-28,week.height-8,active?'#f5edcb':'#fffdf2',`stroke="${active?'#b74736':'#c5c4af'}" stroke-dasharray="4 5"`);
+      out += rect(14,top+week.y,width-28,week.height-8,'transparent',`stroke="${active?'#b74736':'#c5c4af'}" stroke-dasharray="4 5"`);
       out += rect(24,top+week.y+8,120,26,active?'#b74736':'#43594c');
       out += text(84,top+week.y+26,week.label,12,'#fff','text-anchor="middle" font-weight="700"');
       for(const d of week.days){
@@ -427,10 +458,8 @@ globalThis.DependencyMap = (() => {
       out+=`<g ${interactive?`class="flow-node" data-m="${esc(m.id)}" data-column="${m.column}" data-x="${m.x}" tabindex="0" role="button" aria-pressed="false" aria-label="${esc(label)} · ${m.column+1}열"`:''}><title>${esc(label)}</title>`;
       out+=rect(m.x,y,m.width,m.height,fill,'stroke="#9ca995"');
       const centerX=m.x+m.width/2,centered='text-anchor="middle"';
-      const contentHeight=m.projectLines.length*13+8+m.titleLines.length*18+(m.hiddenRefs?24:0);
+      const contentHeight=m.titleLines.length*18+(m.hiddenRefs?24:0);
       let cy=y+12+Math.max(0,(m.height-77-contentHeight)/2);
-      for(const line of m.projectLines){out+=text(centerX,cy+10,line,10,'#536c5b',centered);cy+=13;}
-      cy+=8;
       for(const line of m.titleLines){out+=text(centerX,cy+13,line,13,'#253b30',centered+' font-weight="650"');cy+=18;}
       if(m.hiddenRefs)out+=text(centerX,cy+18,`화면 밖 선행 ${m.hiddenRefs}개`,10,'#a04736',centered);
       out+=text(centerX,y+m.height-34,statuses[m.status]||statuses.todo,11,'#334b3d',centered+(interactive?' class="flow-status-print"':''));
