@@ -223,8 +223,8 @@ html[data-active-page="home"] .side{display:none}
 <div id="projectOverview">
 <div class="page-top"><span class="eyebrow">PROJECTS / OVERVIEW</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="head projects-heading"><div><h1 id="projectsTitle" tabindex="-1">프로젝트</h1><p class="page-intro">전체 흐름은 한눈에, 자세한 일정은 프로젝트 안에서.</p></div><button class="btn primary editable" id="newProject">＋ 프로젝트 추가</button></div>
-<div class="sectionhead"><h2>프로젝트 목록 <span class="small" id="projectCount"></span></h2><div class="tools"><button class="btn" id="selectAllProjects">전체 선택</button><button class="btn" id="clearProjects">선택 해제</button></div></div>
-<p class="small">체크박스는 로드맵 표시 여부를 바꿉니다. 프로젝트 이름을 누르면 캘린더와 상세 일정을 볼 수 있어요.</p>
+<div class="sectionhead"><h2>프로젝트 목록 <span class="small" id="projectCount"></span></h2><div class="tools"><button class="btn danger editable" id="deleteSelectedProjects" disabled>선택한 프로젝트 삭제</button><button class="btn" id="selectAllProjects">전체 선택</button><button class="btn" id="clearProjects">선택 해제</button></div></div>
+<p class="small">체크박스로 로드맵에 표시하거나 삭제할 프로젝트를 선택하세요. 프로젝트 이름을 누르면 캘린더와 상세 일정을 볼 수 있어요.</p>
 <div id="projectList" class="project-list"></div>
 <section id="roadmapView">
 <div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2>한눈에 보는 프로젝트 일정</h2><p class="small">목록에서 체크한 프로젝트만 모아 보고 공유하세요.</p></div><span class="small" id="selectionSummary" role="status"></span></div>
@@ -345,6 +345,8 @@ window.addEventListener("resize",applyMapZoom);
 function drawOverview(project,options){return state.mapView==="timeline"?Roadmap.svg(project,day(),options):DependencyMap.svg({...project,mapColumns:state.mapColumns,name:project.name==="프로젝트 로드맵"?"프로젝트 연결 맵":project.name},day(),options);}
 function renderOverview(){
  const chosen=selectedProjects(),ids=new Set(chosen.map(p=>p.id));
+ $("deleteSelectedProjects").disabled=readonly||!chosen.length;
+ $("deleteSelectedProjects").textContent="선택한 프로젝트 삭제"+(chosen.length?" ("+chosen.length+")":"");
  $("projectCount").textContent=state.projects.length+"개";
  $("projectList").innerHTML=state.projects.length?state.projects.map(p=>{
   const done=p.milestones.filter(m=>m.status==="done").length,total=p.milestones.length,rate=total?Math.round(done/total*100):0;
@@ -416,6 +418,23 @@ $("modal").close();persist();render();if(kind==="project"&&!mid)location.hash=pr
 $("remove").onclick=()=>{let p=current(),{kind,mid}=edit;if(!confirm("삭제할까요?"))return;if(kind==="project"){DependencyMap.unlink(state.projects,mid).forEach(q=>record(q,"삭제된 프로젝트의 선행 일정 연결 해제"));state.projects=state.projects.filter(x=>x.id!==mid);state.selectedId=state.projects[0]?.id||null;}else if(kind==="milestone"){DependencyMap.unlink(state.projects,p.id,mid).forEach(q=>record(q,"삭제된 선행 일정 연결 해제"));let m=p.milestones.find(x=>x.id===mid);p.milestones=p.milestones.filter(x=>x.id!==mid);record(p,"마일스톤 삭제: "+m.title);} $("modal").close();persist();render();};
 $("cancel").onclick=()=>$("modal").close();$("newProject").onclick=()=>open("project");$("editProject").onclick=()=>open("project",current().id);$("addMilestone").onclick=$("addDetailMilestone").onclick=()=>open("milestone");$("addOnDate").onclick=()=>open("milestone",null,selected);$("addNote").onclick=()=>open("note");
 $("projectList").onchange=e=>{const input=e.target.closest("[data-project-check]");if(!input)return;const ids=new Set(selectedProjects().map(p=>p.id));if(input.checked)ids.add(input.dataset.projectCheck);else ids.delete(input.dataset.projectCheck);state.roadmapIds=[...ids];persist();renderOverview();$("projectList").querySelectorAll("[data-project-check]").forEach(el=>{if(el.dataset.projectCheck===input.dataset.projectCheck)el.focus();});};
+function deleteSelectedProjects(){
+ if(readonly)return;
+ const chosen=selectedProjects();if(!chosen.length)return;
+ const names=chosen.map(p=>"• "+p.name).join("\n"),count=chosen.reduce((sum,p)=>sum+p.milestones.length,0);
+ if(!confirm("선택한 프로젝트 "+chosen.length+"개를 삭제할까요?\n\n"+names+"\n\n포함된 일정 "+count+"개와 다른 프로젝트의 선행 연결도 함께 삭제됩니다.\n삭제 후 Ctrl+Z로 되돌릴 수 있습니다."))return;
+ flowEditor?.cancel();
+ const ids=new Set(chosen.map(p=>p.id));
+ state.projects=state.projects.filter(p=>!ids.has(p.id));
+ const affected=new Set();
+ for(const id of ids)DependencyMap.unlink(state.projects,id).forEach(p=>affected.add(p));
+ affected.forEach(p=>record(p,"삭제된 프로젝트의 선행 일정 연결 해제"));
+ if(ids.has(state.selectedId))state.selectedId=state.projects[0]?.id||null;
+ // Keep the display selection IDs so undo also makes restored projects visible again.
+ persist();render();
+ $("selectAllProjects").focus();
+}
+$("deleteSelectedProjects").onclick=deleteSelectedProjects;
 $("selectAllProjects").onclick=()=>{state.roadmapIds=state.projects.map(p=>p.id);persist();renderOverview();};
 $("clearProjects").onclick=()=>{state.roadmapIds=[];persist();renderOverview();};
 document.querySelectorAll("[data-map-view]").forEach(b=>b.onclick=()=>{state.mapView=b.dataset.mapView;persist();renderOverview();});
