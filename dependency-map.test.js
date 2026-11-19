@@ -61,9 +61,9 @@ test('daily bands remain compact for long tasks and card edges align to actual d
   const project=Roadmap.portfolio([{id:'long',name:'장기 작업',milestones:[task('long','2026-08-01','2026-10-04')]}]);
   const model=DependencyMap.layout(project,'2026-09-17'),item=model.items[0];
   assert.ok(model.days.every(d=>d.height===22));
-  assert.equal(item.y,model.days.find(d=>d.date==='2026-08-01').y+3);
+  assert.equal(item.y,model.days.find(d=>d.date==='2026-08-01').y+DependencyMap.cardInset);
   const end=model.days.find(d=>d.date==='2026-10-04');
-  assert.equal(item.y+item.height,end.y+end.height-3);
+  assert.equal(item.y+item.height,end.y+end.height-DependencyMap.cardInset);
   const finalWeek=model.weeks[item.last];
   assert.ok(item.y+item.height<=finalWeek.y+finalWeek.height);
 });
@@ -199,4 +199,27 @@ test('undo and redo restore creation plus its link atomically and a new edit cle
   assert.equal(history.undo().mapColumns,3);
   const bounded=EditHistory.create({n:0},2);for(let n=1;n<=3;n++)bounded.record({n});
   assert.equal(bounded.undo().n,2);assert.equal(bounded.undo().n,1);assert.equal(bounded.undo(),null);
+});
+
+test('consecutive cards leave a routing corridor without changing dates or shrinking content',()=>{
+ const projects=[{id:'p',name:'Spacing',milestones:[
+  {...task('a','2026-11-16','2026-11-17'),flowColumn:0},
+  {...task('b','2026-11-18','2026-11-19',[ref('p','a')]),flowColumn:0},
+  {...task('c','2026-11-20','2026-11-20',[ref('p','b')]),flowColumn:0}
+ ]}];
+ const before=JSON.stringify(projects),portfolio=Roadmap.portfolio(projects);
+ const live=DependencyMap.svg(portfolio,'2026-11-19',{interactive:true}),report=DependencyMap.svg(portfolio,'2026-11-19',{report:true});
+ const [a,b,c]=live.model.items;
+ for(const [from,to]of [[a,b],[b,c]]){
+  assert.ok(to.y-from.y-from.height>=36-1e-6);
+  assert.equal(from.column,to.column);
+ }
+ for(const item of live.model.items){
+  assert.ok(item.height>=item.nodeHeight-1e-6);
+  const start=DependencyMap.dayPosition(live.model,item.start),end=DependencyMap.dayPosition(live.model,item.due);
+  assert.equal(item.y,start.y+DependencyMap.cardInset);
+  assert.ok(Math.abs(item.y+item.height-(end.y+end.height-DependencyMap.cardInset))<1e-6);
+ }
+ for(let i=0;i<live.model.edges.length;i++)assert.equal(DependencyMap.routeEdge(live.model,live.model.edges[i]).path,DependencyMap.routeEdge(report.model,report.model.edges[i]).path);
+ assert.equal(JSON.stringify(projects),before);
 });

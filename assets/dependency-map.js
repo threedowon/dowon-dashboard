@@ -1,5 +1,6 @@
 /* A date-led dependency map shared by the page and static exports. */
 globalThis.DependencyMap = (() => {
+  const cardInset = 18;
   const DAY = 86400000, key = (projectId, milestoneId) => JSON.stringify([projectId, milestoneId]);
   const esc = value => Roadmap.escape(value);
   const sides = ['top','right','bottom','left'];
@@ -314,7 +315,7 @@ globalThis.DependencyMap = (() => {
       m.projectLines = wrap((m.projectName || m.group || '').split('\n')[0], 190, 10);
       m.nodeHeight = Math.max(110, 86 + m.titleLines.length * 18 + m.projectLines.length * 13 + (m.hiddenRefs ? 32 : 0));
     }
-    const slot = Math.max(130, ...items.map(m => m.nodeHeight + 20));
+    const slot = Math.max(130, ...items.map(m => m.nodeHeight + cardInset*2));
     const days=weeks.flatMap(w=>{
       w.days=[];
       if(w.start!==null)for(let time=w.start;time<w.end;time+=DAY)w.days.push({time,date:new Date(time).toISOString().slice(0,10),height:22});
@@ -323,7 +324,7 @@ globalThis.DependencyMap = (() => {
     // Keep daily bands compact; expand only dates that need space for short task labels.
     for(const m of items.filter(m=>m.last>=0&&m.startTime!==null&&m.endTime!==null&&m.startTime<=m.endTime).sort((a,b)=>(a.endTime-a.startTime)-(b.endTime-b.startTime))){
       const span=days.filter(d=>d.time>=m.startTime&&d.time<=m.endTime);
-      const extra=Math.max(0,m.nodeHeight+6-span.reduce((n,d)=>n+d.height,0));
+      const extra=Math.max(0,m.nodeHeight+cardInset*2-span.reduce((n,d)=>n+d.height,0));
       for(const d of span)d.height+=extra/span.length;
     }
     let y = 0;
@@ -343,8 +344,8 @@ globalThis.DependencyMap = (() => {
     for (const m of items) {
       const first=days.find(d=>d.time===m.startTime),last=days.find(d=>d.time===m.endTime);
       const dated=first&&last&&m.startTime<=m.endTime;
-      m.y = dated?first.y+3:weeks[m.first].y+24+m.rank*slot;
-      m.height = dated?last.y+last.height-3-m.y:m.nodeHeight;
+      m.y = dated?first.y+cardInset:weeks[m.first].y+24+m.rank*slot;
+      m.height = dated?last.y+last.height-cardInset-m.y:m.nodeHeight;
       m.resizable=!!dated;
       if (!lanes.has(m.projectId)) lanes.set(m.projectId, { id:m.projectId, name:m.projectName || m.group.split('\n')[0], items:[], ends:[] });
       lanes.get(m.projectId).items.push(m);
@@ -433,5 +434,5 @@ globalThis.DependencyMap = (() => {
     }
     return { markup:out+'</svg>',width,height,model };
   }
-  return { key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, routePath, adjustRoute, setRoute, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
+  return { cardInset, key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, routePath, adjustRoute, setRoute, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
 })();

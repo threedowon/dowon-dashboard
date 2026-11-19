@@ -121,8 +121,8 @@ globalThis.DependencyEditor = {
       board.querySelector('.flow-resize-preview')?.remove();
       if(!date)return;
       const item=model.items.find(m=>m.id===drag.id),day=DependencyMap.dayPosition(model,date);
-      const y=drag.edge==='start'?day.y+3:item.y;
-      const bottom=drag.edge==='due'?day.y+day.height-3:item.y+item.height;
+      const y=drag.edge==='start'?day.y+DependencyMap.cardInset:item.y;
+      const bottom=drag.edge==='due'?day.y+day.height-DependencyMap.cardInset:item.y+item.height;
       const svg=board.querySelector('svg'),ns='http://www.w3.org/2000/svg',group=document.createElementNS(ns,'g');
       group.setAttribute('class','flow-resize-preview');group.setAttribute('pointer-events','none');
       const rect=document.createElementNS(ns,'rect');
@@ -222,7 +222,7 @@ globalThis.DependencyEditor = {
       }
       const target=newCardTarget(clientX,clientY);if(!target)return;
       const model=getModel(),day=target.date?DependencyMap.dayPosition(model,target.date):null;
-      const px=172+target.column*252,py=model.top+(day?.y??model.weeks.find(w=>w.start===null)?.y??0)+3;
+      const px=172+target.column*252,py=model.top+(day?.y??model.weeks.find(w=>w.start===null)?.y??0)+DependencyMap.cardInset;
       const group=document.createElementNS('http://www.w3.org/2000/svg','g');group.setAttribute('class','flow-new-preview');group.setAttribute('pointer-events','none');
       const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
       for(const [k,v]of Object.entries({x:px,y:py,width:218,height:117,rx:5,fill:'#e4efdf','fill-opacity':'.85',stroke:'#4265ff','stroke-width':2,'stroke-dasharray':'5 3'}))rect.setAttribute(k,v);
