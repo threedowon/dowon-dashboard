@@ -466,7 +466,6 @@ globalThis.DependencyMap = (() => {
       if(interactive){
         out+=`<foreignObject class="flow-status-control" x="${centerX-52}" y="${y+m.height-57}" width="104" height="30"><select xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;text-align-last:center" data-flow-status-select="${esc(m.id)}" aria-label="${esc(m.title)} 상태">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${m.status===value?'selected="selected"':''}>${label}</option>`).join('')}</select></foreignObject>`;
       }
-      out+=text(centerX,y+m.height-16,m.start&&m.start!==m.due?`${m.start} ~ ${m.due}`:m.due||'날짜 미정',10,'#334b3d',centered);
       if(interactive&&m.resizable)for(const [edge,yy,label]of [['start',y,'시작일'],['due',y+m.height,'종료일']]){
         out+=`<g class="flow-resize" data-resize="${edge}" data-resize-node="${esc(m.id)}" tabindex="0" role="button" aria-label="${esc(m.title)} ${label} 조절. 위아래 화살표로 하루씩 변경"><title>${label}: 테두리를 드래그하거나 ↑ ↓로 하루씩 변경</title><path d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="transparent" stroke-width="14"/><path class="flow-resize-line" d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="#4265ff" stroke-width="3" opacity="0"/></g>`;
       }
