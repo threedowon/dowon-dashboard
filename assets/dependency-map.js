@@ -426,15 +426,18 @@ globalThis.DependencyMap = (() => {
       const label=`${m.projectName} / ${m.title} · ${m.start||m.due||'날짜 미정'} ~ ${m.due||'날짜 미정'} · ${m.parents.length+m.hiddenRefs}개 선행 일정`;
       out+=`<g ${interactive?`class="flow-node" data-m="${esc(m.id)}" data-column="${m.column}" data-x="${m.x}" tabindex="0" role="button" aria-pressed="false" aria-label="${esc(label)} · ${m.column+1}열"`:''}><title>${esc(label)}</title>`;
       out+=rect(m.x,y,m.width,m.height,fill,'stroke="#9ca995"');
-      let cy=y+20;
-      for(const line of m.projectLines){out+=text(m.x+12,cy,line,10,'#536c5b');cy+=13;}
-      for(const line of m.titleLines){out+=text(m.x+12,cy+8,line,13,'#253b30','font-weight="650"');cy+=18;}
-      out+=text(m.x+12,y+m.height-34,statuses[m.status]||statuses.todo,11,'#334b3d',interactive?'class="flow-status-print"':'');
+      const centerX=m.x+m.width/2,centered='text-anchor="middle"';
+      const contentHeight=m.projectLines.length*13+8+m.titleLines.length*18+(m.hiddenRefs?24:0);
+      let cy=y+12+Math.max(0,(m.height-77-contentHeight)/2);
+      for(const line of m.projectLines){out+=text(centerX,cy+10,line,10,'#536c5b',centered);cy+=13;}
+      cy+=8;
+      for(const line of m.titleLines){out+=text(centerX,cy+13,line,13,'#253b30',centered+' font-weight="650"');cy+=18;}
+      if(m.hiddenRefs)out+=text(centerX,cy+18,`화면 밖 선행 ${m.hiddenRefs}개`,10,'#a04736',centered);
+      out+=text(centerX,y+m.height-34,statuses[m.status]||statuses.todo,11,'#334b3d',centered+(interactive?' class="flow-status-print"':''));
       if(interactive){
-        out+=`<foreignObject class="flow-status-control" x="${m.x+10}" y="${y+m.height-57}" width="104" height="30"><select xmlns="http://www.w3.org/1999/xhtml" data-flow-status-select="${esc(m.id)}" aria-label="${esc(m.title)} 상태">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${m.status===value?'selected="selected"':''}>${label}</option>`).join('')}</select></foreignObject>`;
+        out+=`<foreignObject class="flow-status-control" x="${centerX-52}" y="${y+m.height-57}" width="104" height="30"><select xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;text-align-last:center" data-flow-status-select="${esc(m.id)}" aria-label="${esc(m.title)} 상태">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${m.status===value?'selected="selected"':''}>${label}</option>`).join('')}</select></foreignObject>`;
       }
-      out+=text(m.x+12,y+m.height-16,m.start&&m.start!==m.due?`${m.start} ~ ${m.due}`:m.due||'날짜 미정',10);
-      if(m.hiddenRefs)out+=text(m.x+12,cy+18,`화면 밖 선행 ${m.hiddenRefs}개`,10,'#a04736');
+      out+=text(centerX,y+m.height-16,m.start&&m.start!==m.due?`${m.start} ~ ${m.due}`:m.due||'날짜 미정',10,'#334b3d',centered);
       if(interactive&&m.resizable)for(const [edge,yy,label]of [['start',y,'시작일'],['due',y+m.height,'종료일']]){
         out+=`<g class="flow-resize" data-resize="${edge}" data-resize-node="${esc(m.id)}" tabindex="0" role="button" aria-label="${esc(m.title)} ${label} 조절. 위아래 화살표로 하루씩 변경"><title>${label}: 테두리를 드래그하거나 ↑ ↓로 하루씩 변경</title><path d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="transparent" stroke-width="14"/><path class="flow-resize-line" d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="#4265ff" stroke-width="3" opacity="0"/></g>`;
       }
