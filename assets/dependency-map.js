@@ -400,7 +400,7 @@ globalThis.DependencyMap = (() => {
   }
   function svg(project, today, { interactive = false, report = false } = {}) {
     const model = layout(project, today), width = model.width;
-    const headerHeight=Math.max(64,...model.lanes.map(l=>28+wrap(l.name,l.width-76,15).length*19+18));
+    const headerHeight=Math.max(40,...model.lanes.map(l=>20+wrap(l.name,l.width-76,15).length*19));
     const top = 48+headerHeight, height = top + model.height + 16;
     model.top=top;
     const rect = (x,y,w,h,fill,extra='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
@@ -419,11 +419,10 @@ globalThis.DependencyMap = (() => {
       out+=`<g class="flow-project-region" data-project-region="${esc(lane.id)}" aria-label="${esc(lane.name)} 영역">`;
       out+=rect(lane.x,48,lane.width,headerHeight+model.height-8,fill,`stroke="${border}"`);
       out+=rect(lane.x+1,49,lane.width-2,headerHeight-1,header);
-      out+=rect(lane.x+14,65,10,10,border);
+      out+=rect(lane.x+14,63,10,10,border);
       const lines=wrap(lane.name,lane.width-76,15);
-      lines.forEach((line,i)=>{out+=text(lane.x+34,77+i*19,line,15,'#253b30','font-weight="650"');});
-      out+=text(lane.x+34,77+lines.length*19,`${lane.items.length}개 일정`,11,'#536c5b');
-      if(interactive)out+=`<foreignObject class="flow-add-column" x="${lane.x+lane.width-34}" y="61" width="24" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" data-add-project-column="${esc(lane.id)}" aria-label="${esc(lane.name)} 열 추가" ${lane.columnCount>=100?'disabled="disabled"':''}>＋</button></foreignObject>`;
+      lines.forEach((line,i)=>{out+=text(lane.x+34,73+i*19,line,15,'#253b30','font-weight="650"');});
+      if(interactive)out+=`<foreignObject class="flow-add-column" x="${lane.x+lane.width-34}" y="56" width="24" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" data-add-project-column="${esc(lane.id)}" aria-label="${esc(lane.name)} 열 추가" ${lane.columnCount>=100?'disabled="disabled"':''}>＋</button></foreignObject>`;
       out+='</g>';
     }
     for (const week of model.weeks) {

@@ -45,7 +45,7 @@ test('project headers appear once visually and project names are absent from car
  const p=fixtures();p.push({id:'empty',name:'빈 프로젝트',milestones:[]});
  for(const options of [{interactive:true},{report:true}]){
   const {markup,model}=M.svg(Roadmap.portfolio(p),'2026-11-19',options);
-  assert.equal(model.lanes.length,3);assert.ok(markup.includes('0개 일정'));
+  assert.equal(model.lanes.length,3);assert.ok(!markup.includes('개 일정'));
   for(const project of p)assert.equal([...markup.matchAll(/<text\b[^>]*>(.*?)<\/text>/g)].filter(m=>m[1]===project.name).length,1);
   if(options.interactive)for(const node of markup.matchAll(/<g class="flow-node"[\s\S]*?(?=<g class="flow-node"|<g class="flow-port"|<\/svg>)/g)){
    for(const label of node[0].matchAll(/<text\b[^>]*>(.*?)<\/text>/g))assert.ok(!p.some(p=>label[1]===p.name));
