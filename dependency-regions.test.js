@@ -22,7 +22,7 @@ test('local positions survive save/reload, project filtering and reordering',()=
  assert.equal(M.move(p,id,target.index,model).changed,true);assert.equal(p[1].milestones[0].flowProjectColumn,2);
  for(const projects of [JSON.parse(JSON.stringify(p)),[p[1]],[p[1],p[0]]]){
   model=layout(projects);const m=model.items.find(m=>m.id===id),lane=model.lanes.find(l=>l.id==='b');
-  assert.equal(m.localColumn,2);assert.equal(m.x-lane.x,12+2*252);
+  assert.equal(m.localColumn,2);assert.equal(m.x-lane.x,12+2*M.columnPitch);
  }
 });
 
@@ -46,7 +46,8 @@ test('project headers appear once visually and project names are absent from car
  for(const options of [{interactive:true},{report:true}]){
   const {markup,model}=M.svg(Roadmap.portfolio(p),'2026-11-19',options);
   assert.equal(model.lanes.length,3);assert.ok(!markup.includes('개 일정'));
-  for(const project of p)assert.equal([...markup.matchAll(/<text\b[^>]*>(.*?)<\/text>/g)].filter(m=>m[1]===project.name).length,1);
+  const regions=[...markup.matchAll(/<g class="flow-project-region"[\s\S]*?<\/g>/g)];
+  for(const project of p)assert.equal(regions.filter(region=>[...region[0].matchAll(/<text\b[^>]*>(.*?)<\/text>/g)].map(t=>t[1]).join('')===project.name).length,1);
   if(options.interactive)for(const node of markup.matchAll(/<g class="flow-node"[\s\S]*?(?=<g class="flow-node"|<g class="flow-port"|<\/svg>)/g)){
    for(const label of node[0].matchAll(/<text\b[^>]*>(.*?)<\/text>/g))assert.ok(!p.some(p=>label[1]===p.name));
   }

@@ -1,6 +1,6 @@
 /* A date-led dependency map shared by the page and static exports. */
 globalThis.DependencyMap = (() => {
-  const cardInset = 18;
+  const cardInset = 18, cardWidth = 116, columnPitch = 150;
   const DAY = 86400000, key = (projectId, milestoneId) => JSON.stringify([projectId, milestoneId]);
   const esc = value => Roadmap.escape(value);
   const sides = ['top','right','bottom','left'];
@@ -327,7 +327,7 @@ globalThis.DependencyMap = (() => {
         const parent = byId.get(id);
         if (parent.last === m.first) m.rank = Math.max(m.rank, (parent.first === parent.last ? parent.rank || 0 : 0) + 1);
       }
-      m.titleLines = wrap(m.title, 190, 13);
+      m.titleLines = wrap(m.title, cardWidth-24, 13);
       m.nodeHeight = Math.max(110, 82 + m.titleLines.length * 18 + (m.hiddenRefs ? 32 : 0));
     }
     const slot = Math.max(130, ...items.map(m => m.nodeHeight + cardInset*2));
@@ -375,7 +375,7 @@ globalThis.DependencyMap = (() => {
       for(const m of lane.items.slice().sort((a,b)=>(preferred(a)===null)-(preferred(b)===null)||a.y-b.y||a.height-b.height)){
         let local=preferred(m)??0;
         while((occupied.get(local)||[]).some(other=>other.y<m.y+m.height+4&&other.y+other.height+4>m.y))local++;
-        m.localColumn=local;m.width=218;
+        m.localColumn=local;m.width=cardWidth;
         if(!occupied.has(local))occupied.set(local,[]);occupied.get(local).push(m);
       }
       const used=Math.max(-1,...lane.items.map(m=>m.localColumn))+1;
@@ -386,9 +386,9 @@ globalThis.DependencyMap = (() => {
     firstLane.columnCount+=Math.max(0,columnCount(project.mapColumns)-[...lanes.values()].reduce((n,l)=>n+l.columnCount,0));
     for(const lane of lanes.values()){
       const offset=columns.length;
-      lane.startColumn=offset;lane.x=160+offset*252;lane.width=lane.columnCount*252-10;
-      for(const m of lane.items){m.column=offset+m.localColumn;m.x=172+m.column*252;}
-      for(let local=0;local<lane.columnCount;local++)columns.push({index:offset+local,localIndex:local,projectId:lane.id,x:160+(offset+local)*252,width:242});
+      lane.startColumn=offset;lane.x=160+offset*columnPitch;lane.width=lane.columnCount*columnPitch-10;
+      for(const m of lane.items){m.column=offset+m.localColumn;m.x=172+m.column*columnPitch;}
+      for(let local=0;local<lane.columnCount;local++)columns.push({index:offset+local,localIndex:local,projectId:lane.id,x:160+(offset+local)*columnPitch,width:columnPitch-10});
     }
     const count=columns.length;
     const edges = items.flatMap(to => to.parents.map(id => {
@@ -396,7 +396,7 @@ globalThis.DependencyMap = (() => {
       const ref=normalize(to.dependsOn).find(r=>key(r.projectId,r.milestoneId)===id);
       return { from, to, fromSide:ref?.fromSide, toSide:ref?.toSide, fromOffset:ref?.fromOffset, toOffset:ref?.toOffset, route:ref?.route, conflict: start !== null && end !== null && end > start, cycle: !!(from.cycle && to.cycle) };
     }));
-    return { items, weeks, days, lanes:[...lanes.values()], columns, edges, width:Math.max(900,160+count*252+28), height:y, hiddenRefs:items.reduce((n,m)=>n+m.hiddenRefs,0) };
+    return { items, weeks, days, lanes:[...lanes.values()], columns, edges, width:Math.max(900,160+count*columnPitch+28), height:y, hiddenRefs:items.reduce((n,m)=>n+m.hiddenRefs,0) };
   }
   function svg(project, today, { interactive = false, report = false } = {}) {
     const model = layout(project, today), width = model.width;
@@ -463,7 +463,7 @@ globalThis.DependencyMap = (() => {
       if(m.hiddenRefs)out+=text(centerX,cy+18,`화면 밖 선행 ${m.hiddenRefs}개`,10,'#a04736',centered);
       out+=text(centerX,y+m.height-34,statuses[m.status]||statuses.todo,11,'#334b3d',centered+(interactive?' class="flow-status-print"':''));
       if(interactive){
-        out+=`<foreignObject class="flow-status-control" x="${centerX-52}" y="${y+m.height-57}" width="104" height="30"><select xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;text-align-last:center" data-flow-status-select="${esc(m.id)}" aria-label="${esc(m.title)} 상태">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${m.status===value?'selected="selected"':''}>${label}</option>`).join('')}</select></foreignObject>`;
+        out+=`<foreignObject class="flow-status-control" x="${centerX-(m.width-24)/2}" y="${y+m.height-57}" width="${m.width-24}" height="30"><select xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;text-align-last:center" data-flow-status-select="${esc(m.id)}" aria-label="${esc(m.title)} 상태">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${m.status===value?'selected="selected"':''}>${label}</option>`).join('')}</select></foreignObject>`;
       }
       if(interactive&&m.resizable)for(const [edge,yy,label]of [['start',y,'시작일'],['due',y+m.height,'종료일']]){
         out+=`<g class="flow-resize" data-resize="${edge}" data-resize-node="${esc(m.id)}" tabindex="0" role="button" aria-label="${esc(m.title)} ${label} 조절. 위아래 화살표로 하루씩 변경"><title>${label}: 테두리를 드래그하거나 ↑ ↓로 하루씩 변경</title><path d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="transparent" stroke-width="14"/><path class="flow-resize-line" d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="#4265ff" stroke-width="3" opacity="0"/></g>`;
@@ -476,5 +476,5 @@ globalThis.DependencyMap = (() => {
     }
     return { markup:out+'</svg>',width,height,model };
   }
-  return { cardInset, key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, routePath, adjustRoute, setRoute, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
+  return { cardInset, cardWidth, columnPitch, key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, routePath, adjustRoute, setRoute, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
 })();

@@ -226,10 +226,10 @@ globalThis.DependencyEditor = {
       }
       const target=newCardTarget(clientX,clientY);if(!target)return;
       const model=getModel(),day=target.date?DependencyMap.dayPosition(model,target.date):null;
-      const px=172+target.column*252,py=model.top+(day?.y??model.weeks.find(w=>w.start===null)?.y??0)+DependencyMap.cardInset;
+      const px=model.columns.find(c=>c.index===target.column).x+12,py=model.top+(day?.y??model.weeks.find(w=>w.start===null)?.y??0)+DependencyMap.cardInset;
       const group=document.createElementNS('http://www.w3.org/2000/svg','g');group.setAttribute('class','flow-new-preview');group.setAttribute('pointer-events','none');
       const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-      for(const [k,v]of Object.entries({x:px,y:py,width:218,height:117,rx:5,fill:'#e4efdf','fill-opacity':'.85',stroke:'#4265ff','stroke-width':2,'stroke-dasharray':'5 3'}))rect.setAttribute(k,v);
+      for(const [k,v]of Object.entries({x:px,y:py,width:DependencyMap.cardWidth,height:117,rx:5,fill:'#e4efdf','fill-opacity':'.85',stroke:'#4265ff','stroke-width':2,'stroke-dasharray':'5 3'}))rect.setAttribute(k,v);
       const label=document.createElementNS('http://www.w3.org/2000/svg','text');label.setAttribute('x',px+12);label.setAttribute('y',py+30);label.setAttribute('font-size','13');label.setAttribute('fill','#11563f');label.textContent='＋ 새 일정';group.append(rect,label);svg.append(group);
       tell(`${target.column+1}열 · ${target.date||'일정 조율 중'}에 연결된 새 카드를 만듭니다.`);
     }
