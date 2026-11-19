@@ -193,11 +193,11 @@ html[data-active-page="home"] .side{display:none}
 <section id="wirenestPage" data-screen="wirenest" aria-labelledby="wirenestTitle" hidden>
 <div class="page-top"><span class="eyebrow">WIRENEST / BACKUPS</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="placeholder-heading library-heading"><div><h1 id="wirenestTitle" tabindex="-1">WireNest</h1><p class="page-intro">배선 작업을 시작하고, 직접 저장한 .wnest 파일을 보관하세요.</p></div><div class="tools"><button class="btn editable" id="wnConnect">GitHub 연결</button><a class="btn primary" href="https://threedowon.github.io/WireNest/" target="_blank" rel="noopener noreferrer">＋ 새 작업 (새 탭) ↗</a></div></div>
-<button class="pdf-dropzone editable" id="wnUpload" type="button" disabled><strong>.wnest 파일을 여기에 놓아 백업하세요</strong><span>또는 클릭하여 파일 선택 · 파일당 최대 5GB</span><span>WireNest에서 파일 → 저장한 뒤 올려주세요. 같은 이름도 별도 백업으로 보관합니다.</span></button>
+<button class="pdf-dropzone editable" id="wnUpload" type="button" disabled><strong>.wnest 파일을 여기에 놓아 백업하세요</strong><span>또는 클릭하여 파일 선택 · 파일당 최대 25MB</span><span>WireNest에서 파일 → 저장한 뒤 올려주세요. 같은 이름도 별도 백업으로 보관합니다.</span></button>
 <input id="wnFiles" type="file" accept=".wnest" multiple hidden>
 <div class="library-toolbar"><label>백업 검색<input id="wnSearch" type="search" placeholder="파일 이름으로 검색"></label><button class="btn" id="wnRefresh">새로고침</button></div>
 <p class="small" id="wnStatus" role="status" aria-live="polite"></p><p class="small" id="wnCount"></p><div id="wnList" class="library-grid"></div>
-<p class="small library-note">직접 업로드한 파일만 이 목록에 표시됩니다. WireNest에서 수정한 내용은 자동으로 백업되지 않습니다.<br>이어서 작업하려면 백업을 내려받고, 새 작업 탭의 <strong>파일 → 열기</strong>에서 선택하세요.</p>
+<p class="small library-note">직접 업로드한 파일만 이 목록에 표시됩니다. WireNest에서 수정한 내용은 자동으로 백업되지 않습니다.<br><strong>WireNest로 열기</strong>로 다운로드 없이 이어서 작업하세요. 편집 후 <strong>대시보드에 백업</strong>을 누르면 새 백업이 저장됩니다. 연결 중에는 이 탭을 유지하세요.</p>
 </section>
 <section id="pdfPage" data-screen="pdf" aria-labelledby="pdfTitle" hidden>
 <div class="page-top"><span class="eyebrow">DOCUMENT LIBRARY</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
@@ -258,7 +258,7 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfBulkTagModal" aria-labelledby="pdfBulkTagTitle"><h2 id="pdfBulkTagTitle">선택한 PDF에 태그 추가</h2><p id="pdfBulkTagNames" class="pdf-bulk-names"></p><form id="pdfBulkTagForm" class="formgrid"><label>추가할 태그<input id="pdfBulkTagInput" required placeholder="예: 설계, 참고자료" maxlength="820"></label><p class="small">쉼표로 구분해주세요. 기존 태그는 유지하고, 중복 태그는 한 번만 추가합니다.</p><p id="pdfBulkTagStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" type="button" id="pdfBulkTagCancel">취소</button><button class="btn primary" id="pdfBulkTagConfirm">태그 추가</button></div></form></dialog>
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
-<script src="assets/wirenest.js?v=20261118-backups" defer></script>
+<script src="assets/wirenest.js?v=20261119-direct-open" defer></script>
 <script src="assets/transfers.js?v=20261118-resume" defer></script>
 <script src="library.js?v=20261118-bulk" defer></script>
 <script type="application/json" id="seed">null</script>

@@ -24,7 +24,7 @@
     $('wnCount').textContent=ready?'저장된 백업 '+shown.length+'개':'';
     const disabled=busy?' disabled':'';
     $('wnList').innerHTML=jobs.map(job=>'<article class="pdf-card pdf-upload-card'+(job.error?' is-error':'')+'"><div class="pdf-emblem">'+(job.error?'업로드 실패':'업로드 중…')+'</div><h2>'+esc(job.file.name)+'</h2><p class="small">'+esc(job.error||'비공개 저장소에 백업하고 있습니다.')+'</p>'+(job.error?'<div class="tools"><button class="btn" data-retry="'+job.id+'"'+disabled+'>다시 시도</button><button class="btn" data-dismiss="'+job.id+'"'+disabled+'>목록에서 빼기</button></div>':'<progress aria-label="업로드 중"></progress>')+'</article>').join('')+
-      shown.map(d=>'<article class="pdf-card"><div class="pdf-emblem">WNEST / '+esc(size(d.size))+'</div><h2>'+esc(d.filename)+'</h2><p class="small">'+esc(date(d.createdAt))+' 업로드</p><div class="tools"><button class="btn primary" data-download="'+esc(d.id)+'"'+disabled+'>백업 내려받기</button><button class="btn danger editable" data-delete="'+esc(d.id)+'"'+disabled+'>삭제</button></div></article>').join('');
+      shown.map(d=>'<article class="pdf-card"><div class="pdf-emblem">WNEST / '+esc(size(d.size))+'</div><h2>'+esc(d.filename)+'</h2><p class="small">'+esc(date(d.createdAt))+' 업로드</p><div class="tools"><button class="btn primary" data-open="'+esc(d.id)+'"'+disabled+'>WireNest로 열기 ↗</button><button class="btn" data-download="'+esc(d.id)+'"'+disabled+'>백업 내려받기</button><button class="btn danger editable" data-delete="'+esc(d.id)+'"'+disabled+'>삭제</button></div></article>').join('');
     if(!jobs.length&&!shown.length)$('wnList').innerHTML='<div class="empty">'+(readonly?'공유 문서에는 비공개 백업이 포함되지 않습니다.':!ready?'GitHub 연결 후 업로드한 백업을 볼 수 있습니다.':documents.length?'검색한 이름의 백업이 없습니다.':'아직 업로드한 백업이 없습니다.<br>새 작업을 시작하거나 저장해 둔 .wnest 파일을 올려주세요.')+'</div>';
     controls();
   }
@@ -58,6 +58,43 @@
     if(!selected.length)return;
     jobs.push(...selected);$('wnSearch').value='';upload(selected);
   }
+  function openBackup(doc){
+    const origin='https://threedowon.github.io',nonce=crypto.randomUUID();
+    const editor=window.open(origin+'/WireNest/#dashboard-session='+nonce,'_blank');
+    if(!editor){message('팝업을 허용한 뒤 다시 열어주세요.',true);return;}
+    let text=null,loaded=false,saving=false,closed=false;const started=Date.now(),doneRequests=new Map();
+    const send=data=>editor.postMessage({channel:'wirenest-dashboard',nonce,...data},origin);
+    const cleanup=()=>{closed=true;window.removeEventListener('message',receive);clearInterval(timer);};
+    const receive=async event=>{
+      const m=event.data;
+      if(event.source!==editor||event.origin!==origin||m?.channel!=='wirenest-dashboard'||m.nonce!==nonce)return;
+      if(m.type==='ready'&&text)send({type:'project',text,filename:doc.filename});
+      if(m.type==='loaded'){loaded=true;message('WireNest에서 열었습니다. 이 대시보드 탭을 유지하면 편집한 내용을 새 백업으로 저장할 수 있습니다.');}
+      if(m.type==='save'&&loaded){
+        if(typeof m.requestId!=='string'||m.requestId.length>100)return;
+        if(doneRequests.has(m.requestId)){send(doneRequests.get(m.requestId));return;}
+        if(saving){send({type:'save-result',requestId:m.requestId,error:'다른 백업을 저장 중입니다.'});return;}
+        saving=true;let result;
+        try{
+          if(typeof m.text!=='string'||new TextEncoder().encode(m.text).length>limit)throw Error('25MB 이하의 프로젝트만 백업할 수 있습니다.');
+          const data=JSON.parse(m.text);if(data?.app!=='wirenest'||!data.boards||!data.nodes||!data.wires)throw Error('프로젝트 형식이 올바르지 않습니다.');
+          const filename=(String(data.name||doc.filename.replace(/\.wnest$/i,'')).replace(/[\/\\:*?"<>|]/g,'_').slice(0,180)||'WireNest')+'.wnest';
+          const form=new FormData();form.set('file',new File([m.text],filename,{type:'application/json'}));form.set('title',filename);form.set('tags','[]');
+          const saved=await(await request('',{method:'POST',body:form})).json();documents.unshift(saved.document);text=m.text;render();message('WireNest 작업을 새 백업으로 저장했습니다.');
+          result={type:'save-result',requestId:m.requestId};
+        }catch(error){result={type:'save-result',requestId:m.requestId,error:error.message};}
+        finally{saving=false;}
+        doneRequests.set(m.requestId,result);if(doneRequests.size>100)doneRequests.delete(doneRequests.keys().next().value);if(!closed)send(result);
+      }
+    };
+    window.addEventListener('message',receive);
+    const timer=setInterval(()=>{if(editor.closed){cleanup();return;}if(!loaded&&Date.now()-started>90000){message('WireNest 연결 시간이 초과되었습니다. 다시 열어주세요.',true);cleanup();}},1000);
+    message('백업을 WireNest로 전달하는 중…');
+    request('/'+doc.id+'/file').then(r=>r.blob()).then(async blob=>{
+      if(closed)return;if(blob.size>limit)throw Error('25MB 이하의 백업만 열 수 있습니다.');text=await blob.text();
+      if(!closed)send({type:'project',text,filename:doc.filename});
+    }).catch(error=>{if(!closed){send({type:'error',error:error.message});message(error.message,true);cleanup();}});
+  }
   $('wnUpload').onclick=()=>$('wnFiles').click();
   $('wnFiles').onchange=()=>{addFiles($('wnFiles').files);$('wnFiles').value='';};
   $('wnSearch').oninput=render;
@@ -75,7 +112,8 @@
     const button=event.target.closest('button');if(!button)return;
     if(button.dataset.dismiss){jobs=jobs.filter(j=>j.id!==button.dataset.dismiss);render();return;}
     if(button.dataset.retry){const job=jobs.find(j=>j.id===button.dataset.retry);if(job)await upload([job]);return;}
-    const doc=documents.find(d=>d.id===(button.dataset.download||button.dataset.delete));if(!doc)return;
+    const doc=documents.find(d=>d.id===(button.dataset.open||button.dataset.download||button.dataset.delete));if(!doc)return;
+    if(button.dataset.open){openBackup(doc);return;}
     const deleting=!!button.dataset.delete;
     if(deleting&&!confirm('“'+doc.filename+'” ('+date(doc.createdAt)+') 백업을 삭제할까요?'))return;
     busy=true;render();message(deleting?'백업 삭제 중…':'백업 다운로드 준비 중…');

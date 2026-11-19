@@ -64,3 +64,5 @@ npm test covers OAuth state/PKCE, secure encrypted cookies, origin rejection, an
 npx wrangler deploy --dry-run validates bundling.
 Live completion requires /health configured=true, GitHub login, backup, restore, and private repository commit verification.
 Use an unchanged backup or preserve an independent original JSON for live testing; never replace real data with test fixtures.
+
+WireNest direct editing: backup cards offer Open in WireNest without a local download. A nonce-bound postMessage handshake to the selected WireNest window transfers only project JSON, never authentication cookies or tokens. Keep the dashboard tab open. Save from WireNest explicitly creates a new private backup through the existing authenticated API; original snapshots remain unchanged. The receiver checks exact origin and opener/source identity. Existing file download/upload workflows remain available; limits remain 25 MiB.
