@@ -31,6 +31,7 @@ globalThis.DependencyEditor = {
         port.classList.toggle('is-visible',active);port.setAttribute('tabindex',active?'0':'-1');
       }
       for(const line of board.querySelectorAll('.flow-edge'))line.classList.toggle('is-selected',!!edge&&line.dataset.edgeFrom===edge.from&&line.dataset.edgeTo===edge.to);
+      drawEdgeControls();
       control('edit').disabled=!selected;control('detail').disabled=!selected;control('unlink').disabled=!edge;
       const item=getModel()?.items?.find(m=>m.id===selected);
       control('left').disabled=!item||item.column===0;
@@ -38,12 +39,43 @@ globalThis.DependencyEditor = {
       control('cancel').hidden=!pending;
       for(const select of board.querySelectorAll('[data-flow-status-select]'))select.disabled=!isActive();
     }
+    function selectedEdge(){return getModel()?.edges.find(item=>item.from.id===edge?.from&&item.to.id===edge?.to);}
+    function drawEdgeControls(preview){
+      board.querySelector('.flow-edge-controls')?.remove();
+      const item=selectedEdge(),svg=board.querySelector('svg');if(!item||!svg||!isActive())return;
+      const model=getModel(),route=DependencyMap.routeEdge(model,preview?{...item,...preview}:item);
+      const line=[...board.querySelectorAll('.flow-edge')].find(el=>el.dataset.edgeFrom===edge.from&&el.dataset.edgeTo===edge.to);
+      line?.querySelectorAll('path').forEach(path=>path.setAttribute('d',route.path));
+      const ns='http://www.w3.org/2000/svg',group=document.createElementNS(ns,'g');group.setAttribute('class','flow-edge-controls');
+      const points=route.points;if(points.length<2)return;
+      const handles=[['start',points[0]],...points.slice(1).map((p,i)=>[String(i),[(p[0]+points[i][0])/2,(p[1]+points[i][1])/2]]),['end',points.at(-1)]];
+      for(const [index,[x,y]]of handles){
+        const endpoint=index==='start'||index==='end',handle=document.createElementNS(ns,'g');
+        for(const [name,value]of Object.entries({'data-edge-handle':index,tabindex:0,role:'button','aria-label':endpoint?'연결 끝점 이동':'연결선 구간 이동. 방향키로 조절',class:'flow-edge-handle'}))handle.setAttribute(name,value);
+        const hit=document.createElementNS(ns,'circle');for(const [name,value]of Object.entries({cx:x,cy:y+model.top,r:12,fill:'transparent'}))hit.setAttribute(name,value);
+        const mark=document.createElementNS(ns,'circle');for(const [name,value]of Object.entries({cx:x,cy:y+model.top,r:5,fill:endpoint?'#fff':'#4265ff',stroke:endpoint?'#4265ff':'#fff','stroke-width':2,'pointer-events':'none'}))mark.setAttribute(name,value);
+        handle.append(hit,mark);group.append(handle);
+      }
+      svg.append(group);
+    }
+    function edgePosition(clientX,clientY){const p=svgPoint(clientX,clientY);return p?[p.x,p.y-getModel().top]:null;}
+    function previewEdge(clientX,clientY){
+      const point=edgePosition(clientX,clientY);if(!point)return;
+      drag.updates=DependencyMap.adjustRoute(drag.item,drag.points,drag.handle,point);
+      drawEdgeControls(drag.updates);tell('놓으면 연결선 위치가 저장됩니다. Esc로 취소합니다.');
+    }
+    function saveEdge(updates){
+      if(!edge||!updates)return;
+      const result=DependencyMap.setRoute(getProjects(),edge.from,edge.to,updates);
+      if(result.changed)commit(result.project,`연결선 위치 변경: ${result.milestone.title}`);
+      decorate();tell('연결선 위치를 저장했어요. Ctrl+Z로 되돌릴 수 있습니다.');
+    }
     function refresh(){
       drag=null;pending=null;clearPreview();
       if(!isActive()||!hasNode(selected))selected=null;
       if(edge&&(!hasNode(edge.from)||!hasNode(edge.to)||!DependencyMap.normalize(lookup(edge.to)?.milestone.dependsOn).some(r=>DependencyMap.key(r.projectId,r.milestoneId)===edge.from)))edge=null;
       decorate();
-      if(edge)tell('연결선을 선택했어요. 연결 해제로 이 선만 제거할 수 있습니다.');
+      if(edge)tell('연결선의 동그란 조절점을 드래그해 위치를 바꿀 수 있습니다.');
       else if(selected)tell(`${lookup(selected)?.milestone.title||'일정'} · 네모 핸들을 빈 곳으로 끌면 연결된 새 카드가 생깁니다.`);
       else tell('카드 위·아래 테두리를 끌어 날짜를 조절하고, 카드 안에서 상태를 선택하세요.');
     }
@@ -162,11 +194,11 @@ globalThis.DependencyEditor = {
     }
     function activate(target){
       if(!isActive())return;
-      if(target.closest('[data-flow-status-select],[data-resize],.flow-add-column'))return;
+      if(target.closest('[data-flow-status-select],[data-resize],[data-edge-handle],.flow-add-column'))return;
       const port=target.closest('[data-port-node]'),node=target.closest('[data-m]'),line=target.closest('[data-edge-from]');
       if(port){if(pending&&pending.id!==port.dataset.portNode)finish(port.dataset.portNode,port.dataset.side);else start(portInfo(port));}
       else if(node){if(pending)finish(node.dataset.m);else selectNode(node.dataset.m);}
-      else if(line){pending=null;selected=null;edge={from:line.dataset.edgeFrom,to:line.dataset.edgeTo};clearPreview();decorate();tell(`${lookup(edge.from)?.milestone.title} → ${lookup(edge.to)?.milestone.title} · 연결 해제로 제거할 수 있어요.`);}
+      else if(line){pending=null;selected=null;edge={from:line.dataset.edgeFrom,to:line.dataset.edgeTo};clearPreview();decorate();tell(`${lookup(edge.from)?.milestone.title} → ${lookup(edge.to)?.milestone.title} · 동그란 조절점을 드래그해 선의 위치를 바꾸세요.`);}
       else {pending=null;selected=null;edge=null;clearPreview();decorate();tell('카드를 선택해 연결점을 표시하세요.');}
     }
     function drawPreview(clientX,clientY){
@@ -200,6 +232,13 @@ globalThis.DependencyEditor = {
     board.addEventListener('pointerdown',e=>{
       if(!isActive()||e.button!==0)return;
       if(e.target.closest('[data-flow-status-select],.flow-add-column'))return;
+      const edgeHandle=e.target.closest('[data-edge-handle]');
+      if(edgeHandle){
+        const item=selectedEdge();if(!item)return;
+        e.preventDefault();pending=null;
+        drag={type:'edge',item,points:DependencyMap.routeEdge(getModel(),item).points,handle:edgeHandle.dataset.edgeHandle,pointerId:e.pointerId,x:e.clientX,y:e.clientY,moved:false};
+        board.setPointerCapture?.(e.pointerId);return;
+      }
       const port=e.target.closest('[data-port-node]'),node=e.target.closest('.flow-node'),resize=e.target.closest('[data-resize]');
       if(resize){
         e.preventDefault();pending=null;clearPreview();selectNode(resize.dataset.resizeNode);
@@ -222,15 +261,17 @@ globalThis.DependencyEditor = {
       const rect=board.getBoundingClientRect();
       if(e.clientY<rect.top+28)board.scrollTop-=18;else if(e.clientY>rect.bottom-28)board.scrollTop+=18;
       if(e.clientX<rect.left+28)board.scrollLeft-=18;else if(e.clientX>rect.right-28)board.scrollLeft+=18;
-      if(drag.type==='move')previewMove(e.clientX,e.clientY);else if(drag.type==='resize')previewResize(e.clientX,e.clientY);else drawPreview(e.clientX,e.clientY);
+      if(drag.type==='edge')previewEdge(e.clientX,e.clientY);else if(drag.type==='move')previewMove(e.clientX,e.clientY);else if(drag.type==='resize')previewResize(e.clientX,e.clientY);else drawPreview(e.clientX,e.clientY);
     });
     board.addEventListener('pointerup',e=>{
       if(!drag||e.pointerId!==drag.pointerId)return;
-      const {moved,type,id,edge:resizeEdge}=drag;
+      if(drag.type==='edge'&&drag.moved)previewEdge(e.clientX,e.clientY);
+      const {moved,type,id,edge:resizeEdge,updates}=drag;
       const date=type==='resize'?resizeValue(id,resizeEdge,e.clientX,e.clientY):null;
       drag=null;suppressClickUntil=Date.now()+150;
       if(board.hasPointerCapture?.(e.pointerId))board.releasePointerCapture(e.pointerId);
       if(!moved)return; // Keep the source armed for a second click.
+      if(type==='edge'){saveEdge(updates);return;}
       if(type==='resize'){if(date)resizeCard(id,resizeEdge,date);else cancel();return;}
       if(type==='move'){
         const column=dropColumn(e.clientX,e.clientY);
@@ -249,6 +290,15 @@ globalThis.DependencyEditor = {
       if(!isActive())return;
       if(e.target.closest('[data-flow-status-select],.flow-add-column'))return;
       if(e.key==='Escape'){e.preventDefault();cancel();return;}
+      const edgeHandle=e.target.closest('[data-edge-handle]');
+      if(edgeHandle&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+        e.preventDefault();e.stopPropagation();const item=selectedEdge();if(!item)return;
+        const points=DependencyMap.routeEdge(getModel(),item).points,index=edgeHandle.dataset.edgeHandle;
+        const point=index==='start'?points[0].slice():index==='end'?points.at(-1).slice():points[Number(index)].map((v,i)=>(v+points[Number(index)+1][i])/2);
+        const step=e.shiftKey?10:2;point[0]+=e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0;point[1]+=e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0;
+        saveEdge(DependencyMap.adjustRoute(item,points,index,point));
+        board.querySelector(`[data-edge-handle="${index}"]`)?.focus({preventScroll:true});return;
+      }
       const handle=e.target.closest('[data-resize]');
       if(handle&&(e.key==='ArrowUp'||e.key==='ArrowDown')){
         e.preventDefault();const m=lookup(handle.dataset.resizeNode)?.milestone;if(!m)return;

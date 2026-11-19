@@ -55,3 +55,38 @@ test('interactive and exported maps use the same routed lines and do not mutate 
  const liveRoute=verify(live.model,live.model.edges[0]),exportRoute=verify(exported.model,exported.model.edges[0]);
  assert.deepEqual(liveRoute.points,exportRoute.points);assert.ok(live.markup.includes(`d="${liveRoute.path}"`));assert.ok(exported.markup.includes(`d="${exportRoute.path}"`));assert.equal(JSON.stringify(p),original);
 });
+
+test('segment dragging retains endpoints and stores a movable orthogonal detour',()=>{
+ const a=card('a',172,0),b=card('b',172,400),edge={from:a,to:b},model={items:[a,b],top:48};
+ const original=M.routeEdge(model,edge).points;
+ const updates=M.adjustRoute(edge,original,'0',[340,250]);
+ const routed=M.routeEdge(model,{...edge,...updates});
+ assert.deepEqual(routed.points,[[281,100],[340,100],[340,400],[281,400]]);
+ assert.deepEqual(original,[[281,100],[281,400]]);
+ const middle=M.adjustRoute({...edge,...updates},routed.points,'1',[360,250]);
+ assert.deepEqual(M.routeEdge(model,{...edge,...middle}).points,[[281,100],[360,100],[360,400],[281,400]]);
+ assert.match(routed.path,/M281 148/);
+});
+
+test('endpoint dragging snaps to the card perimeter and survives normalization',()=>{
+ const a=card('a',172,0),b=card('b',424,400),edge={from:a,to:b},model={items:[a,b]};
+ const updates=M.adjustRoute(edge,M.routeEdge(model,edge).points,'end',[500,398]);
+ assert.equal(updates.toSide,'top');assert.equal(updates.toOffset,76/218);
+ const ref=M.normalize([{projectId:'p',milestoneId:'a',...updates}])[0];
+ assert.deepEqual(M.routeEdge(model,{...edge,...ref}).points.at(-1),[500,400]);
+ assert.deepEqual(M.normalize([{projectId:'p',milestoneId:'a',route:[[NaN,2]],fromOffset:Infinity}]),[{projectId:'p',milestoneId:'a'}]);
+});
+
+test('edited routes persist through reload and export and participate in undo',async()=>{
+ await import('./assets/dependency-editor.js');
+ const projects=[{id:'p',name:'P',milestones:[{id:'a',title:'A',start:'2026-11-16',due:'2026-11-17'},{id:'b',title:'B',start:'2026-11-23',due:'2026-11-24',dependsOn:[{projectId:'p',milestoneId:'a'}]}]}];
+ const history=EditHistory.create(projects),model=M.svg(Roadmap.portfolio(projects),'2026-11-19').model,edge=model.edges[0],points=M.routeEdge(model,edge).points;
+ const updates=M.adjustRoute(edge,points,'0',[points[0][0]+45,(points[0][1]+points[1][1])/2]);
+ assert.equal(M.setRoute(projects,edge.from.id,edge.to.id,updates).changed,true);history.record(projects);
+ assert.equal(M.setRoute(projects,edge.from.id,edge.to.id,updates).changed,false);
+ const restored=JSON.parse(JSON.stringify(projects));restored[0].milestones[1].dependsOn=M.normalize(restored[0].milestones[1].dependsOn);
+ const live=M.svg(Roadmap.portfolio(restored),'2026-11-19',{interactive:true}),report=M.svg(Roadmap.portfolio(restored),'2026-11-19',{report:true});
+ assert.equal(M.routeEdge(live.model,live.model.edges[0]).path,M.routeEdge(report.model,report.model.edges[0]).path);
+ assert.equal(history.undo()[0].milestones[1].dependsOn[0].route,undefined);
+ assert.deepEqual(history.redo(),projects);
+});

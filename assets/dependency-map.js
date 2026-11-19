@@ -12,6 +12,8 @@ globalThis.DependencyMap = (() => {
       if (ref && typeof ref.projectId === 'string' && typeof ref.milestoneId === 'string') {
         const clean = { projectId: ref.projectId, milestoneId: ref.milestoneId };
         for (const field of ['fromSide','toSide']) if (sides.includes(ref[field])) clean[field] = ref[field];
+        for(const field of ['fromOffset','toOffset'])if(Number.isFinite(ref[field]))clean[field]=Math.max(0,Math.min(1,ref[field]));
+        if(Array.isArray(ref.route)&&ref.route.length<=100&&ref.route.every(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)))clean.route=ref.route.map(p=>p.slice());
         refs.set(key(ref.projectId, ref.milestoneId), clean);
       }
     }
@@ -75,8 +77,8 @@ globalThis.DependencyMap = (() => {
     if(next.length===before.length)return {...target,changed:false};
     target.milestone.dependsOn=next;return {...target,changed:true};
   }
-  function anchor(m,side,top=0) {
-    return {top:[m.x+m.width/2,top+m.y],right:[m.x+m.width,top+m.y+m.height/2],bottom:[m.x+m.width/2,top+m.y+m.height],left:[m.x,top+m.y+m.height/2]}[side];
+  function anchor(m,side,top=0,offset=.5) {
+    return {top:[m.x+m.width*offset,top+m.y],right:[m.x+m.width,top+m.y+m.height*offset],bottom:[m.x+m.width*offset,top+m.y+m.height],left:[m.x,top+m.y+m.height*offset]}[side];
   }
   const directions={top:[0,-1],right:[1,0],bottom:[0,1],left:[-1,0]},routeCaches=new WeakMap(),EPS=1e-7;
   function box(m,pad=0){return {left:m.x-pad,right:m.x+m.width+pad,top:m.y-pad,bottom:m.y+m.height+pad};}
@@ -155,10 +157,14 @@ globalThis.DependencyMap = (() => {
   }
   function routeEdge(model,edge){
     const a=edge.from,b=edge.to,fromSide=edge.fromSide||'bottom',toSide=edge.toSide||'top';
-    const start=anchor(a,fromSide),end=anchor(b,toSide),sd=directions[fromSide],td=directions[toSide];
+    const start=anchor(a,fromSide,0,edge.fromOffset),end=anchor(b,toSide,0,edge.toOffset),sd=directions[fromSide],td=directions[toSide];
+    if(edge.route){
+      const points=[start,...edge.route.map(([x,y])=>[a.x+x,a.y+y]),end];
+      return {points,path:routePath(model,points),blocked:false};
+    }
     const v=[end[0]-start[0],end[1]-start[1]];
     let cache=routeCaches.get(model);if(!cache){cache={grids:new Map(),routes:new Map()};routeCaches.set(model,cache);}
-    const key=JSON.stringify([a.id,b.id,fromSide,toSide]);let points=cache.routes.get(key);
+    const key=JSON.stringify([a.id,b.id,fromSide,toSide,edge.fromOffset,edge.toOffset]);let points=cache.routes.get(key);
     if(!points){
       const facing=v[0]*sd[0]+v[1]*sd[1]>EPS&&-v[0]*td[0]-v[1]*td[1]>EPS;
       if(facing&&!model.items.some(m=>crosses(start,end,box(m,m===a||m===b?0:6))))points=[start,end];
@@ -172,6 +178,44 @@ globalThis.DependencyMap = (() => {
       points=points||[];cache.routes.set(key,points);
     }
     return {points,path:points.map(([x,y],i)=>`${i?'L':'M'}${x} ${y+(model.top||0)}`).join(''),blocked:!points.length};
+  }
+  function routePath(model,points){return points.map(([x,y],i)=>`${i?'L':'M'}${x} ${y+(model.top||0)}`).join('');}
+  function adjustRoute(edge,points,index,point){
+    const next=points.map(p=>p.slice()),updates={};
+    if(index==='start'||index==='end'){
+      const node=index==='start'?edge.from:edge.to,prefix=index==='start'?'from':'to';
+      const x=Math.max(node.x,Math.min(node.x+node.width,point[0])),y=Math.max(node.y,Math.min(node.y+node.height,point[1]));
+      const side=sides.reduce((best,side)=>{
+        const distance={top:Math.abs(point[1]-node.y),bottom:Math.abs(point[1]-node.y-node.height),left:Math.abs(point[0]-node.x),right:Math.abs(point[0]-node.x-node.width)};
+        return distance[side]<distance[best]?side:best;
+      },'top');
+      const offset=side==='top'||side==='bottom'?(x-node.x)/node.width:(y-node.y)/node.height;
+      updates[prefix+'Side']=side;updates[prefix+'Offset']=offset;
+      const endpoint=index==='start'?0:next.length-1,neighbor=index==='start'?1:next.length-2;
+      const previous=next[endpoint],position=anchor(node,side,0,offset);
+      if(next.length>2){
+        if(next[neighbor][0]===previous[0])next[neighbor][0]=position[0];
+        else if(next[neighbor][1]===previous[1])next[neighbor][1]=position[1];
+      }
+      next[endpoint]=position;
+    }else{
+      const i=Number(index),a=next[i],b=next[i+1];if(!a||!b)return null;
+      const dx=point[0]-(a[0]+b[0])/2,dy=point[1]-(a[1]+b[1])/2;
+      const shift=a[0]===b[0]?[dx,0]:a[1]===b[1]?[0,dy]:[dx,dy];
+      const moved=[a,b].map(p=>[p[0]+shift[0],p[1]+shift[1]]);
+      next.splice(i,2,...(i===0?[a]:[]),...moved,...(i+1===points.length-1?[b]:[]));
+    }
+    updates.route=simplify(next).slice(1,-1).map(([x,y])=>[x-edge.from.x,y-edge.from.y]);
+    return updates;
+  }
+  function setRoute(projects,from,to,updates){
+    const target=find(projects,to);if(!target)return {changed:false};
+    const refs=normalize(target.milestone.dependsOn),ref=refs.find(r=>key(r.projectId,r.milestoneId)===from);
+    if(!ref)return {...target,changed:false};
+    const before=JSON.stringify(ref);Object.assign(ref,updates);
+    const next=normalize(refs),changed=before!==JSON.stringify(next.find(r=>key(r.projectId,r.milestoneId)===from));
+    if(changed)target.milestone.dependsOn=next;
+    return {...target,changed};
   }
   function placement(model,id,targetColumn) {
     const item=model?.items.find(m=>m.id===id);
@@ -320,7 +364,7 @@ globalThis.DependencyMap = (() => {
     const edges = items.flatMap(to => to.parents.map(id => {
       const from = byId.get(id), start = Roadmap.date(to.start) ?? Roadmap.date(to.due), end = Roadmap.date(from.due);
       const ref=normalize(to.dependsOn).find(r=>key(r.projectId,r.milestoneId)===id);
-      return { from, to, fromSide:ref?.fromSide, toSide:ref?.toSide, conflict: start !== null && end !== null && end > start, cycle: !!(from.cycle && to.cycle) };
+      return { from, to, fromSide:ref?.fromSide, toSide:ref?.toSide, fromOffset:ref?.fromOffset, toOffset:ref?.toOffset, route:ref?.route, conflict: start !== null && end !== null && end > start, cycle: !!(from.cycle && to.cycle) };
     }));
     return { items, weeks, days, lanes:[...lanes.values()], columns, edges, width:Math.max(900,160+count*252+28), height:y, hiddenRefs:items.reduce((n,m)=>n+m.hiddenRefs,0) };
   }
@@ -389,5 +433,5 @@ globalThis.DependencyMap = (() => {
     }
     return { markup:out+'</svg>',width,height,model };
   }
-  return { key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
+  return { key, normalize, validate, unlink, layout, svg, find, connect, disconnect, anchor, routeEdge, routePath, adjustRoute, setRoute, column, columnCount, creationColumn, createLinked, placement, move, statuses, resize, setStatus, dateAt, dayPosition };
 })();
