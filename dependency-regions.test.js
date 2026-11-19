@@ -7,6 +7,19 @@ const task=(id,col)=>({id,title:'일정 '+id,start:'2026-11-19',due:'2026-11-20'
 const fixtures=()=>[{id:'a',name:'전시 시스템 구축',milestones:[task('one',0),task('two',1)]},{id:'b',name:'홍보 · 오픈 준비',milestones:[{...task('three',0),dependsOn:[{projectId:'a',milestoneId:'one',fromSide:'right',toSide:'left'}]}]}];
 const layout=projects=>M.layout(Roadmap.portfolio(projects),'2026-11-19');
 
+test('legacy whole-map columns do not inflate the first region when filtering or reordering projects',()=>{
+ const p=fixtures(),original=JSON.stringify(p);
+ const before=layout(p);
+ for(const projects of [p,[p[1],p[0]],[p[0]],[p[1]]]){
+  const model=M.layout({...Roadmap.portfolio(projects),mapColumns:24},'2026-11-19');
+  for(const lane of model.lanes)assert.equal(lane.width,before.lanes.find(l=>l.id===lane.id).width);
+ }
+ assert.equal(JSON.stringify(p),original);
+ p[0].flowColumns=7;
+ const explicit=M.layout({...Roadmap.portfolio(p),mapColumns:24},'2026-11-19');
+ assert.equal(explicit.lanes[0].columnCount,7);assert.equal(explicit.lanes[1].columnCount,1);
+});
+
 test('project regions are disjoint and contain only their own cards, including legacy shared columns',()=>{
  const p=fixtures(),original=JSON.stringify(p),model=layout(p);
  assert.equal(model.lanes.length,2);

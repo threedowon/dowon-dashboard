@@ -6,7 +6,7 @@ import './assets/dependency-editor.js';
 const ref=(projectId,milestoneId)=>({projectId,milestoneId});
 const task=(id,start,due,dependsOn=[])=>({id,title:id,start,due,dependsOn,status:'todo'});
 function fixture(){return [
-  {id:'hardware',name:'하드웨어',milestones:[task('design','2026-11-15','2026-11-17'),task('sensor','2026-11-18','2026-11-20',[ref('hardware','design')])]},
+  {id:'hardware',name:'하드웨어',flowColumns:2,milestones:[task('design','2026-11-15','2026-11-17'),task('sensor','2026-11-18','2026-11-20',[ref('hardware','design')])]},
   {id:'video',name:'영상',milestones:[task('content','2026-11-15','2026-11-19'),task('integration','2026-11-22','2026-12-11',[ref('hardware','sensor'),ref('video','content')])]},
 ];}
 test('cross-project edges, same-week order, and multi-week height are preserved',()=>{
@@ -171,7 +171,8 @@ test('occupied columns reject a drop without mutating projects; non-overlapping 
 });
 
 test('explicit empty columns survive layout and exports and invalid counts fall back safely',()=>{
-  const project={...Roadmap.portfolio(fixture()),mapColumns:7};
+  const projects=fixture();projects[0].flowColumns=6;
+  const project={...Roadmap.portfolio(projects),mapColumns:24};
   const rendered=DependencyMap.svg(project,'2026-11-18',{interactive:true});
   assert.equal(rendered.model.columns.length,7);
   assert.match(rendered.markup,/data-flow-column="6"/);

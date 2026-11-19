@@ -381,9 +381,7 @@ globalThis.DependencyMap = (() => {
       const used=Math.max(-1,...lane.items.map(m=>m.localColumn))+1;
       lane.columnCount=Math.max(1,used,Number.isInteger(lane.flowColumns)&&column(lane.flowColumns-1)!==null?lane.flowColumns:0);
     }
-    // Previously added empty columns remain available in the first visible project.
-    const firstLane=[...lanes.values()][0];
-    firstLane.columnCount+=Math.max(0,columnCount(project.mapColumns)-[...lanes.values()].reduce((n,l)=>n+l.columnCount,0));
+    // Region widths use their own cards and explicit columns, never the legacy whole-map count.
     for(const lane of lanes.values()){
       const offset=columns.length;
       lane.startColumn=offset;lane.x=160+offset*columnPitch;lane.width=lane.columnCount*columnPitch-10;
