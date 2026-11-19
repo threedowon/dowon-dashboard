@@ -161,15 +161,21 @@ globalThis.DependencyMap = (() => {
     const start=anchor(a,fromSide,0,edge.fromOffset),end=anchor(b,toSide,0,edge.toOffset),sd=directions[fromSide],td=directions[toSide];
     if(edge.route){
       const points=[start,...edge.route.map(([x,y])=>[a.x+x,a.y+y]),end];
-      return {points,path:routePath(model,points),blocked:false};
+      if(clearRoute(model,points))return {points,path:routePath(model,points),blocked:false};
     }
     const v=[end[0]-start[0],end[1]-start[1]];
     let cache=routeCaches.get(model);if(!cache){cache={grids:new Map(),routes:new Map()};routeCaches.set(model,cache);}
     const key=JSON.stringify([a.id,b.id,fromSide,toSide,edge.fromOffset,edge.toOffset]);let points=cache.routes.get(key);
     if(!points){
       const facing=v[0]*sd[0]+v[1]*sd[1]>EPS&&-v[0]*td[0]-v[1]*td[1]>EPS;
-      if(facing&&!model.items.some(m=>crosses(start,end,box(m,m===a||m===b?0:6))))points=[start,end];
-      else for(const pad of [8,2,.75]){
+      if(facing&&(Math.abs(v[0])<EPS||Math.abs(v[1])<EPS)&&!model.items.some(m=>crosses(start,end,box(m,m===a||m===b?0:6))))points=[start,end];
+      else {
+        const midX=(start[0]+end[0])/2,midY=(start[1]+end[1])/2;
+        const candidate=sd[1]&&td[1]?[start,[start[0],midY],[end[0],midY],end]:sd[0]&&td[0]?[start,[midX,start[1]],[midX,end[1]],end]:[start,sd[1]?[start[0],end[1]]:[end[0],start[1]],end];
+        const clean=simplify(candidate),first=clean[1],last=clean.at(-2);
+        if(first&&last&&(first[0]-start[0])*sd[0]+(first[1]-start[1])*sd[1]>EPS&&(last[0]-end[0])*td[0]+(last[1]-end[1])*td[1]>EPS&&clearRoute(model,clean))points=clean;
+      }
+      if(!points)for(const pad of [8,2,.75]){
         const exit=[start[0]+sd[0]*pad,start[1]+sd[1]*pad],entry=[end[0]+td[0]*pad,end[1]+td[1]*pad];
         if(model.items.some(m=>(m!==a&&crosses(start,exit,box(m,pad)))||(m!==b&&crosses(entry,end,box(m,pad)))))continue;
         let grid=cache.grids.get(pad);if(!grid){grid=routingGrid(model.items,pad);cache.grids.set(pad,grid);}
@@ -179,6 +185,12 @@ globalThis.DependencyMap = (() => {
       points=points||[];cache.routes.set(key,points);
     }
     return {points,path:points.map(([x,y],i)=>`${i?'L':'M'}${x} ${y+(model.top||0)}`).join(''),blocked:!points.length};
+  }
+  function clearRoute(model,points){
+    return points.length>=2&&points.slice(1).every((p,i)=>{
+      const a=points[i];
+      return (Math.abs(a[0]-p[0])<EPS||Math.abs(a[1]-p[1])<EPS)&&!model.items.some(m=>crosses(a,p,box(m)));
+    });
   }
   function routePath(model,points){return points.map(([x,y],i)=>`${i?'L':'M'}${x} ${y+(model.top||0)}`).join('');}
   function adjustRoute(edge,points,index,point){
@@ -399,7 +411,7 @@ globalThis.DependencyMap = (() => {
     if(interactive)for(const col of model.columns){
       out+=rect(col.x,top,col.width,model.height-8,'transparent',`class="flow-column" data-flow-column="${col.index}" data-x="${col.x}" data-top="${top}" data-width="${col.width}" data-height="${model.height-8}" stroke="#aebca7" stroke-dasharray="3 7" stroke-opacity="0.55"`);
     }
-    // Prefer one straight segment; otherwise use clear corridors around every card.
+    // Use orthogonal corridors around cards, including manually adjusted connections.
     for (const edge of model.edges) {
       const {from:a,to:b}=edge,routed=routeEdge(model,edge);
       edge.routingBlocked=routed.blocked;if(routed.blocked)continue;

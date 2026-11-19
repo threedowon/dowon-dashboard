@@ -66,6 +66,9 @@ globalThis.DependencyEditor = {
     }
     function saveEdge(updates){
       if(!edge||!updates)return;
+      const item=selectedEdge(),route=item&&DependencyMap.routeEdge(getModel(),{...item,...updates});
+      if(!route||route.blocked){decorate();tell('이 위치에는 연결선을 배치할 공간이 없어요.');return;}
+      updates={...updates,route:route.points.slice(1,-1).map(([x,y])=>[x-item.from.x,y-item.from.y])};
       const result=DependencyMap.setRoute(getProjects(),edge.from,edge.to,updates);
       if(result.changed)commit(result.project,`연결선 위치 변경: ${result.milestone.title}`);
       decorate();tell('연결선 위치를 저장했어요. Ctrl+Z로 되돌릴 수 있습니다.');

@@ -14,14 +14,15 @@ function enters(a,b,r){
 }
 function verify(model,edge){
  const r=M.routeEdge(model,edge);assert.equal(r.blocked,false,JSON.stringify(edge));assert.ok(r.points.length>=2);assert.ok(!/[CQ]/.test(r.path));
- assert.deepEqual(r.points[0],M.anchor(edge.from,edge.fromSide||'bottom'));assert.deepEqual(r.points.at(-1),M.anchor(edge.to,edge.toSide||'top'));
+ assert.deepEqual(r.points[0],M.anchor(edge.from,edge.fromSide||'bottom',0,edge.fromOffset));assert.deepEqual(r.points.at(-1),M.anchor(edge.to,edge.toSide||'top',0,edge.toOffset));
  for(let i=1;i<r.points.length;i++)for(const obstacle of model.items)assert.equal(enters(r.points[i-1],r.points[i],obstacle),false,`Route ${edge.from.id}→${edge.to.id} enters ${obstacle.id}: ${JSON.stringify(r.points)}`);
  if(r.points.length>2)for(let i=1;i<r.points.length;i++)assert.ok(r.points[i][0]===r.points[i-1][0]||r.points[i][1]===r.points[i-1][1]);
  return r;
 }
-test('unobstructed vertical, horizontal and diagonal connections use a single straight segment',()=>{
+test('aligned connections are straight and diagonal connections use orthogonal bends',()=>{
  const a=card('a',172,0),b=card('b',172,220),c=card('c',424,0),d=card('d',424,220),model={items:[a,b,c,d],top:170};
- for(const edge of [{from:a,to:b},{from:a,to:c,fromSide:'right',toSide:'left'},{from:a,to:d,fromSide:'bottom',toSide:'top'}])assert.equal(verify(model,edge).points.length,2);
+ for(const edge of [{from:a,to:b},{from:a,to:c,fromSide:'right',toSide:'left'}])assert.equal(verify(model,edge).points.length,2);
+ assert.equal(verify(model,{from:a,to:d}).points.length,4);
 });
 test('blocked connections detour around the intervening card and the source/target themselves',()=>{
  const a=card('a',172,0),b=card('b',172,400),obstacle=card('blocker',172,150,218,200),model={items:[a,b,obstacle]};
@@ -89,4 +90,27 @@ test('edited routes persist through reload and export and participate in undo',a
  assert.equal(M.routeEdge(live.model,live.model.edges[0]).path,M.routeEdge(report.model,report.model.edges[0]).path);
  assert.equal(history.undo()[0].milestones[1].dependsOn[0].route,undefined);
  assert.deepEqual(history.redo(),projects);
+});
+
+test('legacy diagonal and card-crossing manual routes are repaired without mutating saved data',()=>{
+ const a=card('a',140,0),b=card('b',392,200),obstacle=card('obstacle',650,120),model={items:[a,b,obstacle]};
+ for(const route of [[[ -127,130],[125,188],[188,175]],[[109,150],[361,150],[361,240]]]){
+  const edge={from:a,to:b,route},before=JSON.stringify(edge);
+  const repaired=verify(model,edge);assert.ok(repaired.points.length>=4);assert.equal(JSON.stringify(edge),before);
+ }
+});
+
+test('dragging every segment and endpoint never renders diagonal lines or crosses cards',()=>{
+ const a=card('a',172,0),b=card('b',424,280),obstacle=card('obstacle',172,200),model={items:[a,b,obstacle]};
+ const edge={from:a,to:b},points=verify(model,edge).points;
+ for(const index of ['start','end',...points.slice(1).map((_,i)=>String(i))])for(const point of [[100,150],[450,320],[320,170]]){
+  const updates=M.adjustRoute(edge,points,index,point);
+  verify(model,{...edge,...updates});
+ }
+});
+
+test('stored manual paths are repaired after their target moves',()=>{
+ const a=card('a',172,0),b=card('b',424,400),model={items:[a,b]},edge={from:a,to:b};
+ const points=verify(model,edge).points,route=points.slice(1,-1).map(([x,y])=>[x-a.x,y-a.y]);
+ const moved={...b,y:240,x:676};verify({items:[a,moved]},{...edge,to:moved,route});
 });
