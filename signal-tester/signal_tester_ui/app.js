@@ -26,6 +26,7 @@ function el(tag, cls, text) { const node=document.createElement(tag); if(cls)nod
 function button(cls, text, handler) { const b=el('button',cls,text); b.type='button'; b.addEventListener('click',handler); return b; }
 function iconButton(name, label, handler) { const b=button('icon-button','',handler); b.append(icon(name)); b.title=label; b.setAttribute('aria-label',label); return b; }
 let workspace=null, events=[], selectedId=null, draft=null, saving=false, sending=false, repeating=null, editing=null, detailEvent=null;
+let workspaceRevision=null;
 let toastTimer, healthChecks=new Map(), healthBusy=new Set();
 let workspaceLoading=false, workspaceSetup=false, startupControls=null;
 let workspaceError='Workspace is still loading. Wait for the saved connections to appear.';
@@ -46,16 +47,25 @@ async function api(path,body){
   }
   const res=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'X-Tester-Token':auth,...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
   let data;try{data=await res.json();}catch{throw Error('Tester is not responding. Keep its launch window open and reload this page.');}
-  if(!res.ok)throw Error(data.error || 'Request failed.');return data;
+  if(!res.ok)throw Object.assign(Error(data.error || 'Request failed.'),{status:res.status});return data;
 }
 function safe(handler){return async (...args)=>{try{await handler(...args);}catch(e){toast(e.message,true);}};}
 function lockWorkspace(){if(!workspace){toast(workspaceError,true);return true;}if(saving||sending||repeating||ioBusy){toast('Finish or stop the current test before changing the workspace.');return true;}return false;}
 async function saveWorkspace(next){
   if(!workspace)throw Error(workspaceError);
+  if(typeof workspaceRevision!=='string')throw Error('Update and restart the PC tester before saving. This engine does not support workspace version checks.');
   if(saving)throw Error('A save is already in progress.');
   saving=true;$('saveState').textContent='Saving…';updateControls();
-  try{const result=await api('workspace',next);workspace=result.workspace;applyRuntime(result);$('saveState').textContent='Saved on this PC';render();}
-  catch(e){$('saveState').textContent='Changes not saved';throw e;}
+  try{const result=await api('workspace',{...next,revision:workspaceRevision});workspace=result.workspace;workspaceRevision=result.revision;applyRuntime(result);$('saveState').textContent='Saved on this PC';render();}
+  catch(e){
+    $('saveState').textContent='Changes not saved';
+    if(e.status===409){
+      try{const latest=await api('state');workspace=latest.workspace;workspaceRevision=latest.revision;applyRuntime(latest);render();}
+      catch{throw Error('Workspace changed in another window. Could not reload it; reload this page before editing.');}
+      throw Error('Workspace changed in another window. Latest settings loaded; review them and try your change again.');
+    }
+    throw e;
+  }
   finally{saving=false;updateControls();}
 }
 function render(){
@@ -313,7 +323,7 @@ async function readFile(input){const file=input.files[0];input.value='';if(!file
 $('workspaceFile').onchange=safe(async()=>{const data=await readFile($('workspaceFile'));if(!data||lockWorkspace())return;if(!await confirmAction('Import workspace?','This replaces the saved targets and Signals on this PC. Export the current workspace first if you want to keep it.','Replace workspace'))return;await saveWorkspace(data);healthChecks.clear();selectedId=null;render();toast('Workspace imported.');});
 $('sceneFile').onchange=safe(async()=>{
   const data=await readFile($('sceneFile'));if(!data||lockWorkspace())return;saving=true;updateControls();$('saveState').textContent='Saving…';
-  try{const result=await api('import-scene',data);workspace=result.workspace;$('saveState').textContent='Saved on this PC';render();toast(`${result.added} Signals added · ${result.skipped} existing keys kept.`);}
+  try{const result=await api('import-scene',data);workspace=result.workspace;workspaceRevision=result.revision;$('saveState').textContent='Saved on this PC';render();toast(`${result.added} Signals added · ${result.skipped} existing keys kept.`);}
   catch(e){$('saveState').textContent='Import not saved';throw e;}finally{saving=false;updateControls();}
 });
 $('helpButton').onclick=()=>$('helpDialog').showModal();
@@ -375,7 +385,7 @@ async function loadWorkspace(){
     }
     const state=await api('state');
     if(!state.workspace||!Array.isArray(state.workspace.targets)||!Array.isArray(state.workspace.signals)||!Array.isArray(state.events))throw Error('The tester returned an incomplete workspace. '+restartHelp);
-    workspace=state.workspace;events=state.events;liveCursor=state.cursor;logGeneration=state.generation;
+    workspace=state.workspace;workspaceRevision=state.revision;events=state.events;liveCursor=state.cursor;logGeneration=state.generation;
     applyRuntime(state);$('warning').hidden=!state.warning;$('warning').textContent=state.warning;
     unlockStartupControls();render();$('saveState').textContent=state.warning?'Check workspace warning':'Saved on this PC';
     $('workspaceStatus').hidden=true;checkHealth();pollLive();

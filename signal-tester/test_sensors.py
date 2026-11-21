@@ -105,6 +105,46 @@ class SensorTests(unittest.TestCase):
         for value in [b'{"d":true}',b'{"d":"10"}',b'{}',b'{"d":null}']:
             with self.assertRaises(ValueError):parse_value(value,{'parser':'json','field':'d'})
 
+    def test_deep_json_is_a_parse_error_for_both_stream_and_datagram(self):
+        nested = b'['*1100+b'0'+b']'*1100
+        self.assertLess(len(nested), 4096)
+        for datagram in (False, True):
+            frames = Frames()
+            if datagram:
+                packets = frames.read(nested, True) + frames.read(b'{"value":42}', True)
+            else:
+                packets = frames.read(nested[:500]) + frames.read(nested[500:]+b'\n{"value":42}\n')
+            with self.subTest(datagram=datagram):
+                with self.assertRaises(ValueError):
+                    parse_value(packets[0], {'parser':'json', 'field':'value'})
+                self.assertEqual(parse_value(packets[1], {'parser':'json', 'field':'value'}), 42)
+
+    def test_udp_keeps_receiving_after_deep_json(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory)/'workspace.json')
+            config = workspace()
+            config['sensors'][0].update(parser='json', field='value')
+            store.save(config)
+            server = create_server(store)
+            try:
+                profile = store.find_target('udp')
+                server.hub.open(profile)
+                port = int(server.hub.snapshot([profile])['udp']['local'].rsplit(':', 1)[1])
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+                    sender.sendto(b'{"value":42}', ('127.0.0.1', port))
+                    until(lambda: server.sensors.snapshot()['monitors'][0]['samples'] == 1)
+                    sender.sendto(b'['*1100+b'0'+b']'*1100, ('127.0.0.1', port))
+                    until(lambda: server.sensors.snapshot()['monitors'][0]['errors'] == 1)
+                    self.assertEqual(server.hub.snapshot([profile])['udp']['status'], 'open')
+                    sender.sendto(b'{"value":43}', ('127.0.0.1', port))
+                    until(lambda: server.sensors.snapshot()['monitors'][0]['samples'] == 2)
+                monitor = server.sensors.snapshot()['monitors'][0]
+                self.assertEqual(monitor['value'], 43)
+                self.assertEqual(monitor['error'], '')
+                self.assertTrue(monitor['live'])
+            finally:
+                server.server_close()
+
     def test_hold_hysteresis_and_edge_latch(self):
         r=workspace()['sensors'][0]['rules'][0];s=RuleState()
         self.assertFalse(s.sample(99,0,r));self.assertFalse(s.sample(101,.1,r))

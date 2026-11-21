@@ -1,6 +1,8 @@
 """Real loopback HTTP tests; no sensor or external receiver is contacted."""
 import http.client
 import json
+from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from pathlib import Path
 import tempfile
 import threading
@@ -36,14 +38,75 @@ class DashboardBridgeTests(unittest.TestCase):
         status, headers, body = self.request(headers=good)
         self.assertEqual(status, 200)
         self.assertEqual(headers['Access-Control-Allow-Origin'], DASHBOARD_ORIGIN)
-        workspace = json.loads(body)['workspace']
-        status, _, _ = self.request('POST', '/api/workspace', {**good, 'Content-Type': 'application/json'}, json.dumps(workspace))
+        state = json.loads(body)
+        status, _, _ = self.request('POST', '/api/workspace', {**good, 'Content-Type': 'application/json'},
+                                    json.dumps({**state['workspace'], 'revision': state['revision']}))
         self.assertEqual(status, 200)
         for bad in ({'Origin': DASHBOARD_ORIGIN}, {**good, 'X-Tester-Token': 'wrong'},
                     {**good, 'Origin': 'https://evil.example'}, {**good, 'Host': 'evil.example'}):
             self.assertEqual(self.request(headers=bad)[0], 403)
         status, headers, _ = self.request(headers={**good, 'Origin': 'https://evil.example'})
         self.assertNotIn('Access-Control-Allow-Origin', headers)
+
+    def api(self, path='state', body=None):
+        status, _, payload = self.request('GET' if body is None else 'POST', '/api/'+path,
+            {'X-Tester-Token': self.server.token, 'Content-Type': 'application/json'},
+            None if body is None else json.dumps(body))
+        return status, json.loads(payload)
+
+    def test_stale_window_cannot_overwrite_new_signal_when_selecting_target(self):
+        _, initial = self.api()
+        workspace = initial['workspace']
+        workspace['targets'].append({'id': 'second', 'name': 'Second Player', 'host': '127.0.0.1', 'port': 8421})
+        self.assertEqual(self.api('workspace', {**workspace, 'revision': initial['revision']})[0], 200)
+        _, first = self.api()
+        _, second = self.api()
+        first['workspace']['signals'].append({'id': 'new', 'name': 'New signal', 'key': 'new_signal', 'value': None})
+        status, saved = self.api('workspace', {**first['workspace'], 'revision': first['revision']})
+        self.assertEqual(status, 200)
+        self.assertNotEqual(saved['revision'], first['revision'])
+        second['workspace']['activeTarget'] = 'second'
+        self.assertEqual(self.api('workspace', {**second['workspace'], 'revision': second['revision']})[0], 409)
+        _, latest = self.api()
+        self.assertEqual(latest['workspace'], saved['workspace'])
+        self.assertEqual(latest['revision'], saved['revision'])
+        latest['workspace']['activeTarget'] = 'second'
+        status, retried = self.api('workspace', {**latest['workspace'], 'revision': latest['revision']})
+        self.assertEqual(status, 200)
+        self.assertEqual(retried['workspace']['activeTarget'], 'second')
+        self.assertIn('new_signal', [s['key'] for s in retried['workspace']['signals']])
+        self.assertEqual(Store(Path(self.temp.name)/'workspace.json').snapshot(), retried['workspace'])
+
+    def test_concurrent_writers_with_same_revision_only_save_once(self):
+        _, state = self.api()
+        proposals = []
+        for name in ('First edit', 'Second edit'):
+            proposal = deepcopy(state['workspace'])
+            proposal['targets'][0]['name'] = name
+            proposals.append({**proposal, 'revision': state['revision']})
+        barrier = threading.Barrier(2)
+        def save(proposal):
+            barrier.wait(timeout=5)
+            return self.api('workspace', proposal)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(save, proposals))
+        self.assertEqual(sorted(status for status, _ in results), [200, 409])
+        winner = next(data for status, data in results if status == 200)
+        self.assertEqual(self.api()[1]['workspace'], winner['workspace'])
+
+    def test_missing_revision_and_old_revision_after_import_are_rejected(self):
+        _, original = self.api()
+        self.assertEqual(self.api('workspace', original['workspace'])[0], 409)
+        status, imported = self.api('import-scene', {'scenes': [], 'signals': [{'key': 'imported'}]})
+        self.assertEqual(status, 200)
+        self.assertNotEqual(original['revision'], imported['revision'])
+        self.assertEqual(self.api('workspace', {**original['workspace'], 'revision': original['revision']})[0], 409)
+        self.assertEqual(self.api()[1]['workspace'], imported['workspace'])
+        status, preset = self.api('sensors/preset', {'preset': 'sen0610'})
+        self.assertEqual(status, 200)
+        self.assertNotEqual(imported['revision'], preset['revision'])
+        self.assertEqual(self.api('workspace', {**imported['workspace'], 'revision': imported['revision']})[0], 409)
+        self.assertEqual(self.api()[1]['workspace'], preset['workspace'])
 
     def test_preflight_validates_host_origin_method_and_headers(self):
         good = {'Origin': DASHBOARD_ORIGIN, 'Access-Control-Request-Method': 'POST',

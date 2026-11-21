@@ -148,6 +148,10 @@ def scene_signals(document):
     return list(found.values())
 
 
+class WorkspaceConflict(ValueError):
+    """A client tried to replace a workspace it has not read."""
+
+
 class Store:
     def __init__(self, file):
         self.file, self.lock, self.warning = Path(file), threading.RLock(), ''
@@ -160,6 +164,7 @@ class Store:
                 self.load_failed = True
         self.load_failed = getattr(self, 'load_failed', False)
         self.last_signal_sends = {}
+        self.revision = uid()
         self.events = deque(maxlen=500)
         self.sequence = 0
         self.generation = 0
@@ -186,9 +191,11 @@ class Store:
         with self.lock:
             return deepcopy(self.data)
 
-    def save(self, raw):
+    def save(self, raw, expected_revision=None):
         validated = validate_workspace(raw)
         with self.lock:
+            if expected_revision is not None and expected_revision != self.revision:
+                raise WorkspaceConflict('Workspace changed in another window. Review the latest settings and try again.')
             if self.load_failed:
                 raise ValueError(self.warning)
             self.file.parent.mkdir(parents=True, exist_ok=True)
@@ -196,6 +203,7 @@ class Store:
             temp.write_text(json.dumps(validated, ensure_ascii=False, indent=2, allow_nan=False), encoding='utf-8')
             os.replace(temp, self.file)
             self.data = validated
+            self.revision = uid()
         return self.snapshot()
 
     def find_target(self, target_id):
@@ -213,7 +221,7 @@ class Store:
             added = [item for item in incoming if item['key'] not in known]
             workspace['signals'].extend(added)
             self.save(workspace)
-        return {'workspace': self.snapshot(), 'added': len(added), 'skipped': len(incoming)-len(added)}
+            return {'workspace': self.snapshot(), 'revision': self.revision, 'added': len(added), 'skipped': len(incoming)-len(added)}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -360,7 +368,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             if route.path == '/api/state':
                 with store.lock:
                     data = {'workspace': store.snapshot(), 'events': list(store.events), 'warning': store.warning,
-                            'cursor': store.sequence, 'generation': store.generation}
+                            'cursor': store.sequence, 'generation': store.generation, 'revision': store.revision}
                 data.update(connections=hub.snapshot(data['workspace']['targets']), serial=hub.port_state(), sensors=sensors.snapshot())
                 return self.reply(200, data)
             if route.path == '/api/live':
@@ -408,10 +416,13 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                     return
                 if self.path == '/api/workspace':
                     with operation_lock:
-                        saved = store.save(body)
+                        if not isinstance(body.get('revision'), str):
+                            raise WorkspaceConflict('Workspace version is missing. Reload the latest settings and try again.')
+                        saved = store.save(body, expected_revision=body['revision'])
                         sensors.configure(saved)
                         hub.reconcile(saved['targets'])
-                    return self.reply(200, {'workspace': saved, 'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
+                        return self.reply(200, {'workspace': saved, 'revision': store.revision,
+                            'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
                 if self.path == '/api/sensors/arm':
                     with operation_lock:
                         sensors.arm(body.get('enabled'))
@@ -425,8 +436,8 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                         sensors.arm(False)
                         sensors.configure(saved)
                         hub.reconcile(saved['targets'])
-                    return self.reply(200, {'workspace': saved, 'added': added,
-                        'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
+                        return self.reply(200, {'workspace': saved, 'revision': store.revision, 'added': added,
+                            'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
                 if self.path == '/api/import-scene':
                     with operation_lock:
                         result = store.import_scene(body)
@@ -466,6 +477,8 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                         cleared = {'ok': True, 'generation': store.generation, 'cursor': store.sequence}
                     return self.reply(200, cleared)
                 self.reply(404, {'error': 'Not found.'})
+            except WorkspaceConflict as error:
+                self.reply(409, {'error': str(error)})
             except (ValueError, TypeError, KeyError, AttributeError, OverflowError) as error:
                 self.reply(400, {'error': str(error) or 'Invalid request.'})
             except OSError:

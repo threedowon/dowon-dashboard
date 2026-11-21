@@ -19,6 +19,7 @@ Serial, UDP 송수신과 숫자/JSON 센서 그래프, HTTP Signal, 자동 규�
 
 - 대시보드 모드는 `%LOCALAPPDATA%/SignalTester/dashboard-workspace.json`에 설정을 저장합니다. 기존 `workspace.json`과 분리되어 있습니다. 기존 설정은 Export → Import로 옮기세요. `--config`로 다른 파일을 지정할 수도 있습니다.
 - 연결 코드는 탭의 sessionStorage에만 저장하며 URL, GitHub, 클라우드 백업에는 넣지 않습니다. 센서 데이터도 클라우드로 전송하지 않습니다.
+- 여러 화면에서 설정을 변경하면 먼저 저장한 변경을 보호합니다. 오래된 화면의 저장은 거부되고 최신 설정을 불러오므로, 내용을 확인한 뒤 변경을 다시 시도하세요. PC 프로그램과 대시보드는 같은 버전을 사용하세요.
 - HTTP API는 loopback에만 바인딩합니다. 대시보드 모드에서만 정확히 `https://dashboard.3dowon.com`의 CORS 요청을 허용하며, API는 매 실행 새로 생성한 토큰을 요구합니다. 임의 Origin이나 잘못된 Host는 거부합니다. 원격 PC를 제어하는 기능은 없습니다.
 - 로컬 실행 `python signal_tester.py`는 대시보드 접근을 허용하지 않고 기존 로컬 화면을 엽니다.
 - 전체 기능과 센서 펌웨어 안내: [로컬 Tester 설명서](LOCAL-TESTER.md), [devices](devices/README.md).

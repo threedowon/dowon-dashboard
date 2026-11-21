@@ -131,7 +131,7 @@ def parse_value(frame, config):
                 raise ValueError('Expected a plain number, such as 120.5.')
             value = float(text)
         return finite(value, 'Sensor value')
-    except (UnicodeError, KeyError, IndexError, TypeError, OverflowError, ValueError) as error:
+    except (UnicodeError, KeyError, IndexError, TypeError, OverflowError, ValueError, RecursionError) as error:
         raise ValueError(f'Cannot parse sensor value: {error}') from None
 
 

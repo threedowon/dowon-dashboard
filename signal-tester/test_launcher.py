@@ -108,11 +108,13 @@ class LauncherTests(unittest.TestCase):
     def test_managed_restart_preserves_workspace_and_releases_udp(self):
         first = self.start(cmd=True)
         previous = self.ready()
-        data = self.call(previous)['workspace']
+        initial = self.call(previous)
+        data = initial['workspace']
         data['signals'][0].update(name='Saved person', key='saved_person')
         data['targets'].append({'id':'udp', 'name':'Restart socket', 'type':'udp', 'bindHost':'127.0.0.1',
                                 'bindPort':0, 'remoteHost':'127.0.0.1', 'remotePort':9001})
-        saved = self.call(previous, 'workspace', data)['workspace']
+        committed = self.call(previous, 'workspace', {**data, 'revision': initial['revision']})
+        saved = committed['workspace']
         opened = self.call(previous, 'io/open', {'targetId':'udp'})['connections']['udp']
         self.assertEqual(opened['status'], 'open')
         udp_port = int(opened['local'].rsplit(':', 1)[1])
@@ -122,6 +124,7 @@ class LauncherTests(unittest.TestCase):
         self.assertIsNone(second.poll())
         state = self.call(current)
         self.assertEqual(state['workspace'], saved)
+        self.assertNotEqual(state['revision'], committed['revision'])
         self.assertEqual(state['connections']['udp']['status'], 'closed')
         self.assertEqual(json.loads(self.config.read_text(encoding='utf-8')), saved)
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
