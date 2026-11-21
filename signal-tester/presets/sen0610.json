@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "activeTarget": "sen0610-serial",
+  "targets": [
+    {
+      "id": "sen0610-serial",
+      "name": "SEN0610 ESP32 (select COM port)",
+      "type": "serial",
+      "device": "COM3",
+      "baudrate": 115200,
+      "dataBits": 8,
+      "parity": "N",
+      "stopBits": 1
+    },
+    {
+      "id": "player",
+      "name": "SceneCast Player",
+      "host": "127.0.0.1",
+      "port": 8420
+    }
+  ],
+  "signals": [
+    {
+      "id": "person",
+      "name": "Person detected",
+      "key": "person",
+      "value": null,
+      "cooldown": 3
+    }
+  ],
+  "sensors": [
+    {
+      "id": "sen0610-distance",
+      "name": "SEN0610 · Distance (-1 = no valid target)",
+      "sourceId": "sen0610-serial",
+      "parser": "json",
+      "field": "distance",
+      "unit": "cm",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "sen0610-near",
+      "name": "SEN0610 · Near: 30-60 cm",
+      "sourceId": "sen0610-serial",
+      "parser": "json",
+      "field": "near",
+      "unit": "0 / 1",
+      "staleSeconds": 2,
+      "rules": [
+        {
+          "id": "near-person",
+          "signalId": "person",
+          "targetId": "player",
+          "op": "gt",
+          "threshold": 0.5,
+          "hysteresis": 0,
+          "hold": 1,
+          "valueMode": "saved",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "sen0610-ready",
+      "name": "SEN0610 · Ready",
+      "sourceId": "sen0610-serial",
+      "parser": "json",
+      "field": "ready",
+      "unit": "0 / 1",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "sen0610-error",
+      "name": "SEN0610 · Error code (0 = OK)",
+      "sourceId": "sen0610-serial",
+      "parser": "json",
+      "field": "error",
+      "unit": "code",
+      "staleSeconds": 2,
+      "rules": []
+    }
+  ]
+}
