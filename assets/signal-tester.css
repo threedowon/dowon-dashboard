@@ -1,0 +1,12 @@
+#signaltesterPage .signal-setup{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:32px;border:1px solid var(--rule,#d9dfd9);padding:24px;background:#fff}
+#signaltesterPage p,#signaltesterPage li{font-size:16px;line-height:1.7}
+#signaltesterPage li+li{margin-top:8px}
+#signaltesterPage a{color:inherit}
+#signaltesterPage code{font-size:.9em;overflow-wrap:anywhere}
+#signaltesterPage .signal-note{font-size:14px;color:var(--muted,#607068)}
+#signaltesterPage .signal-pair{display:grid;align-content:start;gap:16px}
+#signaltesterPage label{font-size:14px}
+#signalPairStatus{margin:0;overflow-wrap:anywhere}
+#signalFrameHost iframe{display:block;width:100%;height:85vh;min-height:720px;border:1px solid var(--rule,#d9dfd9);background:#fff}
+#signaltesterPage [hidden]{display:none!important}
+@media(max-width:850px){#signaltesterPage .signal-setup{grid-template-columns:1fr;padding:18px;gap:24px}}

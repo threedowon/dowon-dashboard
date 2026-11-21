@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="tester-token" content="__TESTER_TOKEN__">
+  <title>Signal Tester</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Signal Tester home"><span class="brand-mark" data-icon="send"></span><span>Signal Tester<small>SCENECAST</small></span></a>
+    <div class="sidebar-heading"><span>CONNECTIONS</span><span id="targetCount" class="count">0</span></div>
+    <div id="targets" class="targets"></div>
+    <button id="addTarget" class="add-target" disabled><span data-icon="plus"></span>Add connection</button>
+    <button id="sensorHub" class="scan-ports"><span data-icon="wave"></span>센서 대시보드</button>
+    <button id="scanPorts" class="scan-ports"><span data-icon="plug"></span><span class="scan-label">COM ports</span><span id="portCount">Scanning…</span></button>
+    <div class="sidebar-bottom">
+      <div class="saved-indicator"><span class="dot"></span><span id="saveState">Loading workspace…</span></div>
+      <div class="workspace-tools"><button id="importWorkspace">Import</button><button id="exportWorkspace">Export</button><button id="helpButton" class="sidebar-guide" title="Quick guide (?)">? <span>Guide</span></button></div>
+    </div>
+  </aside>
+  <main class="app">
+    <div id="workspaceStatus" class="notice" role="status"><strong id="workspaceTitle">Loading workspace…</strong><p id="workspaceDetail">Reading saved connections and Signals from the tester engine.</p><button id="retryWorkspace" class="button" disabled>Retry loading</button></div>
+    <div id="warning" class="notice error" hidden></div>
+    <section class="connection-bar" aria-label="Active target">
+      <span class="connection-icon" data-icon="monitor"></span>
+      <div class="connection-title"><span class="eyebrow">SENDING TO</span><strong id="activeName">No target selected</strong><code id="activeAddress">Add a target to begin</code></div>
+      <div class="health"><span id="healthStatus" class="badge">Not checked</span><span id="healthTime" class="muted"></span></div>
+      <button id="checkTarget" class="button" title="Checks the receiver. Does not send a Signal."><span data-icon="refresh"></span>Check</button>
+      <button id="connectTarget" class="button dark" hidden>Open connection</button>
+      <p id="healthDetail" class="connection-detail" aria-live="polite">Checking a connection does not send a Signal.</p>
+    </section>
+    <div id="remoteNotice" class="notice" hidden>The current Player receiver only accepts connections on the same PC. Use 127.0.0.1 here, or run this tester on the Player PC. A saved remote IP requires a receiver that supports network access.</div>
+    <div id="engineWarning" class="notice error" hidden role="alert"></div>
+    <div class="layout">
+      <div class="main-col">
+        <nav class="tabs" role="tablist" aria-label="Workspace">
+          <button id="tabTest" role="tab" aria-selected="true" aria-controls="paneTest" data-tab="test"><span data-icon="send"></span><span id="tabTestLabel">Signals</span><span id="signalCount" class="count">0</span></button>
+          <button id="tabSensors" role="tab" aria-selected="false" aria-controls="paneSensors" data-tab="sensors"><span data-icon="wave"></span><span>Sensors</span><span id="sensorCount" class="count">0</span><span id="sensorTabLive" class="live-pill" hidden>LIVE</span></button>
+        </nav>
+        <div id="paneTest" class="work-area" role="tabpanel" aria-labelledby="tabTest">
+          <section id="ioPanel" class="panel io-panel" hidden>
+            <div class="section-heading"><div><div id="ioProtocol" class="eyebrow">SERIAL</div><h2>Connection diagnostics</h2><p id="ioDescription">Open a connection to receive data.</p></div><button id="editConnection" class="icon-button" aria-label="Edit connection" title="Edit connection"><span data-icon="edit"></span></button></div>
+            <div id="connectionStages" class="connection-stages"></div>
+            <div id="ioIssue" class="io-issue" hidden></div>
+            <div class="receive-heading"><h3>Latest received data</h3><div class="segmented" role="group" aria-label="Receive display format"><button id="showRxText" aria-pressed="true">Text</button><button id="showRxHex" aria-pressed="false">HEX</button></div></div>
+            <pre id="lastReceived" class="receive-preview">No bytes received yet.</pre><p id="receiveMeta" class="muted">Data appears here as it arrives.</p>
+            <p id="ioHint" class="io-hint"></p>
+          </section>
+          <section id="rawComposer" class="panel raw-composer" hidden>
+            <div class="section-heading"><div><div class="eyebrow">COMPOSE &amp; SEND</div><h2>Raw data</h2></div><span id="rawProtocol" class="badge">SERIAL</span></div>
+            <div class="field-row equal"><div class="field"><label for="rawFormat">Format</label><select id="rawFormat"><option value="text">Text · UTF-8</option><option value="hex">HEX · exact bytes</option></select></div>
+            <div class="field"><label for="rawEnding">Line ending</label><select id="rawEnding"><option value="none">None</option><option value="lf">LF · \n</option><option value="crlf">CRLF · \r\n</option><option value="cr">CR · \r</option></select></div></div>
+            <div class="field"><label for="rawData">Payload</label><textarea id="rawData" rows="5" maxlength="24576" spellcheck="false" placeholder="Enter a device command or test data…"></textarea></div>
+            <p id="rawBytes" class="muted">0 bytes · maximum 8 KB</p>
+            <button id="sendRaw" class="button send-button"><span data-icon="send"></span>Send data <kbd>Ctrl ↵</kbd></button>
+            <p class="raw-delivery-note">Sent means handed to the local driver or socket. A device reply is shown separately as RX.</p>
+          </section>
+          <section class="panel signal-panel" aria-label="Signals">
+            <div class="library-tools"><label class="search"><span data-icon="search"></span><input id="search" type="search" placeholder="Find a name or key…" aria-label="Search Signals"><kbd class="search-hint">/</kbd></label><button id="importScene" class="button quiet" title="Import Signal keys from a .scene file"><span data-icon="import"></span><span class="hide-sm">Import .scene</span></button><button id="addSignal" class="button dark"><span data-icon="plus"></span>Add signal</button></div>
+            <div class="keyboard-bar"><label class="keyboard-switch"><input id="keyboardToggle" type="checkbox" role="switch"><span class="switch-track" aria-hidden="true"></span><span>Keyboard test</span></label><span class="muted kb-to">to</span><label for="keyboardTarget" class="sr-only">Keyboard output Player</label><select id="keyboardTarget"></select><span id="keyboardHint" class="muted">Set keys in Edit signal</span></div>
+            <div id="signals" class="signal-grid"></div>
+          </section>
+          <section class="panel composer" aria-labelledby="composeTitle">
+            <div class="section-heading"><div><div class="eyebrow">SELECTED SIGNAL</div><h2 id="composeTitle">Choose a signal</h2></div><button id="editSignal" class="icon-button" title="Edit selected Signal" aria-label="Edit selected Signal"><span data-icon="edit"></span></button></div>
+            <code id="selectedKey" class="key-display">—</code>
+            <div class="value-row">
+              <div class="field"><label for="valueType">Value <span class="optional">optional</span></label><select id="valueType"><option value="null">None (null)</option><option value="number">Number</option><option value="string">Text</option><option value="boolean">Boolean</option></select></div>
+              <div id="valueField" class="field" hidden><label for="valueInput">&nbsp;</label><input id="valueInput" autocomplete="off" placeholder="Enter a value" aria-label="Signal value"></div>
+              <div id="booleanField" class="field" hidden><label for="booleanValue">&nbsp;</label><select id="booleanValue" aria-label="Boolean value"><option value="true">true</option><option value="false">false</option></select></div>
+            </div>
+            <button id="sendSignal" class="button send-button"><span data-icon="send"></span>Send signal <kbd>Ctrl ↵</kbd></button>
+            <div id="lastResult" class="last-result" aria-live="polite" hidden></div>
+            <div class="composer-links"><button id="saveValue" class="text-button save-value" disabled>Save as default value</button></div>
+            <details class="payload"><summary><span>JSON payload</span><button id="copyPayload" class="text-button" type="button">Copy</button></summary><pre id="payloadPreview">Select a Signal to begin.</pre></details>
+            <details class="repeat-block" id="repeatDetails"><summary class="section-heading small"><h3>Repeat test</h3><span class="muted">Send several times</span></summary><div class="repeat-fields"><div class="field"><label for="repeatCount">Sends</label><input id="repeatCount" type="number" min="2" max="1000" value="5" step="1"></div><div class="field"><label for="repeatInterval">Interval · s</label><input id="repeatInterval" type="number" min="0.2" max="3600" step="0.1" value="1"></div></div><div class="repeat-controls"><button id="startRepeat" class="button">Start repeat</button><button id="stopRepeat" class="button stop" disabled>Stop <kbd>Esc</kbd></button></div><p id="repeatStatus" class="muted" aria-live="polite">Starts now. Stops on connection errors.</p><progress id="repeatProgress" max="5" value="0" hidden></progress></details>
+          </section>
+        </div>
+        <div id="paneSensors" role="tabpanel" aria-labelledby="tabSensors" hidden>
+          <section class="panel sensor-panel" aria-label="Sensor monitors">
+            <div class="section-heading"><div><div class="eyebrow">SENSOR → CONDITION → SIGNAL</div><h2>Sensor monitors</h2></div><div class="actions"><span id="sensorMode" class="badge">PREVIEW ONLY</span><button id="addSensor" class="button"><span data-icon="plus"></span>Add sensor</button><button id="sensorCollapse" class="button quiet" hidden>Collapse</button></div></div>
+            <div id="sensorBody">
+              <div id="sensorOverview" hidden>
+                <div class="sensor-overview-heading"><label for="sensorSourceFilter">표시할 연결</label><select id="sensorSourceFilter"><option value="">모든 센서</option></select><span class="muted">카드를 누르면 상세 그래프를 봅니다.</span></div>
+                <div id="sensorCards" class="sensor-cards"></div>
+                <p class="muted" lang="ko">FSR 보정: 상판·러그만 올린 뒤 FSR 연결 → Serial → Text / LF로 <code>c</code> 전송. Ready=1 확인.</p>
+              </div>
+              <div id="sensorEmpty" class="sensor-empty"><strong>Turn sensor values into Player Signals</strong><ol><li>Add a <b>Serial</b> or <b>UDP</b> connection on the left and open it.</li><li>Press <b>Add sensor</b>, pick that connection and the message format.</li><li>Add Below / Above rules, check the live graph, then <b>Enable all rules</b>.</li></ol></div>
+              <div id="sensorContent" hidden>
+                <div class="sensor-toolbar"><label class="sr-only" for="sensorSelect">Sensor monitor</label><select id="sensorSelect"></select><button id="configureSensor" class="button"><span data-icon="edit"></span>Configure</button><span class="spacer"></span><button id="pauseGraph" class="button quiet">Freeze graph</button><button id="sensorArm" class="button dark">Enable all rules</button></div>
+                <div class="sensor-chart-layout"><div class="sensor-reading"><span id="sensorStatus" class="badge">Waiting for data</span><div><strong id="sensorValue">—</strong> <span id="sensorUnit"></span></div><p id="sensorSource"></p><small id="sensorStats"></small></div><div class="sensor-plot"><canvas id="sensorGraph" role="img" aria-label="Live sensor values over the last sixty seconds"></canvas><p id="graphCaption" class="muted"></p></div></div>
+                <div id="sensorError" class="notice error" hidden></div><div id="sensorRules" class="sensor-rules"></div>
+              </div>
+              <p id="sensorRunNote" class="sensor-run-note">Graph receives live data. Enable rules to send Signals.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+      <aside class="activity-rail">
+        <div id="activityResize" class="activity-resize" role="separator" tabindex="0" aria-label="Activity 너비 조절" aria-orientation="vertical" aria-controls="activityPanel" title="드래그하여 로그 너비 조절 · 더블클릭하면 기본 너비"></div>
+        <section id="activityPanel" class="panel activity-panel" aria-label="Activity">
+          <div class="section-heading"><div><h2>Activity <span id="eventCount" class="count">0</span></h2><p id="activitySummary">All connections, one timeline.</p></div><div class="actions"><button id="pauseLog" class="icon-button" aria-pressed="false" title="Pause view" aria-label="Pause view"><span data-icon="pause"></span></button><button id="exportLog" class="icon-button" title="Export log" aria-label="Export log"><span data-icon="download"></span></button><button id="clearLog" class="icon-button" title="Clear log" aria-label="Clear log"><span data-icon="trash"></span></button></div></div>
+          <div class="log-chips" role="group" aria-label="Filter results"><button type="button" data-log-filter="all" aria-pressed="true">All</button><button type="button" data-log-filter="changed" aria-pressed="false">Scene changed</button><button type="button" data-log-filter="received" aria-pressed="false">No change</button><button type="button" data-log-filter="failed" aria-pressed="false">Errors</button></div>
+          <details class="log-more"><summary>More filters</summary><div class="log-filters"><select id="protocolFilter" aria-label="Filter protocol"><option value="all">All protocols</option><option value="http">HTTP Signal</option><option value="serial">Serial</option><option value="udp">UDP</option></select><select id="directionFilter" aria-label="Filter direction"><option value="all">TX / RX / System</option><option value="TX">TX · sent</option><option value="RX">RX · received</option><option value="SYSTEM">System</option></select><select id="logFilter" aria-label="Filter activity" hidden><option value="all">All results</option><option value="failed">Errors</option><option value="changed">Scene changed</option><option value="received">HTTP · no change</option></select><label class="filter-current"><input id="currentOnly" type="checkbox">This connection only</label></div></details>
+          <p id="logNotice" class="log-notice" hidden></p>
+          <div id="events" class="events"></div>
+          <footer class="activity-footer">Click an event for its request, response and raw data.</footer>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <dialog id="editDialog"><form id="editForm"><div class="dialog-header"><div><div class="eyebrow" id="editEyebrow">WORKSPACE</div><h2 id="editTitle">Add target</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><div id="editFields"></div><p id="formError" class="form-error" role="alert"></p><div class="dialog-footer"><button id="deleteItem" type="button" class="button danger" hidden><span data-icon="trash"></span>Delete</button><span class="spacer"></span><button type="button" class="button close-dialog">Cancel</button><button type="submit" class="button dark">Save</button></div></form></dialog>
+  <dialog id="sensorDialog" class="sensor-dialog"><form id="sensorForm"><div class="dialog-header"><div><div class="eyebrow">SENSOR AUTOMATION</div><h2 id="sensorEditTitle">Configure sensor</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><div id="sensorEditFields"></div><div class="section-heading"><h3>Send rules</h3><button id="addSensorRule" type="button" class="button">＋ Add rule</button></div><div id="sensorEditRules"></div><p class="field-help">Hold is the initial continuous detection time. Repeat = 0 sends once per crossing; Repeat = 1 sends about every second while fresh samples still match. Repeats stop on a non-matching sample or missing data, and do not use the reset margin. Reset margin prevents flicker near the threshold: Below 100 with margin 10 resets at 110 or above. A new crossing can send again. Cooldown is configured in Edit signal and shared by all sends of that Signal.</p><p class="field-help">No valid data within the timeout resets the hold timer. No values are invented between samples. Changing sensor settings pauses all rules; enable them again after reviewing the graph.</p><p id="sensorFormError" class="form-error" role="alert"></p><div class="dialog-footer"><button id="deleteSensor" type="button" class="button danger" hidden>Delete monitor</button><span class="spacer"></span><button type="button" class="button close-dialog">Cancel</button><button type="submit" class="button dark">Save sensor</button></div></form></dialog>
+  <dialog id="confirmDialog"><div class="dialog-header"><h2 id="confirmTitle">Confirm</h2></div><p id="confirmText"></p><div class="dialog-footer"><button id="confirmNo" class="button">Cancel</button><button id="confirmYes" class="button dark">Continue</button></div></dialog>
+  <dialog id="detailDialog"><div class="dialog-header"><div><div class="eyebrow">DELIVERY DETAILS</div><h2 id="detailTitle"></h2></div><button class="icon-button close-dialog" aria-label="Close">×</button></div><div id="detailContent"></div><div class="dialog-footer"><button id="retryEvent" class="button dark"><span data-icon="send"></span>Send again</button><button class="button close-dialog">Close</button></div></dialog>
+  <dialog id="portsDialog"><div class="dialog-header"><div><div class="eyebrow">DEVICE DISCOVERY</div><h2>COM ports on this PC</h2></div><button class="icon-button close-dialog" aria-label="Close">×</button></div><p class="field-help">Detection does not open a port or send any data. The list refreshes automatically.</p><div id="portList"></div><div class="dialog-footer"><button id="refreshPorts" class="button">Refresh ports</button><button class="button dark close-dialog">Close</button></div></dialog>
+  <dialog id="helpDialog" lang="ko" aria-labelledby="helpTitle">
+<div class="dialog-header"><div><div class="eyebrow">QUICK GUIDE</div><h2 id="helpTitle">키 설정부터 장면 전환까지.</h2></div><button id="helpClose" class="icon-button close-dialog" aria-label="닫기">×</button></div>
+<div class="segmented help-languages" role="group" aria-label="가이드 언어 / Guide language"><button type="button" data-guide-language="ko" aria-pressed="true">KR</button><button type="button" data-guide-language="en" aria-pressed="false">EN</button></div>
+<div id="helpKo" lang="ko"><ol class="guide">
+<li><strong>Player 수신기를 켜세요.</strong><p>Shift + F로 Player 설정을 열고 Signals에서 HTTP 수신기를 활성화한 뒤 포트를 확인하세요.</p></li>
+<li><strong>연결 대상을 선택하세요.</strong><p>같은 PC의 Player에는 127.0.0.1을 사용하세요. Player가 여러 개라면 각각 다른 포트로 저장하세요. 테스트 전에 Check으로 연결을 확인하세요.</p></li>
+<li><strong>Signal 키를 추가하세요.</strong><p>.scene 파일을 가져오거나 Signal을 직접 추가하세요. 키는 Editor → Signals에 등록한 값과 같아야 합니다. 가져오기는 새 키만 추가하고 기존 값은 유지합니다.</p></li>
+<li><strong>전송하고 결과를 확인하세요.</strong><p>카드의 Send 버튼은 저장된 값을, Selected signal 패널은 현재 입력한 값을 전송합니다. Activity 항목을 클릭하면 장면이 바뀌었거나 바뀌지 않은 이유를 확인할 수 있습니다.</p></li></ol>
+<div class="help-transports"><h3>Signal별 쿨다운</h3><p>Signals 카드의 편집창에서 Cooldown을 설정하세요. 기본 3초이며 0은 제한 없음입니다. 같은 Signal의 센서·키보드·수동·반복 전송은 대상 Player와 관계없이 쿨다운을 공유합니다. SceneCast와 센서 규칙에는 별도 쿨다운이 없습니다.</p><h3>센서와 키보드 테스트</h3>
+<p>기존 Serial 또는 UDP 연결을 선택해 Add sensor로 센서 모니터를 추가하세요. Number 또는 JSON 필드를 선택하고 Below / Above 조건을 추가하세요. 센서 연결을 열면 그래프가 표시되며, Enable all rules를 누르면 각 규칙에 지정한 Player로 Signal을 전송합니다. 페이지를 닫아도 Python에서 규칙이 계속 실행됩니다. Pause all rules는 대기 중인 전송을 멈추지만 이미 보낸 요청은 취소할 수 없습니다.</p>
+<p>Signal 편집창에서 Choose key를 누르고 목록에서 키를 선택하거나 키보드로 직접 누르세요. Keyboard test를 켜고 전송할 Player를 선택하세요. 테스터 화면에 포커스가 있을 때만 전송하며, 입력칸에 글자를 입력하거나 대화상자가 열려 있을 때는 전송하지 않습니다. 운영체제 전용 단축키는 Windows나 브라우저에서 처리될 수 있습니다.</p>
+<h3>Serial 및 UDP</h3>
+<p><strong>COM ports</strong>는 포트를 열거나 데이터를 보내지 않고 장치를 검색합니다. Use port로 Serial 연결을 만들고 장치 설명서에 맞게 통신 속도와 프레임 설정을 맞추세요. 같은 포트를 쓰는 다른 앱은 먼저 닫으세요.</p>
+<p><strong>Add connection → UDP</strong>에서 로컬 수신 주소와 원격 전송 주소를 따로 설정합니다. 모든 로컬 IPv4 인터페이스에서 수신하려면 0.0.0.0을 사용하세요. 로컬 포트를 0으로 설정하면 사용 가능한 포트가 자동 선택됩니다.</p>
+<p><strong>Open connection</strong>을 누르면 수신을 시작합니다. Raw data는 텍스트 또는 HEX 바이트를 전송합니다. Sent는 장치가 수신했다는 뜻은 아닙니다. Activity에서 별도의 RX 이벤트와 오류 단계를 확인하세요.</p>
+<p><strong>Pause view</strong>는 화면의 로그 표시만 멈춥니다. 페이지를 닫아도 Python에서 수신은 계속됩니다. 연결을 해제하려면 테스터에서 연결을 닫거나 실행 콘솔을 종료하세요. 엔진을 다시 시작하면 모든 연결은 닫힌 상태로 시작합니다.</p></div>
+<h3>단축키</h3><div class="help-keys"><kbd>Ctrl ↵</kbd><span>선택한 Signal 전송</span><kbd>/</kbd><span>Signal 검색</span><kbd>Esc</kbd><span>반복 전송 중지</span><kbd>?</kbd><span>이 가이드 열기</span></div><div class="notice">반복 전송은 이 페이지가 열려 있을 때만 실행됩니다. Stop은 다음 전송을 막지만 이미 보낸 요청은 취소할 수 없습니다. 백그라운드 탭에서는 설정한 간격보다 느리게 전송될 수 있습니다.</div>
+<p class="muted">작업 설정은 이 PC에 자동 저장됩니다. 다른 PC로 옮기려면 Export를 사용하세요. Activity는 현재 세션 동안만 유지되므로 기록을 남기려면 내보내세요.</p></div>
+<div id="helpEn" lang="en" hidden><ol class="guide"><li><strong>Start the Player receiver.</strong><p>Open Player settings with Shift + F. In Signals, enable the HTTP receiver and note its port.</p></li><li><strong>Choose a target.</strong><p>Use 127.0.0.1 for a Player on this PC. For multiple Players, save a different port for each one. Check before testing.</p></li><li><strong>Add your keys.</strong><p>Import a .scene or add a Signal manually. The key must match Editor → Signals. Import adds new keys and keeps your existing values.</p></li><li><strong>Send and inspect.</strong><p>A card's Send button sends its saved value. The Selected signal panel sends your current value. Each card shows its latest result. Click Activity to see why a scene changed—or why it did not.</p></li></ol><div class="help-transports"><h3>Per-Signal cooldown</h3><p>Set Cooldown in Edit signal. The default is 3 seconds; 0 disables the limit. Sensor, keyboard, manual and repeat sends share the same cooldown for each Signal across all Player targets. SceneCast and sensor rules have no separate cooldown.</p><h3>Sensors &amp; keyboard tests</h3><p>Add a sensor monitor using an existing Serial or UDP connection. Select Number or a JSON field, then add Below / Above rules. Open the source connection to see the graph; Enable all rules sends to each rule’s selected Player. Rules continue in Python when this page closes. Pause all rules stops queued sends; requests already sent cannot be recalled.</p><p>Edit a Signal and click Choose key: select from the list or press the physical key. Enable Keyboard test and choose its output Player. Keys only send when this page is focused; typing in fields and open dialogs never triggers a send. OS-reserved shortcuts may still be handled by Windows or the browser.</p><h3>Serial &amp; UDP</h3><p><strong>COM ports</strong> discovers devices without opening them. Use port creates a Serial profile; match baud and framing settings to the device manual. Close other apps using that port first.</p><p><strong>Add connection → UDP</strong> separates the local receive address from the remote send address. Use 0.0.0.0 to receive on all local IPv4 interfaces. Local port 0 chooses an available port.</p><p><strong>Open connection</strong> starts receiving. Raw data sends Text or exact HEX bytes. Sent does not confirm device receipt. Inspect separate RX events and the error stage in Activity.</p><p><strong>Pause view</strong> freezes the visible log only. Receiving continues in Python even when this page closes. Close connections here or stop the launch console to release them. Restarting the engine leaves all connections closed.</p></div><h3>Shortcuts</h3><div class="help-keys"><kbd>Ctrl ↵</kbd><span>Send the selected Signal</span><kbd>/</kbd><span>Search Signals</span><kbd>Esc</kbd><span>Stop a repeat test</span><kbd>?</kbd><span>Open this guide</span></div><div class="notice">Repeat runs only while this page remains open. Stop prevents the next send; a request already sent cannot be recalled. Background tabs may send more slowly than the chosen interval.</div><p class="muted">Workspace settings are saved automatically on this PC. Export to move them to another PC. Activity is kept for this session only; export it to keep a report.</p></div>
+<div class="dialog-footer"><button id="helpDone" class="button dark close-dialog">확인</button></div></dialog>
+  <input id="sceneFile" type="file" accept=".scene,.json" hidden><input id="workspaceFile" type="file" accept=".json" hidden>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body></html>

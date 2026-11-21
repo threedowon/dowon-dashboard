@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "activeTarget": "fsr-serial",
+  "targets": [
+    {
+      "id": "fsr-serial",
+      "name": "FSR ESP32-S3 (select CH343 COM port)",
+      "type": "serial",
+      "device": "COM4",
+      "baudrate": 115200,
+      "dataBits": 8,
+      "parity": "N",
+      "stopBits": 1
+    },
+    {
+      "id": "player",
+      "name": "SceneCast Player",
+      "host": "127.0.0.1",
+      "port": 8420
+    }
+  ],
+  "signals": [
+    {
+      "id": "person",
+      "name": "Rug detected",
+      "key": "person",
+      "value": null,
+      "cooldown": 3
+    }
+  ],
+  "sensors": [
+    {
+      "id": "fsr-raw1",
+      "name": "FSR 1 · 원본값",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "raw1",
+      "unit": "ADC 0-1023",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-raw2",
+      "name": "FSR 2 · 원본값",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "raw2",
+      "unit": "ADC 0-1023",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-raw3",
+      "name": "FSR 3 · 원본값",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "raw3",
+      "unit": "ADC 0-1023",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-raw4",
+      "name": "FSR 4 · 원본값",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "raw4",
+      "unit": "ADC 0-1023",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-delta1",
+      "name": "FSR · FSR 1 / 600 mm / delta",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "delta1",
+      "unit": "ADC delta",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-delta2",
+      "name": "FSR · FSR 2 / 800 mm / delta",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "delta2",
+      "unit": "ADC delta",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-delta3",
+      "name": "FSR · FSR 3 / 800 mm / delta",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "delta3",
+      "unit": "ADC delta",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-delta4",
+      "name": "FSR · FSR 4 / 600 mm / delta",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "delta4",
+      "unit": "ADC delta",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-detected",
+      "name": "FSR · Rug detected (any FSR)",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "detected",
+      "unit": "0 / 1",
+      "staleSeconds": 2,
+      "rules": [
+        {
+          "id": "rug-person",
+          "signalId": "person",
+          "targetId": "player",
+          "op": "gt",
+          "threshold": 0.5,
+          "hysteresis": 0,
+          "hold": 1,
+          "valueMode": "saved",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "fsr-ready",
+      "name": "FSR · Ready (send c + LF to zero)",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "ready",
+      "unit": "0 / 1",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-calibrating",
+      "name": "FSR · Calibrating (about 2 seconds)",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "calibrating",
+      "unit": "0 / 1",
+      "staleSeconds": 2,
+      "rules": []
+    },
+    {
+      "id": "fsr-error",
+      "name": "FSR · Calibration error: 1 high / 2 moving / 3 both",
+      "sourceId": "fsr-serial",
+      "parser": "json",
+      "field": "error",
+      "unit": "code",
+      "staleSeconds": 2,
+      "rules": []
+    }
+  ]
+}
