@@ -52,7 +52,11 @@ globalThis.IdeaModel = (() => {
     async function transaction(mode,action){const database=await db();return new Promise((resolve,reject)=>{const tx=database.transaction('boards',mode),r=action(tx.objectStore('boards'));tx.oncomplete=()=>resolve(r.result);tx.onabort=()=>reject(tx.error||Error('저장하지 못했어요.'));tx.onerror=()=>reject(tx.error);});}
     return {get:id=>transaction('readonly',s=>s.get(id)),all:()=>transaction('readonly',s=>s.getAll()),put:record=>transaction('readwrite',s=>s.put(record))};
   }
-  return {imageType,MAX_IMAGE,clamp,url,media,cleanItem,point,zoomAt,history,store};
+  async function cardBoardId(projectId,milestoneId){
+    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([projectId,milestoneId])));
+    return 'milestone:'+Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  return {cardBoardId,imageType,MAX_IMAGE,clamp,url,media,cleanItem,point,zoomAt,history,store};
 })();
 
 globalThis.IdeasBoard = {
@@ -61,11 +65,12 @@ globalThis.IdeasBoard = {
     const $=id=>document.getElementById(id),viewport=$('ideasViewport'),world=$('ideasWorld'),selector=$('ideasProject');
     const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const uid=()=>crypto.randomUUID(),records=new Map(),histories=new Map(),objectUrls=new Map(),failures=new Set();
+    let scope=null,normalProject=null,scopeToken=0;
     let current=null,selected=null,loading=true,initialized=false,drag=null,space=false,saveQueue=Promise.resolve(),loadToken=0,modalKind=null,editing=null,lastPoint=null,viewTimer=null,renderPending=false;
     const empty=project=>({projectId:project.id,name:project.name,items:[],view:{x:40,y:40,zoom:1},updatedAt:new Date().toISOString()});
     const activeRecord=()=>{const r=records.get(current);return r?._stub?undefined:r;},history=()=>histories.get(current);
     const message=(text,error=false)=>{$('ideasStatus').textContent=text;$('ideasStatus').classList.toggle('ideas-error',error);};
-    function controls(){const ready=!!activeRecord()&&!loading&&!readonly,item=activeRecord()?.items.find(i=>i.id===selected);for(const name of ['ideasImage','ideasLink','ideasNote','ideasImport','ideasRetry'])$(name).disabled=!ready;$('ideasUndo').disabled=!ready||!history()?.canUndo;$('ideasRedo').disabled=!ready||!history()?.canRedo;$('ideasDelete').disabled=!ready||!selected;$('ideasEdit').disabled=!ready||!item||(item.kind!=='note'&&!item.url);$('ideasEdit').textContent=item?.kind==='note'?'메모 입력':'링크 수정';$('ideasExport').disabled=!activeRecord()||loading;$('ideasNewProject').disabled=readonly;for(const name of ['ideasZoomIn','ideasZoomOut','ideasFit'])$(name).disabled=!activeRecord()||loading;}
+    function controls(){const ready=!!activeRecord()&&!loading&&!readonly,item=activeRecord()?.items.find(i=>i.id===selected);for(const name of ['ideasImage','ideasLink','ideasNote','ideasImport','ideasRetry'])$(name).disabled=!ready;$('ideasUndo').disabled=!ready||!history()?.canUndo;$('ideasRedo').disabled=!ready||!history()?.canRedo;$('ideasDelete').disabled=!ready||!selected;$('ideasEdit').disabled=!ready||!item||(item.kind!=='note'&&!item.url);$('ideasEdit').textContent=item?.kind==='note'?'메모 입력':'링크 수정';$('ideasExport').disabled=!activeRecord()||loading;$('ideasNewProject').disabled=readonly||!!scope;for(const name of ['ideasZoomIn','ideasZoomOut','ideasFit'])$(name).disabled=!activeRecord()||loading;}
     function queueSave(record){
       if(readonly)return Promise.resolve();
       record.updatedAt=new Date().toISOString();const snapshot={...record,view:{...record.view},items:record.items.map(i=>({...i}))};
@@ -125,7 +130,7 @@ globalThis.IdeasBoard = {
       if(caret){const note=[...world.children].find(el=>el.dataset.ideaId===caret.id)?.querySelector('textarea.idea-note');if(note){note.focus({preventScroll:true});note.setSelectionRange(caret.start,caret.end);}}
     }
     function options(){
-      const projects=getProjects(),extra=[...records.values()].filter(r=>!projects.some(p=>p.id===r.projectId)),list=[...projects.map(p=>({...p,name:p.name+(storage.isCloud&&extra.some(r=>r.name===p.name)?' (이 기기 프로젝트)':'')})),...extra.map(r=>({id:r.projectId,name:r.name+(storage.isCloud?(projects.some(p=>p.name===r.name)?' (GitHub)':''):' (보관됨)')}))];
+      const projects=scope?[scope]:getProjects(),extra=scope?[]:[...records.values()].filter(r=>!r.projectId.startsWith('milestone:')&&!projects.some(p=>p.id===r.projectId)),list=[...projects.map(p=>({...p,name:p.name+(storage.isCloud&&extra.some(r=>r.name===p.name)?' (이 기기 프로젝트)':'')})),...extra.map(r=>({id:r.projectId,name:r.name+(storage.isCloud?(projects.some(p=>p.name===r.name)?' (GitHub)':''):' (보관됨)')}))];
       selector.innerHTML=list.length?list.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join(''):'<option value="">프로젝트 없음</option>';
       selector.value=current||list[0]?.id||'';
       return list;
@@ -134,16 +139,18 @@ globalThis.IdeasBoard = {
       cancelDrag();const token=++loadToken;drag=null;space=false;viewport.classList.remove('is-panning');selected=null;lastPoint=null;current=projectId||null;loading=true;render();
       try{
         await saveQueue;
-        if(projectId&&(storage.isCloud||!records.has(projectId))){const saved=await storage.get(projectId),project=getProjects().find(p=>p.id===projectId);if(saved){saved.items=saved.items.map(IdeaModel.cleanItem);saved.view=validView(saved.view);records.set(projectId,saved);}else if(project)records.set(projectId,empty(project));else if(records.get(projectId)?._stub)throw Error('보드를 불러오지 못했어요.');}
+        if(projectId&&(storage.isCloud||!records.has(projectId))){const saved=await storage.get(projectId),project=scope?.id===projectId?scope:getProjects().find(p=>p.id===projectId);if(saved){saved.items=saved.items.map(IdeaModel.cleanItem);saved.view=validView(saved.view);records.set(projectId,saved);}else if(project)records.set(projectId,empty(project));else if(records.get(projectId)?._stub)throw Error('보드를 불러오지 못했어요.');}
         if(token!==loadToken)return;
+        if(scope?.id===current&&records.has(current))records.get(current).name=scope.name;
         if(current&&!histories.has(current))histories.set(current,IdeaModel.history());
-        try{localStorage.setItem('dowon-ideas:project',current||'');}catch{}
+        if(!scope)try{localStorage.setItem('dowon-ideas:project',current||'');}catch{}
         message(failures.has(current)?'이 보드에 저장하지 못한 변경이 있어요. 다시 저장하거나 백업해 주세요.':storage.isCloud?storage.message(current):'● 이 브라우저에 자동 저장 · 프로젝트별 보드',failures.has(current));
       }catch{message('보드를 불러오지 못했어요. 페이지를 새로고침해 다시 시도해 주세요.',true);}
       finally{if(token===loadToken){loading=false;options();render();}}
     }
     function validView(value){return {x:Number.isFinite(value?.x)?value.x:40,y:Number.isFinite(value?.y)?value.y:40,zoom:IdeaModel.clamp(Number.isFinite(value?.zoom)?value.zoom:1,0.2,2)};}
     function refreshProjects(){
+      if(scope){options();return;}
       const projects=getProjects(),r=records.get(current);
       // A fresh device's empty placeholder disappears when the shared catalog arrives.
       if(initialized&&current&&!projects.some(p=>p.id===current)&&r&&!r._stub&&!r._cloudRevision&&!r.items.length){records.delete(current);histories.delete(current);current=null;}
@@ -274,7 +281,20 @@ globalThis.IdeasBoard = {
       window.addEventListener('online',()=>syncCloud());window.addEventListener('focus',()=>{if(isActive())syncCloud();});
       setInterval(()=>{if(isActive()&&document.visibilityState!=='hidden')syncCloud();},30000);
     }else for(const id of ['ideasConnect','ideasRefresh','ideasResolve'])if($(id))$(id).hidden=true;
-    const ready=(async()=>{try{if(readonly){loading=false;message('공유 문서에는 개인 레퍼런스 보드가 포함되지 않습니다.');controls();return;}const stored=await storage.all();for(const r of stored){r.items=r.items.map(IdeaModel.cleanItem);r.view=validView(r.view);records.set(r.projectId,r);}let remembered;try{remembered=localStorage.getItem('dowon-ideas:project');}catch{}initialized=true;const list=options();await switchProject(list.some(p=>p.id===remembered)&&(!storage.isCloud||records.has(remembered)||!stored.length)?remembered:stored.find(r=>r.items.length||r._stub)?.projectId||list[0]?.id);cloudStatus();}catch{loading=false;message('보드 저장소를 열 수 없어요. 브라우저 저장 권한을 확인하고 새로고침해 주세요.',true);controls();}})();
-    controls();return {ready,refreshProjects,ingest,flush:async()=>{await saveQueue;if(storage.isCloud)await storage.flush();},syncCloud};
+    const ready=(async()=>{try{if(readonly){loading=false;message('공유 문서에는 개인 레퍼런스 보드가 포함되지 않습니다.');controls();return;}const stored=await storage.all();for(const r of stored){r.items=r.items.map(IdeaModel.cleanItem);r.view=validView(r.view);records.set(r.projectId,r);}let remembered;try{remembered=localStorage.getItem('dowon-ideas:project');}catch{}initialized=true;const list=options();await switchProject(list.some(p=>p.id===remembered)&&(!storage.isCloud||records.has(remembered)||!stored.length)?remembered:stored.find(r=>!r.projectId.startsWith('milestone:')&&(r.items.length||r._stub))?.projectId||list[0]?.id);cloudStatus();}catch{loading=false;message('보드 저장소를 열 수 없어요. 브라우저 저장 권한을 확인하고 새로고침해 주세요.',true);controls();}})();
+    async function openBoard(descriptor){
+      const token=++scopeToken;
+      loading=true;controls();
+      await ready;if(token!==scopeToken||readonly)return;
+      if(descriptor){
+        if(!scope)normalProject=current;
+        scope=descriptor;
+        const record=records.get(descriptor.id);if(record)record.name=descriptor.name;
+        await switchProject(descriptor.id);
+      }else if(scope){
+        scope=null;const list=options();await switchProject(list.some(p=>p.id===normalProject)?normalProject:list[0]?.id);
+      }else{loading=false;controls();}
+    }
+    controls();return {ready,openBoard,refreshProjects,ingest,flush:async()=>{await saveQueue;if(storage.isCloud)await storage.flush();},syncCloud};
   }
 };

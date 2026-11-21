@@ -135,9 +135,9 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/roadmap.css?v=20261119-project-regions">
 <script src="assets/roadmap.js?v=20261119-project-regions"></script>
 <script src="assets/dependency-map.js?v=20261119-region-width-fix"></script>
-<script src="assets/dependency-editor.js?v=20261119-narrow-cards"></script>
+<script src="assets/dependency-editor.js?v=20261121-card-boards"></script>
 <link rel="stylesheet" href="assets/ideas-board.css?v=20261118-inline">
-<script src="assets/ideas-board.js?v=20261118-inline"></script>
+<script src="assets/ideas-board.js?v=20261121-card-boards"></script>
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
 <script src="assets/milestone-sync.js?v=20261118-autosave"></script>
 <link rel="stylesheet" href="library.css?v=20261118-bulk">
@@ -209,9 +209,9 @@ html[data-active-page="home"] .side{display:none}
 <p class="small library-note">PDF 한 개당 최대 10MB · 비공개 저장소에 보관됩니다.<br>자료실은 업로드·수정 시 바로 저장되며, 마일스톤의 백업·복원과 별도로 관리됩니다.</p>
 </section>
 <section id="ideasPage" data-screen="ideas" aria-labelledby="ideasTitle" hidden>
-<div class="page-top"><span class="eyebrow">IDEAS &amp; REFERENCES</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
-<div class="ideas-heading"><div><span class="availability">PROJECT CANVAS</span><h1 id="ideasTitle" tabindex="-1">아이디어·레퍼런스</h1><p class="page-intro">이미지, 영상, 메모를 자유롭게 펼쳐놓고 연결되는 생각을 모으세요.</p></div></div>
-<div class="ideas-project-row"><label>프로젝트 보드<select id="ideasProject" aria-label="프로젝트 보드"></select></label><button class="btn" id="ideasNewProject">＋ 프로젝트 추가</button><span class="small" id="ideasCount"></span></div>
+<div class="page-top"><span class="eyebrow">IDEAS &amp; REFERENCES</span><a class="back-link" id="ideasBack" href="#home">← 대시보드 홈</a></div>
+<div class="ideas-heading"><div><span class="availability">PROJECT CANVAS</span><h1 id="ideasTitle" tabindex="-1">아이디어·레퍼런스</h1><p class="page-intro" id="ideasIntro">이미지, 영상, 메모를 자유롭게 펼쳐놓고 연결되는 생각을 모으세요.</p></div></div>
+<div class="ideas-project-row"><button class="btn" id="cardScheduleEdit" hidden>일정 정보 수정</button><label>프로젝트 보드<select id="ideasProject" aria-label="프로젝트 보드"></select></label><button class="btn" id="ideasNewProject">＋ 프로젝트 추가</button><span class="small" id="ideasCount"></span></div>
 <div class="ideas-toolbar" role="toolbar" aria-label="레퍼런스 보드 도구"><button class="btn primary" id="ideasImage">＋ 이미지</button><button class="btn" id="ideasLink">영상·링크</button><button class="btn" id="ideasNote">메모</button><button class="btn" id="ideasUndo" title="Ctrl+Z" disabled>↶</button><button class="btn" id="ideasRedo" title="Ctrl+Shift+Z" disabled>↷</button><button class="btn" id="ideasEdit" disabled>내용 수정</button><button class="btn" id="ideasDelete" disabled>삭제</button><div class="ideas-zoom-tools"><button class="btn" id="ideasZoomOut" aria-label="보드 축소">−</button><output id="ideasZoom">100%</output><button class="btn" id="ideasZoomIn" aria-label="보드 확대">＋</button><button class="btn" id="ideasFit">전체 보기</button></div></div>
 <div class="ideas-viewport" id="ideasViewport" tabindex="0" aria-label="프로젝트 레퍼런스 보드. 이미지나 영상 URL을 붙여넣으세요."><div class="ideas-world" id="ideasWorld"></div><div class="ideas-empty" id="ideasEmpty"><span class="ideas-empty-symbol" aria-hidden="true">✧</span><h2 id="ideasEmptyTitle">프로젝트를 선택해 보드를 시작하세요</h2><p>이미지 복사 후 Ctrl+V · 영상 URL 붙여넣기<br>파일을 끌어놓거나 위의 도구로 자료를 추가할 수도 있어요.</p></div></div>
 <p class="ideas-help">메모는 메모지 안에서 바로 입력 · 카드 위 이동 핸들을 끌어 배치 · 모서리로 크기 조절 · 빈 공간 드래그로 보드 이동 · Ctrl+휠로 확대/축소 · Ctrl+Z로 실행 취소<br>영상: YouTube / Vimeo / MP4·WebM URL · 이미지: 파일당 최대 20MB</p>
@@ -232,6 +232,7 @@ html[data-active-page="home"] .side{display:none}
 <div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
 <div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">100%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
+<p class="small editable">카드를 더블클릭하거나 선택 후 Enter를 누르면 이미지와 메모를 정리할 수 있는 일정 보드가 열립니다.</p>
 <div id="flowToolbar" class="sr-only"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools" hidden><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
 </div>
 <div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
@@ -303,7 +304,13 @@ function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
  let pid=null;try{if(isProject)pid=decodeURIComponent(requested.slice(11));}catch{}
  const project=state.projects.find(p=>p.id===pid);
- const page=isProject?"milestones":Object.hasOwn(pages,requested)?requested:(readonly?"milestones":"home");
+ let cardProject=null,cardMilestone=null;
+ if(requested.startsWith('card/'))try{const parts=requested.split('/');if(parts.length===3){cardProject=state.projects.find(p=>p.id===decodeURIComponent(parts[1]));cardMilestone=cardProject?.milestones.find(m=>m.id===decodeURIComponent(parts[2]));}}catch{}
+ const cardOpen=!!cardMilestone&&!readonly;
+ if(cardOpen)state.selectedId=cardProject.id;
+ if(requested.startsWith('card/')&&!cardOpen)history.replaceState(null,'','#milestones');
+ syncCardBoard(cardOpen?cardProject:null,cardOpen?cardMilestone:null);
+ const page=cardOpen?"ideas":requested.startsWith("card/")?"milestones":isProject?"milestones":Object.hasOwn(pages,requested)?requested:(readonly?"milestones":"home");
  if(isProject&&!project)history.replaceState(null,"","#milestones");
  if(project){
   if(detailId!==project.id){tab="calendar";month=new Date();selected=day();}
@@ -313,16 +320,40 @@ function route(focus=false){
  const syncAnchor=$(detailId?"projectDetail":"projectOverview").querySelector(".head");
  if(syncAnchor.nextElementSibling!==$("milestoneSync"))syncAnchor.after($("milestoneSync"));
  document.querySelectorAll("[data-screen]").forEach(el=>el.hidden=el.dataset.screen!==page);
- document.querySelectorAll("[data-page]").forEach(el=>{if(el.dataset.page===page)el.setAttribute("aria-current","page");else el.removeAttribute("aria-current");});
+ document.querySelectorAll("[data-page]").forEach(el=>{if(el.dataset.page===(cardOpen?"milestones":page))el.setAttribute("aria-current","page");else el.removeAttribute("aria-current");});
  document.documentElement.dataset.activePage=page;
  $("cloudStatus").hidden=page!=="milestones"||readonly;
  document.documentElement.dataset.projectView=detailId?"detail":"overview";
  $("projectOverview").hidden=!!detailId;$("projectDetail").hidden=!detailId;
  $("milestonesPage").setAttribute("aria-labelledby",detailId?"title":"projectsTitle");
- document.title="작업 공간 — "+(project?project.name:pages[page]);
+ document.title="작업 공간 — "+(cardOpen?cardProject.name+" / "+cardMilestone.title:project?project.name:pages[page]);
  if(focus){const heading=page==="milestones"?$(detailId?"title":"projectsTitle"):document.querySelector('[data-screen="'+page+'"] h1');heading?.focus({preventScroll:true});window.scrollTo(0,0);}
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
+const cardHref=(pid,mid)=>"#card/"+encodeURIComponent(pid)+"/"+encodeURIComponent(mid);
+let cardBoardRoute=null,cardBoardRequest=0;
+async function syncCardBoard(project,milestone){
+ const target=milestone?cardHref(project.id,milestone.id):null;
+ $("ideasTitle").textContent=milestone?milestone.title:"아이디어·레퍼런스";
+ $("ideasIntro").textContent=milestone?project.name+" · 이 일정의 이미지와 메모를 자유롭게 정리하세요.":"이미지, 영상, 메모를 자유롭게 펼쳐놓고 연결되는 생각을 모으세요.";
+ $("ideasBack").href=milestone?"#milestones":"#home";
+ $("ideasBack").textContent=milestone?"← 마일스톤으로 돌아가기":"← 대시보드 홈";
+ $("cardScheduleEdit").hidden=!milestone;
+ $("cardScheduleEdit").onclick=milestone?()=>open("milestone",milestone.id):null;
+ $("ideasProject").closest('label').hidden=!!milestone;$("ideasNewProject").hidden=!!milestone;
+ if(!ideasBoard||cardBoardRoute===target)return;
+ cardBoardRoute=target;const request=++cardBoardRequest;
+ try{
+  if(milestone){
+   // Disable the previous canvas while deriving and loading the next card's board.
+   $("ideasPage").inert=true;
+   const boardId=await IdeaModel.cardBoardId(project.id,milestone.id);
+   if(request!==cardBoardRequest)return;
+   await ideasBoard.openBoard({id:boardId,name:(project.name+" / "+milestone.title).slice(0,200)});
+  }else await ideasBoard.openBoard(null);
+ }catch{cardBoardRoute=undefined;$("ideasStatus").textContent="일정 보드를 열지 못했어요. 새로고침해 다시 시도해 주세요.";}
+ finally{if(request===cardBoardRequest)$("ideasPage").inert=false;}
+}
 function selectedProjects(){return Roadmap.selectedProjects(state.projects,state.roadmapIds);}
 let mapScale=1,mapFit=null,flowEditor=null,mapDrawing=null,ideasBoard=null;
 function applyMapZoom(){
@@ -439,9 +470,16 @@ $("selectAllProjects").onclick=()=>{state.roadmapIds=state.projects.map(p=>p.id)
 $("clearProjects").onclick=()=>{state.roadmapIds=[];persist();renderOverview();};
 document.querySelectorAll("[data-map-view]").forEach(b=>b.onclick=()=>{state.mapView=b.dataset.mapView;persist();renderOverview();});
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();});
-function openRoadmapProject(e){const bar=e.target.closest("[data-m]");if(!bar)return;const m=Roadmap.portfolio(selectedProjects()).milestones.find(m=>m.id===bar.dataset.m);if(m)location.hash=projectHref(m.projectId);}
+function openRoadmapProject(e){const bar=e.target.closest("[data-m]");if(!bar)return;const m=Roadmap.portfolio(selectedProjects()).milestones.find(m=>m.id===bar.dataset.m);if(m&&!readonly)location.hash=cardHref(m.projectId,m.originalId||JSON.parse(m.id)[1]);}
+$("roadmapBoard").ondblclick=e=>{
+ const hit=document.elementFromPoint(e.clientX,e.clientY)||e.target;
+ if(readonly||!$("roadmapBoard").contains(hit)||hit.closest('button,select,input,[data-port-node],[data-resize],[data-edge-handle]'))return;
+ const node=hit.closest('[data-m]');if(!node)return;
+ const target=DependencyMap.find(state.projects,node.dataset.m);if(!target)return;
+ flowEditor?.cancel();location.hash=cardHref(target.project.id,target.milestone.id);
+};
 $("roadmapBoard").onkeydown=e=>{if(state.mapView!=="timeline")return;if(e.target.closest("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRoadmapProject(e);}};
-$("roadmapBoard").onclick=e=>{const add=e.target.closest("#mapAddColumn,[data-add-project-column]");if(add){addMapColumn(add.dataset.addProjectColumn);return;}if(state.mapView==="timeline")openRoadmapProject(e);};
+$("roadmapBoard").onclick=e=>{const add=e.target.closest("#mapAddColumn,[data-add-project-column]");if(add){addMapColumn(add.dataset.addProjectColumn);return;}};
 $("milestones").onclick=$("dayItems").onclick=e=>{let b=e.target.closest("[data-m]");if(b)open("milestone",b.dataset.m);};
 $("calgrid").onclick=e=>{let b=e.target.closest("[data-day]");if(b){selected=b.dataset.day;drawCalendar();}};
 $("prevMonth").onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);drawCalendar();};
@@ -503,6 +541,7 @@ flowEditor=DependencyEditor.attach({
  isActive:()=>state.mapView!=="timeline"&&!readonly,
  commit:(project,message)=>{record(project,message);persist();render();},
  edit:({project,milestone})=>{state.selectedId=project.id;open("milestone",milestone.id);},
+ openBoard:({project,milestone})=>{location.hash=cardHref(project.id,milestone.id);},
  navigate:({project})=>{location.hash=projectHref(project.id);}
 });
 ideasBoard=IdeasBoard.attach({getProjects:()=>state.projects,isActive:()=>document.documentElement.dataset.activePage==="ideas",readonly,

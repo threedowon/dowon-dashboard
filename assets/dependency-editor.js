@@ -12,7 +12,7 @@ globalThis.EditHistory = {
 };
 /* Direct manipulation for the SVG map; exported diagrams contain no editor controls. */
 globalThis.DependencyEditor = {
-  attach({ board, toolbar, getProjects, getModel, isActive, commit, edit, navigate, createId }) {
+  attach({ board, toolbar, getProjects, getModel, isActive, commit, edit, navigate, createId, openBoard }) {
     let selected=null,edge=null,pending=null,drag=null,suppressClickUntil=0;
     const status=toolbar.querySelector('[data-flow-status]');
     const control=name=>toolbar.querySelector(`[data-flow-action="${name}"]`);
@@ -309,6 +309,7 @@ globalThis.DependencyEditor = {
         const date=handle.dataset.resize==='start'?(Roadmap.date(m.start)??Roadmap.date(m.due)):Roadmap.date(m.due);
         resizeCard(handle.dataset.resizeNode,handle.dataset.resize,new Date(date+(e.key==='ArrowUp'?-1:1)*(e.shiftKey?7:1)*86400000).toISOString().slice(0,10));return;
       }
+      if(e.key==='Enter'&&e.target.closest('.flow-node')&&openBoard){e.preventDefault();const target=lookup(e.target.closest('.flow-node').dataset.m);if(target)openBoard(target);return;}
       if(e.altKey&&selected&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();const item=getModel()?.items?.find(m=>m.id===selected);if(item)moveCard(selected,item.column+(e.key==='ArrowLeft'?-1:1));return;}
       if((e.key==='Delete'||e.key==='Backspace')&&edge){e.preventDefault();removeEdge();return;}
       if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-m],[data-port-node],[data-edge-from]')){e.preventDefault();activate(e.target);}
