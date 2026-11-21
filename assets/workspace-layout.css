@@ -65,7 +65,7 @@
 
   /* Home entry points use the same gutters as the working pages. */
   #homePage { padding: var(--space-8) 0; }
-  .catalog-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; padding: var(--space-6) 0; }
+  .catalog-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-8) 0; padding: var(--space-6) 0; }
   .catalog-card { min-height: 320px; padding: 0 var(--space-6); }
   .catalog-card:first-child { padding-left: 0; }
   .catalog-card:last-child { padding-right: 0; }
@@ -189,6 +189,11 @@
   #pdfViewer[open] { display: flex; flex-direction: column; gap: var(--space-3); }
   #pdfViewer .sectionhead, #pdfViewer h2, #pdfViewer p { margin: 0; }
   #pdfFrame { display: block; flex: 1; min-height: 0; height: auto; }
+}
+
+@media screen and (min-width: 1201px) {
+  .catalog-card:nth-child(4n + 1) { padding-left: 0; }
+  .catalog-card:nth-child(4n) { padding-right: 0; border-right: 0; }
 }
 
 @media screen and (max-width: 1200px) {
