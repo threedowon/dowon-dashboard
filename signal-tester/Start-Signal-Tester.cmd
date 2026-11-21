@@ -15,13 +15,13 @@ echo Python 3.10 or newer is required. Install Python, then run this file again.
 pause
 exit /b 1
 :run_path
-"%SIGNAL_PYTHON%" "%~dp0tester_launcher.py" --dashboard %*
+"%SIGNAL_PYTHON%" "%~dp0tester_launcher.py" --desktop %*
 goto finished
 :run_py
-py -3 "%~dp0tester_launcher.py" --dashboard %*
+py -3 "%~dp0tester_launcher.py" --desktop %*
 goto finished
 :run_python
-python "%~dp0tester_launcher.py" --dashboard %*
+python "%~dp0tester_launcher.py" --desktop %*
 :finished
 if errorlevel 1 pause
 endlocal

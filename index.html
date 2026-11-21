@@ -195,11 +195,14 @@ html[data-active-page="home"] .side{display:none}
 <div class="page-top"><span class="eyebrow">SENSORS / SIGNALS</span><a class="back-link" href="#home">대시보드 홈</a></div>
 <div class="placeholder-heading"><div><h1 id="signaltesterTitle" tabindex="-1">Signal Tester</h1><p class="page-intro">센서값부터 장비 신호까지, 이 PC에 연결된 장치를 한 화면에서 확인하세요.</p></div><a class="btn" href="signal-tester/README.md" target="_blank" rel="noopener">설치·사용 안내</a></div>
 <div class="signal-setup">
-<div><h2>PC 통신 프로그램 연결</h2><p>프로그램이 Serial·UDP를 받고, 이 화면이 값·그래프·송수신 기록을 보여줍니다. 측정값은 서버에 업로드하지 않습니다.</p>
-<ol><li><a href="https://github.com/threedowon/dowon-dashboard/archive/refs/heads/main.zip">프로그램 다운로드</a> 후 압축을 풀고 <code>signal-tester</code> 폴더를 여세요.</li><li>Python 3.10 이상을 설치하고, Serial을 쓰려면 <code>python -m pip install pyserial</code>을 실행하세요.</li><li><code>Start-Signal-Tester.cmd</code>를 실행한 뒤 콘솔의 연결 코드를 아래에 붙여 넣으세요.</li></ol>
-<p class="signal-note">기존 Tester나 Serial Monitor에서 사용 중인 COM 포트는 먼저 닫아 주세요. 브라우저가 로컬 네트워크 접근 권한을 요청하면 허용하세요. 다른 PC의 브리지를 원격으로 제어하는 기능은 지원하지 않습니다.</p></div>
-<form id="signalPairForm" class="signal-pair editable"><label for="signalPairCode">PC 연결 코드<input id="signalPairCode" type="password" autocomplete="off" spellcheck="false" placeholder="포트:연결코드" required></label><div class="tools"><button class="btn primary" id="signalPairButton" type="submit">PC에 연결</button><button class="btn" id="signalForget" type="button">화면 연결 해제</button></div><p id="signalPairStatus" role="status" aria-live="polite">프로그램을 실행하고 연결 코드를 입력하세요.</p><a id="signalLocalLink" target="_blank" rel="noopener noreferrer" hidden>PC에서 직접 열기</a></form>
+<div><h2>실행하면 바로 열리는 테스트 화면</h2><p>실행 파일 하나로 Serial·UDP 연결부터 센서 그래프까지 확인하세요. Python 설치나 연결 코드 입력이 필요 없습니다.</p>
+<ol><li>다운로드 버튼으로 <code>SignalTester.exe</code>를 받으세요.</li><li>파일을 더블클릭하면 이 PC의 테스트 화면이 브라우저에 자동으로 열립니다.</li><li>Serial 또는 UDP 연결을 추가하고 <strong>Open connection</strong>을 누르세요.</li></ol>
+<p class="signal-note">측정값은 서버에 업로드하지 않습니다. 기존 Tester나 Serial Monitor에서 사용 중인 COM 포트는 먼저 닫아 주세요.</p></div>
+<div class="signal-download"><strong>Windows용 Signal Tester</strong><p>Python · Serial 지원 포함<br>압축 해제나 별도 설치 없이 실행</p><a class="btn primary" href="https://github.com/threedowon/dowon-dashboard/releases/latest/download/SignalTester.exe">SignalTester.exe 다운로드</a><p class="signal-note">Windows 10/11 · 64비트<br>한 번 받은 파일은 다음에도 그대로 실행하세요.</p></div>
 </div>
+<details class="signal-advanced"><summary>고급: 이 대시보드 안에서 화면 연결</summary><p class="signal-note">기본 실행은 자동으로 열리는 로컬 화면을 사용합니다. 이 페이지 안에 표시하려면 <code>SignalTester.exe --dashboard</code>로 실행하고 콘솔의 연결 코드를 입력하세요. 브라우저가 로컬 네트워크 접근 권한을 요청하면 허용하세요.</p>
+<form id="signalPairForm" class="signal-pair editable"><label for="signalPairCode">PC 연결 코드<input id="signalPairCode" type="password" autocomplete="off" spellcheck="false" placeholder="포트:연결코드" required></label><div class="tools"><button class="btn primary" id="signalPairButton" type="submit">PC에 연결</button><button class="btn" id="signalForget" type="button">화면 연결 해제</button></div><p id="signalPairStatus" role="status" aria-live="polite">프로그램을 실행하고 연결 코드를 입력하세요.</p><a id="signalLocalLink" target="_blank" rel="noopener noreferrer" hidden>PC에서 직접 열기</a></form>
+</details>
 <p class="signal-note">지원: Serial · UDP(Text/HEX) · 숫자/JSON 그래프 · HTTP Signal · 자동 규칙. OSC 주소·인자 해석은 아직 지원하지 않습니다. 화면 연결을 해제하거나 탭을 닫아도 PC 프로그램의 수신·자동 규칙은 계속됩니다. 완전히 멈추려면 프로그램 콘솔에서 Ctrl+C를 누르세요.</p>
 <div id="signalFrameHost"></div>
 </section>

@@ -30,7 +30,7 @@ let workspaceRevision=null;
 let toastTimer, healthChecks=new Map(), healthBusy=new Set();
 let workspaceLoading=false, workspaceSetup=false, startupControls=null;
 let workspaceError='Workspace is still loading. Wait for the saved connections to appear.';
-const restartHelp='Run Start-Signal-Tester.cmd again to replace the running Tester, then use the newly opened page. Saved targets and Signals are kept.';
+const restartHelp='Run SignalTester.exe again (or Start-Signal-Tester.cmd for source installations), then use the newly opened page. Saved targets and Signals are kept.';
 const selected=()=>workspace?.signals.find(s=>s.id===selectedId);
 const active=()=>workspace?.targets.find(t=>t.id===workspace.activeTarget);
 const address=t=>kind(t)==='serial'?`${t.device} · ${t.baudrate} baud`:kind(t)==='udp'?`${t.bindHost}:${t.bindPort} → ${t.remoteHost}:${t.remotePort}`:`${t.host.includes(':')?'['+t.host+']':t.host}:${t.port}`;
