@@ -2,9 +2,15 @@
 #signaltesterPage p,#signaltesterPage li{font-size:16px;line-height:1.7}
 #signaltesterPage li+li{margin-top:8px}
 #signaltesterPage a{color:inherit}
+#signaltesterPage a.btn.primary{color:#fff}
 #signaltesterPage code{font-size:.9em;overflow-wrap:anywhere}
 #signaltesterPage .signal-note{font-size:14px;color:var(--muted,#607068)}
 #signaltesterPage .signal-pair{display:grid;align-content:start;gap:16px}
+#signaltesterPage .signal-download{display:grid;align-content:center;justify-items:start;gap:12px;padding:24px;background:var(--paper,#f4f6f2)}
+#signaltesterPage .signal-download p{margin:0}
+#signaltesterPage .signal-advanced{margin:20px 0;padding:16px;border:1px solid var(--rule,#d9dfd9)}
+#signaltesterPage .signal-advanced summary{cursor:pointer}
+#signaltesterPage .signal-advanced .signal-pair{max-width:580px}
 #signaltesterPage label{font-size:14px}
 #signalPairStatus{margin:0;overflow-wrap:anywhere}
 #signalFrameHost iframe{display:block;width:100%;height:85vh;min-height:720px;border:1px solid var(--rule,#d9dfd9);background:#fff}

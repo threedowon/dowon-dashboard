@@ -144,6 +144,22 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(launcher.engine_processes([wrapper, engine, other, unrelated], self.base), [engine, other])
         self.assertEqual(launcher.engine_processes([wrapper, other], self.base), [wrapper, other])
 
+    def test_exe_matching_requires_exact_path_and_internal_engine_flag(self):
+        exe = self.base / 'SignalTester.exe'
+        self.assertTrue(launcher.tester_command([str(exe), '--tester-engine'], exe, exe))
+        for args in ([str(exe)], [str(exe), '--no-browser'],
+                     [str(exe), '--config', '--tester-engine'],
+                     [str(self.base.parent / 'SignalTester.exe'), '--tester-engine'],
+                     ['SignalTester.exe', '--tester-engine']):
+            with self.subTest(args=args):
+                self.assertFalse(launcher.tester_command(args, exe, exe))
+        def record(pid, parent, args):
+            return dict(pid=pid, parent=parent, command=subprocess.list2cmdline(args))
+        outer = record(101, 100, [str(exe)])
+        bootloader = record(102, 101, [str(exe), '--tester-engine'])
+        engine = record(103, 102, [str(exe), '--tester-engine'])
+        self.assertEqual(launcher.engine_processes([outer, bootloader, engine], exe, exe), [engine])
+
     def test_legacy_process_replaced_without_stopping_unrelated_python(self):
         unrelated = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(90)',
                                       str(self.base/'signal_tester.py')], env=self.env,

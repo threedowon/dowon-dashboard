@@ -4,7 +4,7 @@ Player의 HTTP Signal과 **Serial·UDP 송수신을 한 화면에서 확인**하
 
 ## SEN0610 / FSR을 여기서 함께 보기
 
-이 폴더의 **Start-Signal-Tester.cmd 하나**로 실행합니다. 왼쪽 **센서 대시보드** 또는 **Sensors**에서 등록한 센서를 함께 봅니다. 상단 센서 구성 추가 패널은 제거했으며, 기존 설정은 유지됩니다. 새 모니터는 **Add sensor**로 추가하세요.
+**[SignalTester.exe](https://github.com/threedowon/dowon-dashboard/releases/latest/download/SignalTester.exe) 하나**로 실행합니다. 왼쪽 **센서 대시보드** 또는 **Sensors**에서 등록한 센서를 함께 봅니다. 상단 센서 구성 추가 패널은 제거했으며, 기존 설정은 유지됩니다. 새 모니터는 **Add sensor**로 추가하세요.
 
 - SEN0610은 거리·Near(30~60cm)·Ready·Error 4개, FSR은 원본값 4개·증가량 4개·Detected·Ready·Calibrating·Error 12개를 표시할 수 있습니다. 함께 등록하면 16개 모니터를 같은 화면에서 봅니다.
 - **표시할 연결**에서 전체 또는 센서별로 필터링하고, 현재값 카드를 누르면 상세 그래프가 바뀝니다. 수신이 끊기면 마지막 값은 흐리게 표시하고 상태를 함께 표시합니다. 필터는 표시만 바꾸며 수신/자동 규칙을 끄지 않습니다.
@@ -18,7 +18,7 @@ Player의 HTTP Signal과 **Serial·UDP 송수신을 한 화면에서 확인**하
 
 ## 실행
 
-1. `Start-Signal-Tester.cmd`를 더블클릭합니다. Python 3.10 이상이 필요합니다. HTTP·UDP는 추가 패키지가 필요 없고, Serial은 `pyserial`이 필요합니다. 없으면 같은 Python으로 `python -m pip install pyserial`을 실행한 후 재시작하세요.
+1. `SignalTester.exe`를 더블클릭합니다. Windows 10/11 64비트용이며 Python과 Serial 지원이 포함되어 있습니다. 별도 설치나 연결 코드 입력은 필요 없습니다. 소스로 실행하려면 [개발 안내](README.md#소스-실행개발)를 참고하세요.
 2. 브라우저에 테스트 화면이 열립니다. 실행한 콘솔 창은 열어 두세요. 종료할 때는 콘솔에서 `Ctrl + C`를 누릅니다.
 3. Player에서 `Shift + F` → **Signals**를 열고 HTTP 수신기를 켭니다. 표시된 수신 포트를 확인합니다.
 4. Tester 왼쪽 **This PC**의 연필 버튼에서 포트를 맞춥니다. 같은 PC라면 IP는 `127.0.0.1`입니다.
@@ -26,9 +26,9 @@ Player의 HTTP Signal과 **Serial·UDP 송수신을 한 화면에서 확인**하
 
 브라우저 주소에 표시되는 포트는 테스트 화면의 주소입니다. 왼쪽 Target의 포트가 **Player에 신호를 보내는 포트**입니다.
 
-`Start-Signal-Tester.cmd`를 다시 실행하면 **같은 폴더에서 실행 중인 Tester를 종료하고 최신 코드로 하나만 다시 실행**합니다. 여러 번 실행해도 마지막 실행 하나가 남습니다. 새 버전은 Serial·UDP 연결과 자동 규칙을 정리한 뒤 종료하며, 정상 종료를 지원하지 않는 예전 버전이나 응답하지 않는 Tester는 종료시킨 뒤 교체합니다. 다른 폴더의 Tester, Player, 별도로 실행한 센서·키보드 도구는 종료하지 않습니다.
+같은 `SignalTester.exe`를 다시 실행하면 **그 파일로 실행 중인 Tester를 종료하고 하나만 다시 실행**합니다. 여러 번 실행해도 마지막 실행 하나가 남습니다. Serial·UDP 연결과 자동 규칙을 정리한 뒤 종료하며, 응답하지 않는 Tester는 종료시킨 뒤 교체합니다. 다른 경로의 EXE, 소스로 실행한 Tester, Player는 종료하지 않습니다. 소스용 `Start-Signal-Tester.cmd`도 같은 폴더의 Python Tester에 대해 자동 교체를 지원합니다.
 
-저장한 대상·Signal·센서 규칙은 유지됩니다. 연결은 닫힌 상태, 자동 규칙과 키보드 테스트는 일시 정지 상태로 시작합니다. 브라우저의 이전 탭은 자동으로 닫지 않으므로 **새로 열린 페이지**를 사용하세요. 자동 교체는 CMD로 실행할 때 적용됩니다.
+저장한 대상·Signal·센서 규칙은 유지됩니다. 연결은 닫힌 상태, 자동 규칙과 키보드 테스트는 일시 정지 상태로 시작합니다. 브라우저의 이전 탭은 자동으로 닫지 않으므로 **새로 열린 페이지**를 사용하세요.
 
 ## Serial: COM 포트 검색과 송수신
 
@@ -166,16 +166,16 @@ Activity 패널 왼쪽 경계에 마우스를 올린 뒤 왼쪽으로 드래그�
 
 ## 설정 저장과 이동
 
-대상·키·기본값·키보드 바인딩·센서 및 규칙·선택한 대상은 `%LOCALAPPDATA%\SignalTester\workspace.json`에 자동 저장합니다. Player와 독립적인 Tester 설정이며, 같은 설정 파일을 동시에 여러 Tester에서 편집하지 않는 것이 좋습니다. 센서 규칙과 키보드 테스트의 실행 여부는 저장하지 않으며, 프로그램 시작 시 일시 정지 상태입니다.
+대상·키·기본값·키보드 바인딩·센서 및 규칙·선택한 대상은 `%LOCALAPPDATA%\SignalTester\dashboard-workspace.json`에 자동 저장합니다. EXE와 CMD는 기존 대시보드 설정을 이어서 사용합니다. 직접 `python signal_tester.py`로 실행하면 이전 로컬 `workspace.json`을 사용합니다. Player와 독립적인 Tester 설정이며, 같은 설정 파일을 동시에 여러 Tester에서 편집하지 않는 것이 좋습니다. 센서 규칙과 키보드 테스트의 실행 여부는 저장하지 않으며, 프로그램 시작 시 일시 정지 상태입니다.
 
 - **Export**: 현재 설정을 JSON으로 내보냅니다.
 - **Import**: 가져온 파일로 현재 목록 전체를 교체합니다. 확인 창에서 승인한 후 적용됩니다.
-- 다른 PC에서는 `signal_tester.py`, `tester_launcher.py`, `tester_transports.py`, `tester_sensors.py`, `signal_tester_ui` 폴더, `Start-Signal-Tester.cmd`를 함께 복사하고 Python을 설치한 뒤 설정을 가져오면 됩니다. Serial을 쓰려면 같은 Python에 `pyserial`도 설치하세요. COM 번호와 네트워크 주소는 PC에 맞게 수정해야 합니다.
+- 다른 Windows PC에는 `SignalTester.exe`만 복사하고 Export한 설정을 가져오면 됩니다. Python은 설치하지 않아도 됩니다. COM 번호와 네트워크 주소는 PC에 맞게 수정해야 합니다.
 - 저장 파일이 손상되면 원본을 덮어쓰지 않고 오류를 표시합니다. 해당 파일을 백업한 후 복구하거나 다른 이름으로 옮기고 다시 실행하세요.
 
 ## 기존 명령 사용
 
-업데이트 후 `Workspace not loaded`가 표시되면 `Start-Signal-Tester.cmd`를 다시 실행하세요. 기존 Tester가 자동으로 종료되고 **새로 열린 주소의 페이지**에서 최신 버전을 사용할 수 있습니다. 이전 Python 프로세스는 새 화면의 파일을 제공하지 못할 수 있어, 브라우저 새로고침만으로는 업데이트가 끝나지 않습니다. 저장한 대상·Signal은 그대로 유지됩니다. 일시적인 로딩 오류라면 **Retry loading**으로 다시 불러올 수 있으며, 목록을 읽기 전에는 추가·저장을 막아 기존 설정이 덮어써지지 않도록 합니다.
+업데이트 후 `Workspace not loaded`가 표시되면 `SignalTester.exe`를 다시 실행하세요. 소스로 실행 중이라면 `Start-Signal-Tester.cmd`를 사용합니다. 기존 Tester가 자동으로 종료되고 **새로 열린 주소의 페이지**에서 최신 버전을 사용할 수 있습니다. 저장한 대상·Signal은 그대로 유지됩니다. 일시적인 로딩 오류라면 **Retry loading**으로 다시 불러올 수 있으며, 목록을 읽기 전에는 추가·저장을 막아 기존 설정이 덮어써지지 않도록 합니다.
 
 기존 `scenecast_tester.py panel` 및 인수 없는 실행도 새 화면을 엽니다. `keys`, `sensor`, `script`, `serial`, `ui`, `health` 모드는 그대로 사용할 수 있습니다. 실제 USB 센서 연결(`serial` / `ui --device`)은 기존처럼 `pyserial`이 필요합니다.
 

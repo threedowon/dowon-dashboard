@@ -510,6 +510,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path)
     parser.add_argument('--dashboard', action='store_true', help='Allow the Dowon dashboard to connect with a per-run pairing code.')
+    parser.add_argument('--desktop', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--ui-port', type=int, default=0, help='Local web UI port (0 chooses a free port).')
     parser.add_argument('--port', type=int, help='Add/select a receiver port.')
     parser.add_argument('--host', help='Add/select a receiver IP / hostname.')
@@ -517,7 +518,7 @@ def main(argv=None):
     parser.add_argument('--scene', type=Path, help='Import Signals from this .scene.')
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args(argv)
-    config = args.config or Path(os.getenv('LOCALAPPDATA') or Path.home()/'.config')/'SignalTester'/('dashboard-workspace.json' if args.dashboard else 'workspace.json')
+    config = args.config or Path(os.getenv('LOCALAPPDATA') or Path.home()/'.config')/'SignalTester'/('dashboard-workspace.json' if args.dashboard or args.desktop else 'workspace.json')
     store = Store(config)
     if args.host or args.port:
         data = store.snapshot()

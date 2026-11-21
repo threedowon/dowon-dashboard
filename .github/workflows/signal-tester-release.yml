@@ -1,0 +1,42 @@
+name: Release Signal Tester
+
+on:
+  push:
+    tags: ['signal-tester-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build standalone EXE
+        run: python signal-tester/build_windows.py
+      - name: Test source and packaged application
+        shell: pwsh
+        run: |
+          $env:SIGNAL_TESTER_EXE = (Resolve-Path signal-tester/dist/SignalTester.exe).Path
+          & signal-tester/.build-venv/Scripts/python.exe -m unittest discover -s signal-tester -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Publish verified Windows download
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $exe = 'signal-tester/dist/SignalTester.exe'
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash.ToLower()
+          "$hash  SignalTester.exe" | Set-Content -Encoding ascii signal-tester/dist/SHA256SUMS.txt
+          gh release create $env:GITHUB_REF_NAME $exe signal-tester/dist/SHA256SUMS.txt --verify-tag --title "Signal Tester $env:GITHUB_REF_NAME" --notes-file signal-tester/RELEASE-NOTES.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

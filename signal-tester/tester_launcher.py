@@ -51,10 +51,14 @@ def clear_instance():
         Path(filename).unlink(missing_ok=True)
 
 
-def tester_command(argv, base=BASE):
+def tester_command(argv, base=BASE, executable=None):
     """Match an absolute entry script, never a substring or a script passed as data."""
     if len(argv) < 2:
         return False
+    if executable is not None:
+        return (Path(argv[0]).is_absolute()
+                and os.path.normcase(str(Path(argv[0]).resolve())) == os.path.normcase(str(executable.resolve()))
+                and argv[1] == '--tester-engine')
     i = 1
     while i < len(argv):
         arg = argv[i]
@@ -92,27 +96,31 @@ def split_command(command):
         kernel.LocalFree(ctypes.cast(args, wintypes.HLOCAL))
 
 
-def discover_testers(base=BASE):
+def discover_testers(base=BASE, executable=None):
     # Query metadata only. Process handles below recheck creation time against PID reuse.
     command = """$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^python(w|[0-9.]+)?\\.exe$' -and $_.CommandLine } | ForEach-Object {
   @{pid=[int]$_.ProcessId; parent=[int]$_.ParentProcessId; command=$_.CommandLine; created=$_.CreationDate.ToUniversalTime().ToFileTimeUtc().ToString()}
 }) | ConvertTo-Json -Compress"""
-    result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command],
+    if executable is not None:
+        name = executable.name.replace("'", "''")
+        command = command.replace("$_.Name -match '^python(w|[0-9.]+)?\\.exe$'", f"$_.Name -eq '{name}'")
+    powershell = Path(os.environ['SystemRoot'])/'System32'/'WindowsPowerShell'/'v1.0'/'powershell.exe'
+    result = subprocess.run([str(powershell), '-NoProfile', '-NonInteractive', '-Command', command],
                             capture_output=True, encoding='utf-8', errors='replace', timeout=15,
                             creationflags=subprocess.CREATE_NO_WINDOW, check=True)
     records = json.loads(result.stdout.lstrip('\ufeff').strip() or '[]')
     if isinstance(records, dict):
         records = [records]
-    return engine_processes(records, base)
+    return engine_processes(records, base, executable)
 
 
-def engine_processes(records, base=BASE):
+def engine_processes(records, base=BASE, executable=None):
     """Exclude Windows venv redirectors waiting on the real interpreter."""
     matches, arguments = {}, {}
     for record in records:
         argv = split_command(record['command'])
-        if record['pid'] != os.getpid() and tester_command(argv, base):
+        if record['pid'] != os.getpid() and tester_command(argv, base, executable):
             matches[record['pid']] = record
             arguments[record['pid']] = argv[1:]
     redirectors = set()
@@ -209,18 +217,20 @@ class TesterProcess(WindowsHandles):
                 self.handle = None
 
 
-def launch(argv, base=BASE):
+def launch(argv, base=BASE, executable=None):
     if os.name != 'nt':
         raise RuntimeError('Use python signal_tester.py directly on this operating system.')
+    command = ([str(executable), '--tester-engine', *argv] if executable is not None
+               else [sys.executable, '-u', str(base/'signal_tester.py'), *argv])
     if '-h' in argv or '--help' in argv:
-        return subprocess.call([sys.executable, str(base/'signal_tester.py'), *argv])
+        return subprocess.call(command)
     file, identity, child = instance_file(base), uuid.uuid4().hex, None
     with LaunchLock(base):
         previous = read_instance(file)
-        for record in discover_testers(base):
+        for record in discover_testers(base, executable):
             TesterProcess(record).stop(previous)
         env = dict(os.environ, SIGNAL_TESTER_INSTANCE_FILE=str(file), SIGNAL_TESTER_INSTANCE_ID=identity)
-        child = subprocess.Popen([sys.executable, '-u', str(base/'signal_tester.py'), *argv], cwd=base, env=env)
+        child = subprocess.Popen(command, cwd=executable.parent if executable is not None else base, env=env)
         deadline = time.monotonic()+20
         try:
             while read_instance(file).get('instance') != identity:
