@@ -151,6 +151,14 @@
     const buttons=$('wnList').querySelectorAll?.('[data-preview]');
     if(buttons)for(const el of buttons)if(el.dataset.preview===id)el.focus();
   };
+  // Keep the shortcut inside the file list so text fields and other pages retain Delete.
+  $('wnList').addEventListener('keydown',event=>{
+    if(event.key!=='Delete'||event.defaultPrevented||event.repeat||event.isComposing||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;
+    if(location.hash!=='#wirenest'||$('wirenestPage').hidden||busy||readonly||!selectedIds.size)return;
+    if(event.target.isContentEditable||event.target.closest('input,textarea,select,[role="textbox"]'))return;
+    event.preventDefault();event.stopPropagation();
+    return deleteSelected();
+  });
   async function deleteSelected(){
     if(busy||readonly)return;
     const selected=documents.filter(d=>selectedIds.has(d.id));

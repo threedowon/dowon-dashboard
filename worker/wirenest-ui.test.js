@@ -18,7 +18,7 @@ function app({readonly=false,hostname='dashboard.3dowon.com'}={}){
   const document={id:'doc-'+uploads.length,filename:name,size:100,createdAt:'2026-11-18T03:00:00Z'};stored.push(document);return Response.json({document});
  }};
  vm.runInNewContext(source,context);
- return {el,uploads,sent,popup,deleted,confirmations,allowDelete:value=>allowDelete=value,failDelete:value=>failDelete=value,select:(id,keys={})=>el('wnList').onclick({...keys,target:{closest:selector=>selector==='button'?{dataset:{preview:id}}:null}}),selectRow:id=>el('wnList').onclick({target:{closest:selector=>selector==='button'?null:{dataset:{select:id}}}}),send:event=>listeners.get('message')?.(event),open:id=>el('wnList').onclick({target:{closest:()=>({dataset:{open:id}})}}),get requests(){return requests;},fail:name=>{failName=name;},
+ return {context,el,uploads,sent,popup,deleted,confirmations,allowDelete:value=>allowDelete=value,failDelete:value=>failDelete=value,select:(id,keys={})=>el('wnList').onclick({...keys,target:{closest:selector=>selector==='button'?{dataset:{preview:id}}:null}}),selectRow:id=>el('wnList').onclick({target:{closest:selector=>selector==='button'?null:{dataset:{select:id}}}}),send:event=>listeners.get('message')?.(event),open:id=>el('wnList').onclick({target:{closest:()=>({dataset:{open:id}})}}),get requests(){return requests;},fail:name=>{failName=name;},
   drop:files=>el('wirenestPage').drop({dataTransfer:{types:['Files'],files},preventDefault(){}}),
   retry:id=>el('wnList').onclick({target:{closest:()=>({dataset:{retry:id}})}})};
 }
@@ -82,4 +82,26 @@ test('deleting multiple selected backups confirms once and cancellation deletes 
 test('partial delete failure keeps unremoved backups selected for retry',async()=>{
  const a=await withBackups();a.select('doc-1');a.select('doc-2',{ctrlKey:true});a.select('doc-3',{ctrlKey:true});a.failDelete('doc-2');await a.el('wnDeleteBackup').onclick();assert.deepEqual(a.deleted,['doc-3']);assert.deepEqual(selected(a),['doc-1','doc-2']);assert.match(a.el('wnStatus').textContent,/1 deleted/);
  a.failDelete(null);await a.el('wnDeleteBackup').onclick();assert.deepEqual(a.deleted.sort(),['doc-1','doc-2','doc-3']);assert.deepEqual(selected(a),[]);
+});
+
+function deleteKey(a,overrides={}){
+ const event={key:'Delete',target:{closest:()=>null},prevented:false,stopped:false,preventDefault(){this.prevented=true;},stopPropagation(){this.stopped=true;},...overrides};
+ return {event,done:a.el('wnList').keydown(event)};
+}
+test('Delete key confirms and deletes the current multiple selection',async()=>{
+ const a=await withBackups();a.select('doc-1');a.select('doc-3',{ctrlKey:true});const {event,done}=deleteKey(a);await done;
+ assert.equal(event.prevented,true);assert.equal(event.stopped,true);assert.equal(a.confirmations.length,1);assert.deepEqual(a.deleted.sort(),['doc-1','doc-3']);
+});
+test('Delete cancellation preserves selection and repeated, modified or composing keys do nothing',async()=>{
+ const a=await withBackups();a.select('doc-1');a.allowDelete(false);await deleteKey(a).done;assert.deepEqual(a.deleted,[]);assert.deepEqual(selected(a),['doc-1']);
+ for(const overrides of [{key:'Backspace'},{key:'Enter'},{repeat:true},{isComposing:true},{defaultPrevented:true},{ctrlKey:true},{metaKey:true},{altKey:true},{shiftKey:true}]){
+  const {event,done}=deleteKey(a,overrides);await done;assert.equal(event.prevented,false);
+ }
+ assert.equal(a.confirmations.length,1);
+});
+test('Delete never handles editing, another page, readonly mode, hidden pages or empty selection',async()=>{
+ const a=await withBackups();const empty=deleteKey(a);await empty.done;assert.equal(empty.event.prevented,false);a.select('doc-1');
+ for(const target of [{isContentEditable:true,closest:()=>null},{closest:()=>({tagName:'INPUT'})},{closest:()=>({tagName:'TEXTAREA'})},{closest:()=>({tagName:'SELECT'})}]){const r=deleteKey(a,{target});await r.done;assert.equal(r.event.prevented,false);}
+ a.context.location.hash='#pdf';await deleteKey(a).done;a.context.location.hash='#wirenest';a.el('wirenestPage').hidden=true;await deleteKey(a).done;assert.equal(a.confirmations.length,0);
+ const r=app({readonly:true});await settle();await deleteKey(r).done;assert.equal(r.confirmations.length,0);
 });
