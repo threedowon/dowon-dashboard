@@ -22,6 +22,8 @@ jobs:
           node-version: '22'
       - name: Install dashboard test dependencies
         run: npm ci
+      - name: Verify embedded version matches the release tag
+        run: python -c "import sys,os; sys.path.insert(0,'signal-tester'); from tester_version import VERSION; assert os.environ['GITHUB_REF_NAME']=='signal-tester-v'+VERSION"
       - name: Build standalone EXE
         run: python signal-tester/build_windows.py
       - name: Test source and packaged application
@@ -40,5 +42,14 @@ jobs:
           $exe = 'signal-tester/dist/SignalTester.exe'
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash.ToLower()
           "$hash  SignalTester.exe" | Set-Content -Encoding ascii signal-tester/dist/SHA256SUMS.txt
-          gh release create $env:GITHUB_REF_NAME $exe signal-tester/dist/SHA256SUMS.txt --verify-tag --title "Signal Tester $env:GITHUB_REF_NAME" --notes-file signal-tester/RELEASE-NOTES.md
+          $releaseBase = "https://github.com/threedowon/dowon-dashboard/releases/download/$env:GITHUB_REF_NAME/"
+          $manifest = @{
+            tag_name = $env:GITHUB_REF_NAME
+            assets = @(
+              @{ name = 'SignalTester.exe'; size = (Get-Item $exe).Length; digest = "sha256:$hash"; browser_download_url = "${releaseBase}SignalTester.exe" },
+              @{ name = 'SHA256SUMS.txt'; browser_download_url = "${releaseBase}SHA256SUMS.txt" }
+            )
+          }
+          $manifest | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8NoBOM signal-tester/dist/update.json
+          gh release create $env:GITHUB_REF_NAME $exe signal-tester/dist/SHA256SUMS.txt signal-tester/dist/update.json --verify-tag --title "Signal Tester $env:GITHUB_REF_NAME" --notes-file signal-tester/RELEASE-NOTES.md
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

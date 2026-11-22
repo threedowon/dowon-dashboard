@@ -10,6 +10,10 @@ def run_window(server, url, webview_module=None):
     webview.settings['ALLOW_FILE_URLS'] = False
     window = webview.create_window('Signal Tester', url, width=1440, height=940,
                                   min_size=(1000, 650), text_select=True, background_color='#f2f5f2')
+    server.ui_ready = False
+    def loaded():
+        server.ui_ready = True
+    window.events.loaded += loaded
     finished = threading.Event()
     def serve():
         try:

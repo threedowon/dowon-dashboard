@@ -88,6 +88,9 @@ class CloudSync:
                 self.login = self.meta.get('login', '')
         except (OSError, ValueError, UnicodeError):
             pass
+        # Keep this PC's identity stable across restarts, even before first login.
+        if not self.file.exists():
+            self.persist()
         self.transport = transport or self._http
         self.lock = threading.RLock()
         self.operation = threading.Lock()
