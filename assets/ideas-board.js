@@ -40,6 +40,31 @@ globalThis.IdeaModel = (() => {
   }
   function point(clientX,clientY,bounds,view){return {x:(clientX-bounds.left-view.x)/view.zoom,y:(clientY-bounds.top-view.y)/view.zoom};}
   function zoomAt(view,next,anchor){const zoom=clamp(next,0.2,2);return {zoom,x:anchor.x-(anchor.x-view.x)*zoom/view.zoom,y:anchor.y-(anchor.y-view.y)*zoom/view.zoom};}
+  // Geometry stays in board coordinates; the capture radius is always six screen pixels.
+  function snapMove(rect,peers,{zoom=1,guides=true,grid=false,spacing=24,disabled=false}={}){
+    const step=[8,16,24,32,48].includes(spacing)?spacing:24,threshold=6/clamp(zoom,.2,2);
+    const result={x:rect.x,y:rect.y,guides:[]};
+    if(disabled)return result;
+    for(const axis of ['x','y']){
+      const size=axis==='x'?'width':'height',cross=axis==='x'?'y':'x',crossSize=axis==='x'?'height':'width';
+      let best=null;
+      const consider=(value,guide)=>{const distance=Math.abs(value-rect[axis]);if(distance<=threshold&&(!best||distance<best.distance-1e-7))best={value,distance,guide};};
+      if(guides)for(const peer of peers){
+        if(peer.id!==undefined&&peer.id===rect.id)continue;
+        for(const target of [peer[axis],peer[axis]+peer[size]/2,peer[axis]+peer[size]])
+          for(const offset of [0,rect[size]/2,rect[size]])consider(target-offset,{kind:'align',axis,position:target});
+        const lo=Math.max(rect[cross],peer[cross]),hi=Math.min(rect[cross]+rect[crossSize],peer[cross]+peer[crossSize]);
+        if(hi>lo){
+          const edge=peer[axis]+peer[size];
+          consider(edge+step,{kind:'gap',axis,position:(lo+hi)/2,from:edge,to:edge+step,label:step+' px'});
+          consider(peer[axis]-step-rect[size],{kind:'gap',axis,position:(lo+hi)/2,from:peer[axis]-step,to:peer[axis],label:step+' px'});
+        }
+      }
+      result[axis]=clamp(best?best.value:grid?Math.round(rect[axis]/step)*step:rect[axis],-100000,100000);
+      if(best&&result[axis]===best.value)result.guides.push(best.guide);
+    }
+    return result;
+  }
   function history(){const past=[],future=[];const copy=items=>items.map(i=>({...i}));return {
     push(items){past.push(copy(items));if(past.length>40)past.shift();future.length=0;},
     undo(items){if(!past.length)return null;future.push(copy(items));return past.pop();},
@@ -56,7 +81,7 @@ globalThis.IdeaModel = (() => {
     const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([projectId,milestoneId])));
     return 'milestone:'+Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
   }
-  return {cardBoardId,imageType,MAX_IMAGE,clamp,url,media,cleanItem,point,zoomAt,history,store};
+  return {cardBoardId,imageType,MAX_IMAGE,clamp,url,media,cleanItem,point,zoomAt,snapMove,history,store};
 })();
 
 globalThis.IdeasBoard = {
@@ -67,10 +92,34 @@ globalThis.IdeasBoard = {
     const uid=()=>crypto.randomUUID(),records=new Map(),histories=new Map(),objectUrls=new Map(),failures=new Set();
     let scope=null,normalProject=null,scopeToken=0;
     let current=null,selected=null,loading=true,initialized=false,drag=null,space=false,saveQueue=Promise.resolve(),loadToken=0,modalKind=null,editing=null,lastPoint=null,viewTimer=null,renderPending=false;
+    const snap={guides:true,grid:false,spacing:24};
+    try{const saved=JSON.parse(localStorage.getItem('dowon-ideas:snapping')||'null');if(saved){for(const key of ['guides','grid'])if(typeof saved[key]==='boolean')snap[key]=saved[key];if([8,16,24,32,48].includes(saved.spacing))snap.spacing=saved.spacing;}}catch{}
+    const guideLayer=document.createElement('div');guideLayer.className='ideas-guides';guideLayer.setAttribute('aria-hidden','true');viewport.append(guideLayer);
+    function clearGuides(){guideLayer.replaceChildren();}
+    function drawGuides(lines){
+      clearGuides();const view=activeRecord()?.view;if(!view)return;
+      for(const line of lines){
+        const el=document.createElement('div');el.className='ideas-guide '+line.kind+' '+line.axis;
+        if(line.kind==='align')el.style[line.axis==='x'?'left':'top']=(view[line.axis]+line.position*view.zoom)+'px';
+        else{
+          const horizontal=line.axis==='x';el.style.left=(view.x+(horizontal?line.from:line.position)*view.zoom)+'px';el.style.top=(view.y+(horizontal?line.position:line.from)*view.zoom)+'px';el.style[horizontal?'width':'height']=((line.to-line.from)*view.zoom)+'px';
+          const label=document.createElement('span');label.textContent=line.label;el.append(label);
+        }
+        guideLayer.append(el);
+      }
+    }
+    function snapControls(){
+      for(const [id,key] of [['ideasGuides','guides'],['ideasGrid','grid']])if($(id)){$(id).setAttribute('aria-pressed',String(snap[key]));$(id).disabled=readonly||loading||!activeRecord();}
+      if($('ideasSpacing')){$('ideasSpacing').value=String(snap.spacing);$('ideasSpacing').disabled=readonly||loading||!activeRecord();}
+      viewport.classList.toggle('has-grid',snap.grid);
+    }
+    function setSnap(key,value){cancelDrag();snap[key]=value;try{localStorage.setItem('dowon-ideas:snapping',JSON.stringify(snap));}catch{}snapControls();applyView();}
+    for(const [id,key] of [['ideasGuides','guides'],['ideasGrid','grid']])if($(id))$(id).onclick=()=>setSnap(key,!snap[key]);
+    if($('ideasSpacing'))$('ideasSpacing').onchange=e=>setSnap('spacing',Number(e.target.value));
     const empty=project=>({projectId:project.id,name:project.name,items:[],view:{x:40,y:40,zoom:1},updatedAt:new Date().toISOString()});
     const activeRecord=()=>{const r=records.get(current);return r?._stub?undefined:r;},history=()=>histories.get(current);
     const message=(text,error=false)=>{$('ideasStatus').textContent=text;$('ideasStatus').classList.toggle('ideas-error',error);};
-    function controls(){const ready=!!activeRecord()&&!loading&&!readonly,item=activeRecord()?.items.find(i=>i.id===selected);for(const name of ['ideasImage','ideasLink','ideasNote','ideasImport','ideasRetry'])$(name).disabled=!ready;$('ideasUndo').disabled=!ready||!history()?.canUndo;$('ideasRedo').disabled=!ready||!history()?.canRedo;$('ideasDelete').disabled=!ready||!selected;$('ideasEdit').disabled=!ready||!item||(item.kind!=='note'&&!item.url);$('ideasEdit').textContent=item?.kind==='note'?'메모 입력':'링크 수정';$('ideasExport').disabled=!activeRecord()||loading;$('ideasNewProject').disabled=readonly||!!scope;for(const name of ['ideasZoomIn','ideasZoomOut','ideasFit'])$(name).disabled=!activeRecord()||loading;}
+    function controls(){snapControls();const ready=!!activeRecord()&&!loading&&!readonly,item=activeRecord()?.items.find(i=>i.id===selected);for(const name of ['ideasImage','ideasLink','ideasNote','ideasImport','ideasRetry'])$(name).disabled=!ready;$('ideasUndo').disabled=!ready||!history()?.canUndo;$('ideasRedo').disabled=!ready||!history()?.canRedo;$('ideasDelete').disabled=!ready||!selected;$('ideasEdit').disabled=!ready||!item||(item.kind!=='note'&&!item.url);$('ideasEdit').textContent=item?.kind==='note'?'메모 입력':'링크 수정';$('ideasExport').disabled=!activeRecord()||loading;$('ideasNewProject').disabled=readonly||!!scope;for(const name of ['ideasZoomIn','ideasZoomOut','ideasFit'])$(name).disabled=!activeRecord()||loading;}
     function queueSave(record){
       if(readonly)return Promise.resolve();
       record.updatedAt=new Date().toISOString();const snapshot={...record,view:{...record.view},items:record.items.map(i=>({...i}))};
@@ -78,7 +127,7 @@ globalThis.IdeasBoard = {
       saveQueue=saveQueue.catch(()=>{}).then(()=>storage.put(snapshot)).then(()=>{failures.delete(record.projectId);if(current===record.projectId)message(storage.isCloud?storage.message(current):'● 이 브라우저에 자동 저장됨');},()=>{failures.add(record.projectId);if(current===record.projectId)message('저장 실패 · 보드 백업으로 보관하거나 다시 저장해 주세요.',true);});
       return saveQueue;
     }
-    function applyView(){const r=activeRecord();if(!r)return;world.style.transform=`translate(${r.view.x}px,${r.view.y}px) scale(${r.view.zoom})`;viewport.style.backgroundPosition=`${r.view.x}px ${r.view.y}px`;viewport.style.backgroundSize=`${24*r.view.zoom}px ${24*r.view.zoom}px`;$('ideasZoom').textContent=Math.round(r.view.zoom*100)+'%';}
+    function applyView(){const r=activeRecord();if(!r)return;world.style.transform=`translate(${r.view.x}px,${r.view.y}px) scale(${r.view.zoom})`;viewport.style.backgroundPosition=`${r.view.x}px ${r.view.y}px`;const step=snap.grid?snap.spacing:24;viewport.style.backgroundSize=`${step*r.view.zoom}px ${step*r.view.zoom}px`;$('ideasZoom').textContent=Math.round(r.view.zoom*100)+'%';}
     function saveView(){clearTimeout(viewTimer);const record=activeRecord();if(record)viewTimer=setTimeout(()=>queueSave(record),250);}
     function select(id){selected=id;for(const el of world.querySelectorAll('.idea-card')){const active=el.dataset.ideaId===id;el.classList.toggle('is-selected',active);el.setAttribute('aria-selected',String(active));}controls();}
     function imageSrc(item){if(!item.blob)return item.url;if(!objectUrls.has(item.id))objectUrls.set(item.id,URL.createObjectURL(item.blob));return objectUrls.get(item.id);}
@@ -86,6 +135,7 @@ globalThis.IdeasBoard = {
     const editingNote=()=>world.contains(document.activeElement)&&document.activeElement.matches('textarea.idea-note');
     function focusNote(id){const card=[...world.children].find(el=>el.dataset.ideaId===id),note=card?.querySelector('textarea.idea-note');if(note){select(id);note.focus({preventScroll:true});}}
     function render(){
+      clearGuides();snapControls();
       const focused=editingNote()?document.activeElement:null;
       if(focused?.dataset.composing==='true'){renderPending=true;return;}renderPending=false;
       const caret=focused?{id:focused.closest('[data-idea-id]').dataset.ideaId,start:focused.selectionStart,end:focused.selectionEnd}:null;
@@ -205,10 +255,10 @@ globalThis.IdeasBoard = {
     function remove(){const r=activeRecord();if(!readonly&&r?.items.some(i=>i.id===selected))mutate(r,items=>items.splice(items.findIndex(i=>i.id===selected),1));}
     function undoRedo(kind){if(readonly||loading)return;cancelDrag();const r=activeRecord(),next=r&&history()?.[kind](r.items);if(next){r.items=next;queueSave(r);render();}}
     $('ideasDelete').onclick=remove;$('ideasUndo').onclick=()=>undoRedo('undo');$('ideasRedo').onclick=()=>undoRedo('redo');$('ideasRetry').onclick=async()=>{if(activeRecord()){await queueSave(activeRecord());if(storage.isCloud){await storage.retry(current);await syncCloud();}}};
-    function zoom(next,anchor){const r=activeRecord();if(!r)return;const bounds=viewport.getBoundingClientRect();r.view=IdeaModel.zoomAt(r.view,next,anchor||{x:bounds.width/2,y:bounds.height/2});applyView();saveView();}
+    function zoom(next,anchor){cancelDrag();const r=activeRecord();if(!r)return;const bounds=viewport.getBoundingClientRect();r.view=IdeaModel.zoomAt(r.view,next,anchor||{x:bounds.width/2,y:bounds.height/2});applyView();saveView();}
     $('ideasZoomIn').onclick=()=>zoom(activeRecord().view.zoom*1.2);$('ideasZoomOut').onclick=()=>zoom(activeRecord().view.zoom/1.2);
     $('ideasFit').onclick=()=>{const r=activeRecord();if(!r)return;const bounds=viewport.getBoundingClientRect();if(!r.items.length)r.view={x:40,y:40,zoom:1};else{const left=Math.min(...r.items.map(i=>i.x)),top=Math.min(...r.items.map(i=>i.y)),right=Math.max(...r.items.map(i=>i.x+i.width)),bottom=Math.max(...r.items.map(i=>i.y+(world.querySelector(`[data-idea-id="${CSS.escape(i.id)}"]`)?.offsetHeight||300)));const z=IdeaModel.clamp(Math.min((bounds.width-80)/(right-left),(bounds.height-80)/(bottom-top),1),.2,2);r.view={zoom:z,x:(bounds.width-(right-left)*z)/2-left*z,y:(bounds.height-(bottom-top)*z)/2-top*z};}applyView();saveView();};
-    viewport.addEventListener('wheel',e=>{if(!activeRecord()||(typing(e.target)&&!e.ctrlKey&&!e.metaKey))return;e.preventDefault();const r=activeRecord(),bounds=viewport.getBoundingClientRect();if(e.ctrlKey||e.metaKey)zoom(r.view.zoom*Math.exp(-e.deltaY*.002),{x:e.clientX-bounds.left,y:e.clientY-bounds.top});else{r.view.x-=e.deltaX;r.view.y-=e.deltaY;applyView();saveView();}},{passive:false});
+    viewport.addEventListener('wheel',e=>{if(!activeRecord()||(typing(e.target)&&!e.ctrlKey&&!e.metaKey))return;e.preventDefault();cancelDrag();const r=activeRecord(),bounds=viewport.getBoundingClientRect();if(e.ctrlKey||e.metaKey)zoom(r.view.zoom*Math.exp(-e.deltaY*.002),{x:e.clientX-bounds.left,y:e.clientY-bounds.top});else{r.view.x-=e.deltaX;r.view.y-=e.deltaY;applyView();saveView();}},{passive:false});
     viewport.addEventListener('pointerdown',e=>{
       if(!activeRecord()||loading||![0,1].includes(e.button)||e.target.closest('iframe,video,a,input,textarea'))return;
       const card=e.target.closest('[data-idea-id]'),resize=e.target.closest('[data-idea-resize]'),move=e.target.closest('[data-idea-move]');
@@ -216,7 +266,7 @@ globalThis.IdeasBoard = {
       if(readonly&&card&&!space)return;
       e.preventDefault();viewport.focus();const r=activeRecord();
       if(!card||space||e.button===1){select(null);drag={type:'pan',x:e.clientX,y:e.clientY,before:{...r.view},id:e.pointerId};viewport.classList.add('is-panning');}
-      else {select(card.dataset.ideaId);const item=r.items.find(i=>i.id===selected);drag={type:resize?'resize':'move',x:e.clientX,y:e.clientY,before:{...item},item,id:e.pointerId,moved:false};}
+      else {select(card.dataset.ideaId);const item=r.items.find(i=>i.id===selected),heights=new Map([...world.children].map(el=>[el.dataset.ideaId,el.offsetHeight]));drag={type:resize?'resize':'move',x:e.clientX,y:e.clientY,before:{...item},item,id:e.pointerId,moved:false,height:card.offsetHeight,peers:r.items.filter(i=>i.id!==item.id).map(i=>({id:i.id,x:i.x,y:i.y,width:i.width,height:heights.get(i.id)||i.width/i.ratio}))};}
       viewport.setPointerCapture?.(e.pointerId);
     });
     viewport.addEventListener('pointermove',e=>{
@@ -228,12 +278,12 @@ globalThis.IdeasBoard = {
       if(Math.hypot(dx,dy)<4&&!drag.moved)return;drag.moved=true;
       const el=[...world.children].find(el=>el.dataset.ideaId===drag.item.id);
       const preview=drag.after={...drag.before};
-      if(drag.type==='move'){preview.x=IdeaModel.clamp(drag.before.x+dx/r.view.zoom,-100000,100000);preview.y=IdeaModel.clamp(drag.before.y+dy/r.view.zoom,-100000,100000);el.style.left=preview.x+'px';el.style.top=preview.y+'px';}
+      if(drag.type==='move'){const result=IdeaModel.snapMove({...preview,x:IdeaModel.clamp(drag.before.x+dx/r.view.zoom,-100000,100000),y:IdeaModel.clamp(drag.before.y+dy/r.view.zoom,-100000,100000),height:drag.height},drag.peers,{...snap,zoom:r.view.zoom,disabled:e.altKey});preview.x=result.x;preview.y=result.y;drawGuides(result.guides);el.style.left=preview.x+'px';el.style.top=preview.y+'px';}
       else {preview.width=IdeaModel.clamp(drag.before.width+dx/r.view.zoom,180,1200);el.style.width=preview.width+'px';const note=el.querySelector('textarea.idea-note');if(note)sizeNote(note);}
     });
     viewport.addEventListener('pointerleave',()=>{if(!drag)lastPoint=null;});
-    viewport.addEventListener('pointerup',e=>{if(!drag||drag.id!==e.pointerId)return;const d=drag;drag=null;viewport.classList.remove('is-panning');if(viewport.hasPointerCapture?.(e.pointerId))viewport.releasePointerCapture(e.pointerId);if(d.type==='pan'){saveView();return;}if(d.moved){const r=activeRecord();history().push(r.items);Object.assign(d.item,d.after);queueSave(r);controls();}});
-    function cancelDrag(){if(!drag)return;const d=drag;drag=null;viewport.classList.remove('is-panning');if(d.type==='pan')activeRecord().view=d.before;render();}
+    viewport.addEventListener('pointerup',e=>{if(!drag||drag.id!==e.pointerId)return;const d=drag;drag=null;clearGuides();viewport.classList.remove('is-panning');if(viewport.hasPointerCapture?.(e.pointerId))viewport.releasePointerCapture(e.pointerId);if(d.type==='pan'){saveView();return;}if(d.moved&&['x','y','width'].some(key=>d.after[key]!==d.before[key])){const r=activeRecord();history().push(r.items);Object.assign(d.item,d.after);queueSave(r);controls();}});
+    function cancelDrag(){clearGuides();if(!drag)return;const d=drag;drag=null;viewport.classList.remove('is-panning');if(d.type==='pan')activeRecord().view=d.before;render();if(viewport.hasPointerCapture?.(d.id))viewport.releasePointerCapture(d.id);}
     viewport.addEventListener('pointercancel',cancelDrag);viewport.addEventListener('lostpointercapture',()=>{if(drag)cancelDrag();});
     world.addEventListener('click',e=>{const card=e.target.closest('[data-idea-id]');if(card)select(card.dataset.ideaId);});
     world.addEventListener('dblclick',e=>{const card=e.target.closest('[data-idea-id]');if(card&&!e.target.closest('a,video,iframe,button,input,textarea')){select(card.dataset.ideaId);editSelected();}});
@@ -245,9 +295,9 @@ globalThis.IdeasBoard = {
       const key=e.key.toLowerCase();if((e.ctrlKey||e.metaKey)&&['z','y'].includes(key)){e.preventDefault();undoRedo(key==='y'||e.shiftKey?'redo':'undo');return;}
       if((e.key==='Delete'||e.key==='Backspace')&&selected){e.preventDefault();remove();return;}
       const card=e.target.closest('[data-idea-id]');if(card&&e.key==='Enter'){e.preventDefault();select(card.dataset.ideaId);editSelected();return;}
-      if(selected&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const step=e.shiftKey?20:5;mutate(activeRecord(),items=>{const item=items.find(i=>i.id===selected);if(e.target.closest('[data-idea-resize]'))item.width=IdeaModel.clamp(item.width+(e.key==='ArrowLeft'||e.key==='ArrowUp'?-step:step),180,1200);else if(e.key.includes('Left')||e.key.includes('Right'))item.x+=e.key==='ArrowLeft'?-step:step;else item.y+=e.key==='ArrowUp'?-step:step;});viewport.focus();}
+      if(selected&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const step=e.altKey?1:snap.grid?snap.spacing*(e.shiftKey?5:1):e.shiftKey?20:5;mutate(activeRecord(),items=>{const item=items.find(i=>i.id===selected);if(e.target.closest('[data-idea-resize]'))item.width=IdeaModel.clamp(item.width+(e.key==='ArrowLeft'||e.key==='ArrowUp'?-step:step),180,1200);else {const axis=e.key.includes('Left')||e.key.includes('Right')?'x':'y',direction=e.key==='ArrowLeft'||e.key==='ArrowUp'?-1:1;let next=item[axis]+direction*step;if(snap.grid&&!e.altKey)next=Math.round(next/snap.spacing)*snap.spacing;item[axis]=IdeaModel.clamp(next,-100000,100000);}});viewport.focus();}
     });
-    document.addEventListener('keyup',e=>{if(e.code==='Space')space=false;});window.addEventListener('blur',()=>{space=false;cancelDrag();});
+    document.addEventListener('keyup',e=>{if(e.code==='Space')space=false;});window.addEventListener('blur',()=>{space=false;cancelDrag();});window.addEventListener('hashchange',cancelDrag);
     function dataUrl(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob);});}
     $('ideasExport').onclick=async()=>{const r=activeRecord();if(!r)return;try{const items=await Promise.all(r.items.map(async i=>{const {blob,...item}=i;return blob?{...item,data:await dataUrl(blob)}:item;}));const blob=new Blob([JSON.stringify({version:1,name:r.name,items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(r.name||'레퍼런스').replace(/[<>:"/\\|?*]/g,'-')+'-보드.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('이미지를 포함한 보드 백업을 내려받았어요.');}catch{message('백업에 실패했어요. 다시 시도해 주세요.',true);}};
     $('ideasImport').onclick=()=>$('ideasBackupFile').click();

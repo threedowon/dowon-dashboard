@@ -33,3 +33,46 @@ test('zoom anchors preserve world coordinates and layout values are bounded on r
   const card=M.cleanItem({id:'n',kind:'note',x:Infinity,y:-1e20,width:1,ratio:Infinity,text:'<script>alert(1)</script>'});
   assert.equal(card.x,0);assert.equal(card.y,-100000);assert.equal(card.width,180);assert.equal(card.text,'<script>alert(1)</script>');
 });
+
+const box=(x,y,width=200,height=120,id='moving')=>({id,x,y,width,height});
+test('guides snap both axes to card edges without changing size or source records',()=>{
+ const rect=box(104,204),peer=box(100,200,320,180,'peer'),before=structuredClone([rect,peer]);
+ const out=M.snapMove(rect,[peer]);assert.equal(out.x,100);assert.equal(out.y,200);assert.equal(out.guides.length,2);
+ assert.deepEqual([rect,peer],before);
+});
+test('centres align for different image, video and note dimensions',()=>{
+ const out=M.snapMove(box(184,300,160,270),[box(100,800,320,160,'peer')]);
+ assert.equal(out.x,180);assert.equal(out.y,300);assert.equal(out.guides[0].position,260);
+});
+test('capture distance remains six screen pixels at all supported zoom levels',()=>{
+ const peer=box(100,500,200,120,'peer');
+ for(const zoom of [.2,.5,1,2]){
+  assert.equal(M.snapMove(box(100+5/zoom,20),[peer],{zoom}).x,100);
+  assert.equal(M.snapMove(box(100+7/zoom,20),[peer],{zoom}).x,100+7/zoom);
+ }
+});
+test('uniform spacing snaps on either side and reports the measured gap',()=>{
+ const peer=box(100,100,200,120,'peer');
+ const right=M.snapMove(box(327,100),[peer],{spacing:24});assert.equal(right.x,324);assert.equal(right.guides.find(g=>g.kind==='gap').label,'24 px');
+ const left=M.snapMove(box(-120,100),[peer],{spacing:24});assert.equal(left.x,-124);
+ const below=M.snapMove(box(100,255),[peer],{spacing:32});assert.equal(below.y,252);
+});
+test('grid rounds board coordinates including negatives and does not mutate existing cards',()=>{
+ const out=M.snapMove(box(-13,51),[],{grid:true,spacing:24});assert.equal(out.x,-24);assert.equal(out.y,48);assert.deepEqual(out.guides,[]);
+});
+test('card alignment wins over the grid, while Alt bypasses both snapping modes',()=>{
+ const rect=box(102,203),peers=[box(100,200,200,120,'peer')];
+ assert.equal(M.snapMove(rect,peers,{grid:true}).x,100);
+ assert.deepEqual(M.snapMove(rect,peers,{grid:true,disabled:true}),{x:102,y:203,guides:[]});
+ assert.deepEqual(M.snapMove(rect,peers,{guides:false}),{x:102,y:203,guides:[]});
+});
+test('self is ignored, geometry is bounded, and a real neighbour can still align',()=>{
+ assert.deepEqual(M.snapMove(box(13,17),[box(13,17)]),{x:13,y:17,guides:[]});
+ const out=M.snapMove(box(99999,-99999),[],{grid:true,spacing:48});assert.ok(out.x<=100000&&out.y>=-100000);
+});
+test('snapped positions survive the existing undo/redo and clean-item persistence path',()=>{
+ const items=[M.cleanItem({...box(103,204),kind:'note',text:'Keep my note'})],h=M.history();h.push(items);
+ const snapped=M.snapMove({...items[0],height:160},[box(100,200,320,160,'peer')]);items[0].x=snapped.x;items[0].y=snapped.y;
+ const previous=h.undo(items);assert.equal(previous[0].x,103);assert.equal(previous[0].y,204);
+ const restored=M.cleanItem(h.redo(previous)[0]);assert.equal(restored.x,100);assert.equal(restored.y,200);assert.equal(restored.text,'Keep my note');
+});
