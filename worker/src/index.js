@@ -2,7 +2,7 @@
 import {library} from './library.js';
 import {ideas} from './ideas.js';
 import {transfers, cleanupTransfers} from './transfers.js';
-import {hardware} from './hardware.js';
+import {hardware,hardwareProjects} from './hardware.js';
 const repo="threedowon/dowon-dashboard-data",file="projects.json";
 const j=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{"content-type":"application/json","cache-control":"no-store",...h}});
 const ck=r=>Object.fromEntries((r.headers.get("cookie")||"").split(";").map(x=>x.trim().split("=")).filter(x=>x.length>1).map(([k,...v])=>[k,decodeURIComponent(v.join("="))]));
@@ -22,7 +22,7 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil(cleanupTransfers(en
  const cookies=ck(req);
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
  // Public team workbook, deliberately separate from owner-only dashboard APIs.
- if(u.pathname==='/api/hardware-sheet'){
+ if(u.pathname==='/api/hardware-sheet'||u.pathname.startsWith('/api/hardware-sheet/')){
    if(req.method!=='GET'&&origin!==site)return j({error:'Origin denied'},403,cors);
    return hardware(req,env,cors);
  }
@@ -55,6 +55,7 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil(cleanupTransfers(en
  let session;try{session=await unseal(env,cookies["__Host-dowon_session"])}catch{return j({error:"로그인이 필요합니다."},401,cors)}
  if(session.expires<Date.now()||session.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"로그인 만료"},401,cors);
  if(u.pathname==="/api/me")return j({login:session.login},200,cors);
+ if(u.pathname==='/api/hardware-projects')return hardwareProjects(req,env,cors);
  if(u.pathname==='/api/transfers'||u.pathname.startsWith('/api/transfers/'))return transfers(req,env,cors);
  if(u.pathname==='/api/wirenest'||u.pathname.startsWith('/api/wirenest/'))return library(req,session.token,gh,cors,'wnest');
  if(u.pathname==='/api/library'||u.pathname.startsWith('/api/library/'))return library(req,session.token,gh,cors);
