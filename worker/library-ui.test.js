@@ -62,15 +62,15 @@ test('filtered select all, bulk tag merge, selection reset and confirmed bulk de
  const a=app();await a.load();a.drop([pdf('test-a.pdf'),pdf('test-b.pdf'),pdf('keep.pdf')]);await settle();
  a.el('pdfSearch').value='test-';a.el('pdfSearch').oninput();
  a.el('pdfSelectAll').onchange({target:{checked:true}});
- assert.equal(a.el('pdfSelectionCount').textContent,'2개 선택');
+ assert.equal(a.el('pdfSelectionCount').textContent,'2 selected');
  a.el('pdfBulkTags').onclick();a.el('pdfBulkTagInput').value='공통, 공통';
  await a.el('pdfBulkTagForm').onsubmit({preventDefault(){}});
  assert.equal(a.batches.length,1);assert.equal(a.batches[0].documents.length,2);
  assert.deepEqual(a.stored.map(d=>d.tags),[['공통'],['공통'],[]]);
- assert.equal(a.el('pdfSelectionCount').textContent,'0개 선택');
+ assert.equal(a.el('pdfSelectionCount').textContent,'0 selected');
  a.el('pdfSelectAll').onchange({target:{checked:true}});
  a.el('pdfSearch').value='';a.el('pdfSearch').oninput();
- assert.equal(a.el('pdfSelectionCount').textContent,'0개 선택');
+ assert.equal(a.el('pdfSelectionCount').textContent,'0 selected');
  a.el('pdfSearch').value='test-';a.el('pdfSearch').oninput();
  a.el('pdfSelectAll').onchange({target:{checked:true}});
  a.el('pdfBulkDelete').onclick();assert.match(a.el('pdfDeleteName').textContent,/test-a.pdf/);

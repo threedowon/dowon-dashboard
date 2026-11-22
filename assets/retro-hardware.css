@@ -1,0 +1,58 @@
+/* Only embedded dashboard sheets opt into this theme; standalone stays green. */
+@media screen {
+html[data-retro-sheet="true"]{background:#c0c0c0;color:#111;font-family:Tahoma,"Pretendard Variable",sans-serif}
+html[data-retro-sheet="true"] body{background:#c0c0c0;color:#111;font-family:Tahoma,Pretendard,sans-serif;font-size:15px;letter-spacing:0}
+html[data-retro-sheet="true"] .app>header,html[data-retro-sheet="true"] .app>nav,html[data-retro-sheet="true"] .eyebrow,html[data-retro-sheet="true"] main>footer{display:none}
+html[data-retro-sheet="true"] main{padding:10px 0 6px;max-width:none}
+html[data-retro-sheet="true"] .heading{padding:0 12px 12px;gap:14px}
+html[data-retro-sheet="true"] .heading h1{font-size:19px;letter-spacing:0;margin:0 0 4px;color:#111}
+html[data-retro-sheet="true"] .heading p{font-size:14px;color:#444}
+html[data-retro-sheet="true"] button{border:2px solid;border-color:#fff #222 #222 #fff;box-shadow:inset -1px -1px #808080;border-radius:0;background:#c0c0c0;color:#111;font-size:14px;padding:7px 10px}
+html[data-retro-sheet="true"] button:hover{background:#d4d4d4}
+html[data-retro-sheet="true"] button:active{border-color:#555 #fff #fff #555;box-shadow:inset 1px 1px #808080}
+html[data-retro-sheet="true"] .primary{font-weight:700;background:#c0c0c0;color:#111}
+html[data-retro-sheet="true"] .summary{margin:0 0 10px;padding:8px 0;border:1px solid #888;border-radius:0;background:#e6e6e6}
+html[data-retro-sheet="true"] .summary>div{display:flex;gap:12px;align-items:center;border-color:#999;padding:0 16px}
+html[data-retro-sheet="true"] .summary strong{margin:0;font-size:19px}html[data-retro-sheet="true"] .summary small{font-size:12px}
+html[data-retro-sheet="true"] .summary span{color:#333;font-size:13px}
+html[data-retro-sheet="true"] .workbook{border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;box-shadow:none;background:#faf8ef}
+html[data-retro-sheet="true"] .tools{padding:10px;background:#c0c0c0;gap:10px}
+html[data-retro-sheet="true"] .tools b{font-size:15px}
+html[data-retro-sheet="true"] :is(.search,select,.modal input,.modal textarea,.export-dialog input){border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;background:#fff;color:#111;font-size:14px;min-height:34px}
+html[data-retro-sheet="true"] .badge{background:#ddd;border:1px solid #999;color:#111;border-radius:0;font-size:12px}
+html[data-retro-sheet="true"] .formula{background:#eee;border-color:#999;color:#333;font-size:14px;height:38px}
+html[data-retro-sheet="true"] .formula small{font-size:12px;color:#555}
+html[data-retro-sheet="true"] .gridwrap{max-height:570px;background:#faf8ef}
+html[data-retro-sheet="true"] :is(th,td){border-color:#999}
+html[data-retro-sheet="true"] .sheet .letters th{background:#c0c0c0;color:#111;font:14px Tahoma,sans-serif;height:28px}
+html[data-retro-sheet="true"] .sheet .namehead{background:#faf8ef!important}
+html[data-retro-sheet="true"] .rownum{background:#c0c0c0!important;color:#333!important;font:14px Tahoma,sans-serif}
+html[data-retro-sheet="true"] .product{background:#faf8ef;padding:12px 12px 10px}
+html[data-retro-sheet="true"] .productedit{border:0;box-shadow:none;background:transparent;padding:0}
+html[data-retro-sheet="true"] .productedit:hover{background:transparent}
+html[data-retro-sheet="true"] .productimage{height:110px;background:#fff;border-radius:0;color:#555}
+html[data-retro-sheet="true"] .product b{font-size:15px;color:#111}
+html[data-retro-sheet="true"] .product small{font-size:12px;color:#555}
+html[data-retro-sheet="true"] .product a,html[data-retro-sheet="true"] .purchase a{font-size:14px;color:#0000b0;text-decoration:underline}
+html[data-retro-sheet="true"] .productactions{gap:7px}html[data-retro-sheet="true"] .productactions a{overflow-wrap:anywhere}
+html[data-retro-sheet="true"] .itemtags>span{border-radius:0;color:#333;background:#e5e5e5;border:1px solid #aaa;font-size:12px}
+html[data-retro-sheet="true"] .personcell button{background:transparent;border:0;box-shadow:none;font-size:15px}
+html[data-retro-sheet="true"] .avatar{border-radius:0;background:#ddd;color:#111}
+html[data-retro-sheet="true"] .sheet td input{background:#faf8ef;color:#111;font-size:16px}
+html[data-retro-sheet="true"] .sheet td input:focus{background:#fff;outline:2px solid #000080}
+html[data-retro-sheet="true"] .sheet tfoot tr:first-child>*{background:#c0c0c0;color:#111;border-top:2px solid #888}
+html[data-retro-sheet="true"] .sheet tfoot th:nth-child(2){background:#c0c0c0}
+html[data-retro-sheet="true"] .rowtotal{background:#eee;color:#111}
+html[data-retro-sheet="true"] .sheetfooter{background:#c0c0c0;border-color:#888;padding:4px 8px;height:46px}
+html[data-retro-sheet="true"] .sheetfooter>div{gap:5px}
+html[data-retro-sheet="true"] .sheetfooter button{padding:6px 14px;border:2px solid;border-color:#fff #555 #555 #fff;font-size:14px;color:#111}
+html[data-retro-sheet="true"] .sheetfooter button.selected{background:#faf8ef;font-weight:bold;border-bottom-color:#faf8ef}
+html[data-retro-sheet="true"] .hint{font-size:12px;color:#444;padding:0 10px}
+html[data-retro-sheet="true"] .purchase th{background:#c0c0c0;color:#111;font-size:14px}
+html[data-retro-sheet="true"] .purchase td{font-size:15px}html[data-retro-sheet="true"] .purchase .green{color:inherit}
+html[data-retro-sheet="true"] .modal,html[data-retro-sheet="true"] .export-dialog{border:2px solid;border-color:#fff #222 #222 #fff;border-radius:0;background:#c0c0c0;color:#111;box-shadow:3px 3px #333}
+html[data-retro-sheet="true"] .modaltitle{background:#000080;color:#fff;margin:-20px -20px 16px;padding:6px 8px}
+html[data-retro-sheet="true"] .modaltitle h2{color:#fff;font-size:19px}
+html[data-retro-sheet="true"] .overlay{backdrop-filter:none;background:#0005}
+@media(max-width:700px){html[data-retro-sheet="true"] .summary>div{display:block;padding:0 10px}html[data-retro-sheet="true"] .heading{flex-wrap:wrap}html[data-retro-sheet="true"] .tools>div{flex-wrap:wrap}html[data-retro-sheet="true"] .gridwrap{max-height:60vh}}
+}

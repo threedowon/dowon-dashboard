@@ -13,23 +13,23 @@ function render(){
  for(const id of selectedIds)if(!docs.some(d=>d.id===id))selectedIds.delete(id);
  const counts=new Map();for(const d of docs)for(const t of d.tags)counts.set(t,(counts.get(t)||0)+1);
  if(filter!==null&&filter!==''&&!counts.has(filter))filter=null;
- const filters=[{value:null,label:'전체',n:docs.length},{value:'',label:'태그 없음',n:docs.filter(d=>!d.tags.length).length},...[...counts].sort((a,b)=>a[0].localeCompare(b[0],'ko')).map(([value,n])=>({value,label:value,n}))];
+ const filters=[{value:null,label:'All documents',n:docs.length},{value:'',label:'Untagged',n:docs.filter(d=>!d.tags.length).length},...[...counts].sort((a,b)=>a[0].localeCompare(b[0],'ko')).map(([value,n])=>({value,label:value,n}))];
  $('pdfTags').innerHTML=filters.map((t,i)=>'<button type="button" data-filter="'+i+'" aria-pressed="'+(filter===t.value)+'">'+esc(t.label)+' <span>'+t.n+'</span></button>').join('');
  $('pdfTags').onclick=e=>{const b=e.target.closest('[data-filter]');if(b){selectedIds.clear();filter=filters[Number(b.dataset.filter)].value;render();}};
  const q=$('pdfSearch').value.trim().toLocaleLowerCase();
  const shown=docs.filter(d=>(filter===null||(filter===''?!d.tags.length:d.tags.includes(filter)))&&[d.title,d.filename,...d.tags].join(' ').toLocaleLowerCase().includes(q));
  visibleDocs=shown;renderSelection();
- $('pdfCount').textContent=ready?shown.length+'개 문서'+(filter!==null?' · '+(filter||'태그 없음'):''):'';
+ $('pdfCount').textContent=ready?shown.length+' documents'+(filter!==null?' · '+(filter||'태그 없음'):''):'';
  const completedIds=new Set(dropUploads.filter(job=>job.document).map(job=>job.document.id));
  const rows=dropUploads.map(job=>{const doc=job.document&&shown.find(d=>d.id===job.document.id);return job.document?(doc?documentCard(doc):''):uploadCard(job);}).join('')+shown.filter(d=>!completedIds.has(d.id)).map(documentCard).join('');
  const active=dropUploads.filter(job=>!job.document).length;
  if(ready&&active)$('pdfCount').textContent+=' · 업로드 '+active+'개';
  $('pdfList').innerHTML=rows||'<div class="empty">'+(!ready?'GitHub 연결 후 자료실을 불러와 주세요.':docs.length?'조건에 맞는 문서가 없어요.<br>검색어나 태그를 바꿔보세요.':'아직 보관한 PDF가 없어요.<br>PDF를 올리고 태그로 정리해 보세요.')+'</div>';
 }
-function documentCard(d){return '<article class="pdf-card '+(selectedIds.has(d.id)?'is-selected':'')+'"><label class="pdf-select-label"><input type="checkbox" data-select="'+esc(d.id)+'" aria-label="'+esc(d.title)+' 선택" '+(selectedIds.has(d.id)?'checked ':'')+(busy?'disabled':'')+'> 선택</label><div class="pdf-emblem">PDF / '+esc(size(d.size))+'</div><h2>'+esc(d.title)+'</h2><p class="small">'+esc(d.filename)+'<br>'+esc(d.createdAt.slice(0,10))+' 추가</p><div class="pdf-card-tags">'+d.tags.map(t=>'<button class="tag" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join('')+'</div><div class="tools"><button class="btn primary" data-open="'+d.id+'">PDF 열기</button><button class="btn" data-edit="'+d.id+'">제목·태그 수정</button><button class="btn danger" data-delete="'+d.id+'">삭제</button></div></article>';}
+function documentCard(d){return '<article class="pdf-card '+(selectedIds.has(d.id)?'is-selected':'')+'"><label class="pdf-select-label"><input type="checkbox" data-select="'+esc(d.id)+'" aria-label="'+esc(d.title)+' 선택" '+(selectedIds.has(d.id)?'checked ':'')+(busy?'disabled':'')+'> Select</label><div class="pdf-emblem">PDF / '+esc(size(d.size))+'</div><h2>'+esc(d.title)+'</h2><p class="small">'+esc(d.filename)+'<br>'+esc(d.createdAt.slice(0,10))+' 추가</p><div class="pdf-card-tags">'+d.tags.map(t=>'<button class="tag" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join('')+'</div><div class="tools"><button class="btn primary" data-open="'+d.id+'">Open PDF</button><button class="btn" data-edit="'+d.id+'">Edit details</button><button class="btn danger" data-delete="'+d.id+'">Delete</button></div></article>';}
 function uploadCard(job){
  const failed=job.state==='error',uploading=job.state==='uploading';
- return '<article class="pdf-card pdf-upload-card '+(failed?'is-error':'')+'" aria-busy="'+uploading+'"><div class="pdf-emblem">PDF / '+esc(size(job.file.size))+'</div><h2>'+esc(job.file.name.replace(/\.pdf$/i,''))+'</h2><p class="small">'+esc(job.file.name)+'</p>'+(failed?'<p class="library-error">'+esc(job.error)+'</p><div class="tools"><button class="btn" data-upload-retry="'+job.id+'" '+(busy?'disabled':'')+'>다시 시도</button><button class="btn" data-upload-dismiss="'+job.id+'" '+(busy?'disabled':'')+'>목록에서 빼기</button></div>':'<div class="pdf-upload-state"><span>'+ (uploading?'업로드 중…':'업로드 대기 중')+'</span><progress '+(uploading?'':'value="0" max="1"')+' aria-label="'+esc(job.file.name)+' 업로드 진행"></progress></div>')+'</article>';
+ return '<article class="pdf-card pdf-upload-card '+(failed?'is-error':'')+'" aria-busy="'+uploading+'"><div class="pdf-emblem">PDF / '+esc(size(job.file.size))+'</div><h2>'+esc(job.file.name.replace(/\.pdf$/i,''))+'</h2><p class="small">'+esc(job.file.name)+'</p>'+(failed?'<p class="library-error">'+esc(job.error)+'</p><div class="tools"><button class="btn" data-upload-retry="'+job.id+'" '+(busy?'disabled':'')+'>Retry</button><button class="btn" data-upload-dismiss="'+job.id+'" '+(busy?'disabled':'')+'>Dismiss</button></div>':'<div class="pdf-upload-state"><span>'+ (uploading?'업로드 중…':'업로드 대기 중')+'</span><progress '+(uploading?'':'value="0" max="1"')+' aria-label="'+esc(job.file.name)+' 업로드 진행"></progress></div>')+'</article>';
 }
 async function uploadFile(file,selectedTags=[]){
  const form=new FormData();form.set('file',file);form.set('title',file.name.replace(/\.pdf$/i,'').slice(0,200)||'제목 없음');form.set('tags',JSON.stringify(selectedTags));
@@ -97,7 +97,7 @@ function renderSelection(){
  const n=selectedIds.size,all=$('pdfSelectAll');
  all.checked=!!visibleDocs.length&&visibleDocs.every(d=>selectedIds.has(d.id));
  all.indeterminate=!all.checked&&visibleDocs.some(d=>selectedIds.has(d.id));all.disabled=busy||!visibleDocs.length;
- $('pdfSelectionCount').textContent=n+'개 선택';
+ $('pdfSelectionCount').textContent=n+' selected';
  for(const id of ['pdfClearSelection','pdfBulkTags','pdfBulkDelete'])$(id).disabled=busy||!n;
 }
 $('pdfSelectAll').onchange=e=>{if(busy)return;for(const d of visibleDocs)e.target.checked?selectedIds.add(d.id):selectedIds.delete(d.id);render();};

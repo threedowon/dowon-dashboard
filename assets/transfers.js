@@ -21,7 +21,7 @@
     $('transferRetry').disabled=busy||!ready;
     $('transferList').innerHTML=documents.length?documents.map(d=>{
       const remaining=d.expiresAt-Date.now(),expired=remaining<=0;
-      return '<article class="library-card"><h2 style="overflow-wrap:anywhere">'+esc(d.filename)+'</h2><p class="small">'+(d.size/1024/1024).toFixed(2)+' MB · '+(expired?'만료됨':Math.ceil(remaining/60000)+'분 남음')+'</p><p class="small">'+new Date(d.expiresAt).toLocaleString('ko-KR')+' 만료</p><div class="tools"><button class="btn primary" data-download="'+esc(d.id)+'"'+(busy||expired||!ready?' disabled':'')+'>내려받기</button><button class="btn danger editable" data-delete="'+esc(d.id)+'"'+(busy||!ready?' disabled':'')+'>삭제</button></div></article>';
+      return '<article class="library-card"><h2 style="overflow-wrap:anywhere">'+esc(d.filename)+'</h2><p class="small">'+(d.size/1024/1024).toFixed(2)+' MB · '+(expired?'만료됨':Math.ceil(remaining/60000)+'분 남음')+'</p><p class="small">'+new Date(d.expiresAt).toLocaleString('ko-KR')+' 만료</p><div class="tools"><button class="btn primary" data-download="'+esc(d.id)+'"'+(busy||expired||!ready?' disabled':'')+'>Download</button><button class="btn danger editable" data-delete="'+esc(d.id)+'"'+(busy||!ready?' disabled':'')+'>Delete</button></div></article>';
     }).join(''):'<div class="empty">'+(readonly?'공유 문서에는 임시 파일이 포함되지 않습니다.':ready?'전달할 파일이 없습니다. 파일을 올려보세요.':'GitHub 연결 후 임시 파일을 볼 수 있습니다.')+'</div>';
   }
   async function load(){

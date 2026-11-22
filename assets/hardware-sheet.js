@@ -17,15 +17,15 @@
   cancel.onclick=()=>dialog.close();dialog.addEventListener('cancel',e=>{if(creating)e.preventDefault();});
   async function api(options){const response=await fetch(base+'/api/hardware-projects',{credentials:'include',...options});if(!response.ok){const error=new Error(response.status===401?'프로젝트 관리는 본인 로그인이 필요합니다.':await response.text());error.status=response.status;throw error;}return response.json();}
   function choose(id){selected=id;const url='./hardware/'+(id?'?project='+encodeURIComponent(id):'');open.href=url;
-    const frame=document.createElement('iframe');frame.title=(projects.find(p=>p.id===id)?.name||'기존 신청표')+' · Hardware Sheet';frame.src=url;frame.className='hardware-frame';mount.replaceChildren(frame);render();}
+    const frame=document.createElement('iframe');frame.title=(projects.find(p=>p.id===id)?.name||'기존 신청표')+' · Hardware Sheet';frame.src=url+(id?'&':'?')+'theme=retro';frame.className='hardware-frame';mount.replaceChildren(frame);render();}
   function button(label,click){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent=label;b.onclick=click;return b;}
-  function render(){controls.replaceChildren();const label=document.createElement('strong');label.textContent='프로젝트';controls.append(label);
+  function render(){controls.replaceChildren();const label=document.createElement('strong');label.textContent='Project';controls.append(label);
     for(const project of projects){const b=button(project.name,()=>choose(project.id));b.setAttribute('aria-pressed',String(project.id===selected));if(project.id===selected)b.classList.add('primary');controls.append(b);}
-    controls.append(button('+ 프로젝트 추가',()=>{form.reset();form.querySelector('[role="alert"]').textContent='';dialog.showModal();form.elements.projectName.focus();}));
+    controls.append(button('+ New project',()=>{form.reset();form.querySelector('[role="alert"]').textContent='';dialog.showModal();form.elements.projectName.focus();}));
   }
-  async function load(){if(loading)return;loading=true;message.textContent='프로젝트를 불러오는 중…';
-    try{const data=await api();projects=data.projects;loaded=true;if(!projects.some(p=>p.id===selected))selected='';render();message.textContent='프로젝트를 선택하면 아래 신청표가 바뀝니다. 새 탭 주소를 공유하면 해당 프로젝트만 함께 편집할 수 있어요.';}
-    catch(error){controls.replaceChildren(button(error.status===401?'로그인하고 프로젝트 관리':'프로젝트 다시 불러오기',()=>{if(error.status===401){sessionStorage.setItem('dowon:open-hardware','1');location.href=base+'/auth/login';}else load();}));message.textContent=error.message;}
+  async function load(){if(loading)return;loading=true;message.textContent='Loading projects…';
+    try{const data=await api();projects=data.projects;loaded=true;if(!projects.some(p=>p.id===selected))selected='';render();message.textContent='Choose a project to view its sheet. Open in new tab to share the original workbook.';}
+    catch(error){controls.replaceChildren(button(error.status===401?'Sign in to manage projects':'Reload projects',()=>{if(error.status===401){sessionStorage.setItem('dowon:open-hardware','1');location.href=base+'/auth/login';}else load();}));message.textContent=error.message;}
     finally{loading=false;}
   }
   form.onsubmit=async e=>{e.preventDefault();if(creating)return;creating=true;submit.disabled=cancel.disabled=true;form.querySelector('[role="alert"]').textContent='만드는 중…';

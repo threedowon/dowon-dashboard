@@ -1,0 +1,143 @@
+/* Functional subpages share the desktop shell. Reference canvas is deliberately excluded. */
+@media screen {
+html:not([data-active-page="home"]){--paper:#faf8ef;--ink:#111;--muted:#555;--rule:#808080;--accent:#000080;background:#119d98}
+html:not([data-active-page="home"]) body{background:#119d98;color:#111}
+html:not([data-active-page="home"]) .app{max-width:1600px;padding:24px 28px 28px;min-height:calc(100dvh - var(--retro-bar-height));margin:auto;background:transparent}
+html:not([data-active-page="home"]) .side{display:none}
+html:not([data-active-page="home"]) .main{max-width:none;padding:0;margin:0}
+.retro-page{min-width:0;padding:4px!important;background:#c0c0c0;border:2px solid;border-color:#fff #171717 #171717 #fff;box-shadow:inset -1px -1px #808080,inset 1px 1px #dfdfdf;color:#111;font:16px/1.45 Tahoma,"Pretendard Variable",sans-serif;letter-spacing:0}
+.retro-page>.retro-titlebar{min-height:38px;margin:0}
+.retro-page>.retro-titlebar h2{font:22px/1.2 "Lucida Console","Pretendard Variable",monospace;margin:0;color:#fff}
+.retro-page-body{padding:18px;background:#faf8ef;border:2px solid;border-color:#808080 #fff #fff #808080;min-height:calc(100dvh - 218px)}
+.retro-page.is-maximized{position:relative;margin:-18px -22px 0;min-height:calc(100dvh - var(--retro-bar-height) - 12px)}
+.retro-page .page-top,.retro-page .availability{display:none}
+.retro-page h1{font-size:28px;line-height:1.25;letter-spacing:0;margin:0 0 8px;font-weight:600;color:#111}
+.retro-page h2:not(.retro-titlebar h2){font-size:18px;color:#111}
+.retro-page .page-intro{font-size:15px;line-height:1.6;color:#555;margin:0}
+.retro-page .small:not(#ideasViewport *){font-size:14px;color:#555}
+.retro-page :is(.head,.placeholder-heading,.ideas-heading){margin:0 0 18px;gap:18px}
+.retro-page :is(.tools,.sectionhead){gap:8px}
+.retro-page :is(.btn,.tab):not(#ideasViewport *),.retro-menu-button{border:2px solid;border-color:#fff #222 #222 #fff;box-shadow:inset -1px -1px #808080;border-radius:0;background:#c0c0c0;color:#111;font:14px/1.3 Tahoma,"Pretendard Variable",sans-serif;letter-spacing:0;padding:8px 12px;text-decoration:none}
+.retro-page :is(.btn,.tab):not(#ideasViewport *):hover,.retro-menu-button:hover{background:#d4d4d4;color:#111}
+.retro-page :is(.btn,.tab):not(#ideasViewport *):active,.retro-page :is(.tab.active,.btn[aria-pressed="true"]):not(#ideasViewport *){border-color:#555 #fff #fff #555;box-shadow:inset 1px 1px #808080;background:#ddd;color:#111}
+.retro-page .btn.primary:not(#ideasViewport *){font-weight:700;outline:1px solid #333;outline-offset:-5px}
+.retro-page .btn.danger{color:#900}
+.retro-page :is(input,select,textarea):not(#ideasViewport *):not([type="checkbox"]){border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;background:#fff;color:#111;font:14px/1.4 Tahoma,"Pretendard Variable",sans-serif;padding:8px 10px;min-height:36px}
+.retro-page input[type="checkbox"]{accent-color:#000080}
+.retro-page label:not(#ideasViewport *){font:14px Tahoma,"Pretendard Variable",sans-serif;color:#111}
+.retro-page .pdf-dropzone{font-family:Tahoma,"Pretendard Variable",sans-serif}
+.retro-page :is(.empty,.stat,.item,.log,.calendar,.daydetails,.library-card,.pdf-card,.pdf-dropzone,.signal-setup,.signal-download,.signal-advanced,.signal-pair,.project-backup){border-radius:0;box-shadow:none;border:1px solid #808080;background:#faf8ef;color:#111}
+.retro-page .empty{padding:36px 18px;border-style:dashed;color:#555}
+.retro-page .bar{height:18px;border-radius:0;border:2px solid;border-color:#808080 #fff #fff #808080;background:#c0c0c0;padding:1px}
+.retro-page .bar i{background:repeating-linear-gradient(90deg,#000080 0 13px,#c0c0c0 13px 16px)}
+.retro-page .tag{border-radius:0;border:1px solid #aaa;padding:3px 7px;font-size:13px}
+.retro-page .tag.doing{background:#fff37c;color:#111}.retro-page .tag.done{background:#bbdfbb;color:#111}
+.retro-page .stats{gap:0;border:1px solid #808080;background:#eee;margin:14px 0}
+.retro-page .stat{border:0;border-right:1px solid #aaa;background:transparent;padding:12px 18px}.retro-page .stat:last-child{border-right:0}
+.retro-page .stat b{font-size:24px;color:#111}
+.retro-page .tabs{gap:5px;margin:20px 0 0;padding:0 6px;border-bottom:2px solid #808080;overflow:auto}
+.retro-page .tabs .tab{padding:10px 20px;min-width:110px;border-bottom:0}
+.retro-page .tabs .tab.active{background:#faf8ef;font-weight:bold;border-color:#fff #222 #222 #fff;box-shadow:none}
+.retro-page .calendar{padding:12px}.retro-page .calgrid{gap:0;border-top:1px solid #808080;border-left:1px solid #808080}
+.retro-page .weekday{background:#c0c0c0;font-size:14px;color:#111;border-right:1px solid #808080;border-bottom:1px solid #808080}
+.retro-page .day{border:0;border-right:1px solid #999;border-bottom:1px solid #999;border-radius:0;background:#faf8ef;color:#111;min-height:100px}
+.retro-page .day.selected{outline:2px solid #000080;outline-offset:-2px;background:#e4e8fa}.retro-page .day.today .num{border-radius:0;background:#000080}
+.retro-page .num{font-size:14px}.retro-page .event{border-radius:0;font-size:13px;background:#c5d9f4;color:#111}
+.retro-page .daydetails{margin-top:12px}.retro-page .item,.retro-page .log{padding:14px}.retro-page .item p,.retro-page .log p{font-size:14px;color:#555}
+.retro-page .project-list{border:2px solid;border-color:#808080 #fff #fff #808080;background:#faf8ef}
+.retro-page .project-list-row{padding:14px 12px;border-bottom:1px solid #aaa;gap:16px}.retro-page .project-list-row.is-selected{background:#e6e7f2}
+.retro-page .project-summary h3{font-size:17px;margin:0 0 4px}.retro-page .project-summary p{font-size:14px}.retro-page .project-check{font-size:13px;flex-basis:90px}
+.retro-page .project-detail-link{grid-template-columns:minmax(0,1fr) 145px 155px 85px;gap:18px}.retro-page .project-next span,.retro-page .project-list-progress span{font-size:13px}
+.retro-page .roadmap-heading{margin:22px 0 12px}.retro-page .roadmap-heading h2{margin:0 0 5px}.retro-page .eyebrow{display:none}
+.retro-page .roadmap-controls{background:#c0c0c0;border:2px solid;border-color:#fff #808080 #808080 #fff;padding:12px}
+.retro-page .map-view-switch{margin-bottom:12px}.retro-page .roadmap-toolbar{margin-bottom:10px}.retro-page .map-zoom{margin-bottom:0}
+.retro-page .roadmap-board,.retro-page .roadmap-board[data-view="connections"]{border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;background:#faf8ef}
+.retro-page .flow-status-control select{border-radius:0;font-size:14px;color:#111;background:#eee}
+.retro-page .project-backup{margin:18px 0 0;padding:12px;background:#c0c0c0}
+.retro-page .library-toolbar{padding:12px;background:#c0c0c0;border:1px solid #808080;gap:12px;margin:14px 0}
+.retro-page .library-grid{gap:12px}.retro-page .pdf-card,.retro-page .library-card{padding:16px;border:1px solid #999}
+.retro-page .pdf-card:has(.pdf-select:checked){background:#e2e5f4;outline:2px solid #000080}
+.retro-page .pdf-emblem{font:14px "Lucida Console",monospace;background:#c0c0c0;border:1px solid #888;padding:8px;color:#111;border-radius:0}
+.retro-page .pdf-card h2,.retro-page .library-card h2{font-size:17px;margin:12px 0;overflow-wrap:anywhere}
+#pdfPage .library-heading>div:first-child{display:none}
+#pdfPage .library-heading{justify-content:flex-end;margin-bottom:10px}
+#pdfPage .pdf-dropzone{min-height:76px;margin-bottom:10px;padding:12px;grid-template-columns:auto 1fr;gap:3px 14px;text-align:left;justify-items:start}
+#pdfPage .pdf-dropzone:before{content:"";grid-row:span 3;width:48px;height:55px;background:url("dashboard-objects/retro-v1/library.png") center/contain no-repeat;image-rendering:pixelated}
+#pdfPage .pdf-dropzone strong{font-size:16px}
+#pdfPage .pdf-dropzone span{font-size:13px}
+#pdfPage .library-toolbar{padding:8px;margin:10px 0;align-items:center}
+#pdfPage .library-toolbar label{display:flex;align-items:center;gap:10px;max-width:none}
+#pdfPage .library-toolbar input{flex:1;min-width:0}
+.retro-library-layout{display:grid;grid-template-columns:185px minmax(0,1fr);gap:14px;margin-top:14px}
+.retro-library-sidebar{background:#faf8ef;border:2px solid;border-color:#808080 #fff #fff #808080;padding:8px}
+.retro-library-sidebar h2{background:#000080;color:#fff!important;padding:5px 8px;margin:0;font-size:17px!important}
+.retro-library-sidebar .library-tags{display:flex;flex-direction:column;margin:10px 0;gap:6px;align-items:stretch}
+.retro-library-sidebar .library-tags button{text-align:left;border:0;background:transparent;box-shadow:none;border-radius:0;padding:6px 8px;font-size:14px}
+.retro-library-sidebar .library-tags button[aria-pressed="true"]{background:#000080;color:#fff}
+.retro-library-sidebar .library-tags button:before{content:'▰';color:#d3ad00;margin-right:8px}
+.retro-library-main{min-width:0}
+#pdfPage .pdf-emblem{display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;font-size:13px}
+#pdfPage .pdf-emblem:before{content:'';display:block;flex:0 0 55px;width:55px;height:66px;background:url('dashboard-objects/retro-v1/library.png') center/contain no-repeat;image-rendering:pixelated}
+#pdfPage .pdf-card.is-selected{background:#e2e5f4;outline:2px solid #000080}
+.retro-page .pdf-dropzone{background:#f6f5f0;border:1px dashed #555;padding:24px 18px;min-height:110px;border-radius:0;color:#111}
+.retro-page .pdf-dropzone strong{font-size:18px}.retro-page .pdf-dropzone span{font-size:14px;color:#555}
+.retro-page .pdf-bulkbar{background:#ddd;border:1px solid #999;border-radius:0;font-size:14px;padding:10px}
+.retro-page .library-tags button,.retro-page .library-tag{border:1px solid #808080;border-radius:0;background:#ddd;color:#111;padding:5px 9px;font-size:14px}
+.retro-page .library-tags button.active{background:#000080;color:#fff}
+.retro-page progress{accent-color:#000080;width:100%;height:20px}
+#wirenestPage .library-grid,#transfersPage .library-grid{grid-template-columns:1fr}
+#wirenestPage .pdf-card,#transfersPage .library-card{display:grid;grid-template-columns:minmax(160px,1fr) minmax(120px,.6fr) auto;align-items:center;gap:12px}
+#wirenestPage .pdf-card .pdf-emblem{grid-column:1/-1;width:max-content;padding:3px 7px;font-size:12px}
+#wirenestPage .pdf-card h2,#transfersPage .library-card h2{margin:0}
+.retro-heading-icon{width:52px;height:48px;object-fit:contain;image-rendering:pixelated;flex-shrink:0}
+.retro-page .signal-setup{background:#faf8ef;padding:20px;gap:24px}.retro-page .signal-download{background:#c0c0c0;border:2px solid;border-color:#fff #444 #444 #fff;padding:20px}
+.retro-page .signal-setup h2{font-size:22px}.retro-page .signal-setup p,.retro-page .signal-setup li,.retro-page .signal-note{font-size:14px;color:#444;line-height:1.7}
+.retro-page .signal-advanced{margin-top:18px;padding:0}.retro-page .signal-advanced>summary{background:#000080;color:white;padding:9px 14px;font:17px "Lucida Console",monospace;cursor:pointer}
+.retro-page .signal-advanced>p,.retro-page .signal-advanced>form{margin:14px}.retro-page .signal-pair{padding:12px;background:#eee}
+.retro-page .hardware-frame{border:0;border-radius:0;background:#c0c0c0;height:max(720px,calc(100dvh - 260px))}
+.retro-page .hardware-projects{margin:0}.retro-page .hardware-projects strong{font-size:14px}.retro-page #hardwareHelp{margin:8px 0;font-size:13px}
+#hardwarePage .placeholder-heading h1,#ideasPage .ideas-heading{display:none}
+#ideasPage .retro-page-body{padding:0}
+#ideasPage .ideas-project-row{margin:0;padding:12px;background:#c0c0c0;align-items:center}
+#ideasPage .ideas-project-row label{display:flex;align-items:center;font-size:14px;gap:10px;min-width:240px;max-width:500px}
+#ideasPage .ideas-project-row select{width:auto;flex:1;min-width:0}
+#ideasPage .ideas-toolbar{border:0;border-top:1px solid #eee;border-bottom:1px solid #808080;border-radius:0;background:#c0c0c0;padding:8px 12px}
+#ideasPage .ideas-help,#ideasPage .ideas-sync-strip,#ideasPage .ideas-save-row{padding:8px 12px;margin:0}
+/* Preserve the original canvas and every card's own presentation and content. */
+#ideasViewport{--ink:#492f20;--muted:#79634f;--paper:#eee5d3;--rule:#d49c73;font-family:"Pretendard Variable",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:16px;font-weight:400;letter-spacing:-.015em}
+.retro-page-menu{position:relative;display:flex;gap:4px;padding:4px 6px;background:#c0c0c0}
+.retro-page-menu>details{position:relative}.retro-page-menu summary{list-style:none;padding:4px 10px;cursor:pointer;font-size:16px}.retro-page-menu summary::-webkit-details-marker{display:none}.retro-page-menu details[open]>summary{background:#000080;color:#fff}
+.retro-menu-popup{position:absolute;top:100%;left:0;z-index:80;min-width:210px;background:#c0c0c0;border:2px solid;border-color:#fff #222 #222 #fff;box-shadow:2px 2px #777;padding:4px}
+.retro-menu-popup button,.retro-menu-popup a{display:block;width:100%;text-align:left;border:0;border-radius:0;background:none;box-shadow:none;padding:8px 12px;text-decoration:none;color:#111;font:14px Tahoma,sans-serif;white-space:nowrap}.retro-menu-popup button:hover,.retro-menu-popup a:hover{background:#000080;color:white}
+.retro-page-status{padding:5px 9px;margin-top:4px;border:1px solid;border-color:#808080 #fff #fff #808080;font-size:13px;color:#333;display:flex;justify-content:space-between;gap:12px}
+html:not([data-active-page="home"]) dialog{border:2px solid;border-color:#fff #222 #222 #fff;border-radius:0;background:#c0c0c0;color:#111;box-shadow:3px 3px #333;padding:20px}
+html:not([data-active-page="home"]) dialog h2{background:#000080;color:white;padding:8px;margin:-16px -16px 20px;font-size:20px}
+html:not([data-active-page="home"]) dialog :is(input,select,textarea){border-radius:0;background:white;color:#111}
+.retro-page :focus-visible:not(#ideasViewport *){outline:2px dotted #111;outline-offset:2px}
+@media(max-width:1000px){.retro-library-layout{grid-template-columns:150px minmax(0,1fr)}#pdfPage .library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.retro-page .project-detail-link{grid-template-columns:minmax(0,1fr) 130px}.retro-page .project-next{grid-column:1}.retro-page .project-open{grid-column:2}.retro-page .signal-setup{grid-template-columns:1fr}#wirenestPage .pdf-card,#transfersPage .library-card{grid-template-columns:1fr 1fr}#wirenestPage .pdf-card .tools,#transfersPage .library-card .tools{grid-column:1/-1;justify-content:flex-start}}
+@media(max-width:700px){.retro-library-layout{grid-template-columns:1fr}.retro-library-sidebar .library-tags{flex-direction:row;flex-wrap:wrap}#pdfPage .library-grid{grid-template-columns:1fr}}
+@media(max-width:700px){html:not([data-active-page="home"]) .app{padding:8px 6px 16px}.retro-page-body{padding:12px 8px}.retro-page>.retro-titlebar h2{font-size:18px}.retro-page .head{margin-bottom:12px}.retro-page .stats{grid-template-columns:1fr 1fr}.retro-page .stat{padding:10px}.retro-page .project-list-row{padding:12px 8px;gap:8px}.retro-page .project-check{flex-basis:28px}.retro-page .project-check span{display:none}.retro-page .project-detail-link{grid-template-columns:1fr}.retro-page .project-next,.retro-page .project-open{grid-column:auto}.retro-page .calgrid{min-width:560px}.retro-page .calendar{overflow:auto}.retro-page .signal-setup{padding:12px}.retro-page .btn:not(#ideasViewport *){font-size:14px}.retro-page .hardware-frame{height:78dvh;min-height:600px}#ideasPage .ideas-project-row{flex-wrap:wrap}#ideasPage .ideas-project-row label{max-width:none;width:100%;flex-basis:100%}.retro-page .is-maximized{margin:0}.retro-page.is-maximized{margin:0}.retro-page-status{flex-wrap:wrap}}
+/* Page-specific hierarchy follows the approved desktop mockups. */
+.retro-icon-heading{position:relative;padding-left:105px;min-height:80px;display:flex;flex-direction:column;justify-content:center}
+.retro-icon-heading .retro-heading-icon{position:absolute;left:0;top:5px;width:85px;height:75px}
+#transfersPage .library-note{border:2px dashed #808080;padding:20px;background:#faf8ef;text-align:center}
+#transfersPage .library-note:before{content:'Drop files here';display:block;margin-bottom:10px;font:bold 21px Tahoma,sans-serif;color:#111}
+#transfersPage .library-card{grid-template-columns:minmax(160px,1fr) minmax(120px,.6fr) minmax(140px,.7fr) auto}
+#signaltesterPage .signal-setup{background:transparent;border:0;padding:0;gap:24px}
+#signaltesterPage .signal-setup>div:first-child{border:1px solid #808080;padding:16px;background:#faf8ef}
+#signaltesterPage .signal-setup h2{background:#c0c0c0;margin:-16px -16px 18px;padding:7px 12px;border-bottom:1px solid #808080;font-size:20px}
+#signaltesterPage .signal-setup ol{list-style:none;padding:0;counter-reset:step}
+#signaltesterPage .signal-setup li{position:relative;min-height:66px;padding:8px 0 8px 90px;display:flex;align-items:center;counter-increment:step}
+#signaltesterPage .retro-step-icon{position:absolute;left:0;width:65px;height:60px;object-fit:contain;image-rendering:pixelated}
+#signaltesterPage .signal-download{border:2px solid;border-color:#fff #333 #333 #fff;background:#faf8ef;padding:16px;justify-items:center;align-content:start;text-align:center}
+#signaltesterPage .signal-download>strong{background:#000080;color:#fff;display:block;width:calc(100% + 24px);margin:-12px -12px 8px;padding:7px 10px;font:18px 'Lucida Console',monospace}
+#signaltesterPage .retro-signal-icon{width:180px;height:135px;object-fit:contain;image-rendering:pixelated;margin:8px 0}
+#signaltesterPage a.btn.primary{color:#111;font-size:18px;padding:12px 24px}
+#signaltesterPage .signal-advanced{padding:0;background:#faf8ef;border:1px solid #808080}
+#signaltesterPage .signal-cloud{background:#faf8ef;border:1px solid #808080;border-radius:0}
+.retro-page :is(.stat b,.project-check,.pdf-select-label,.library-toolbar label){font-family:Tahoma,'Pretendard Variable',sans-serif}
+@media(max-width:1000px){#signaltesterPage .signal-setup{grid-template-columns:1fr}#transfersPage .library-card{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.retro-icon-heading{padding-left:75px}.retro-icon-heading .retro-heading-icon{width:60px;height:60px}#transfersPage .library-card{grid-template-columns:1fr}#signaltesterPage .signal-download>strong{font-size:16px}}
+
+}
+@media print{.retro-page>.retro-titlebar,.retro-page-menu,.retro-page-status{display:none!important}.retro-page,.retro-page-body{border:0;box-shadow:none;padding:0;background:white}}

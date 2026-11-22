@@ -1,0 +1,78 @@
+(() => {
+  'use strict';
+  const configs = {
+    milestones: ['Milestones','milestones',['newProject','cloudSave','backup'],'Select projects to explore their roadmap. Open a project for its calendar, connections and history.'],
+    pdf: ['PDF Library','library',['pdfAdd','pdfRefresh','pdfConnect'],'Upload PDFs, search by title or tag, and select documents to manage their tags.'],
+    ideas: ['Reference','ideas',['ideasImage','ideasLink','ideasNote','ideasRefresh'],'Paste images or links into the board. Drag cards to arrange them. Ctrl+wheel zooms; Ctrl+Z undoes.'],
+    wirenest: ['WireNest','wirenest',['wnUpload','wnRefresh','wnConnect'],'Open the editor in a separate tab. Upload saved .wnest files here to keep backups.'],
+    transfers: ['File Transfer','transfers',['transferUpload','transferRefresh','transferConnect'],'Choose files and a retention period. Downloads expire automatically after that period.'],
+    signaltester: ['Signal Tester','signaltester',[],'Download and run SignalTester.exe. The local testing interface opens automatically.'],
+    hardware: ['Hardware Sheet','hardware',[],'Choose a project to edit its shared sheet. Product photos and purchase links appear in each item column. Open in new tab keeps the original green workbook design.']
+  };
+  const labels = {
+    newProject:'New project',cloudSave:'Sync',connectGithub:'Connect GitHub',backup:'Export JSON',import:'Import JSON',
+    deleteSelectedProjects:'Delete selected',selectAllProjects:'Select all',clearProjects:'Clear selection',share:'Export HTML',exportPng:'Export PNG',printRoadmap:'Print / PDF',
+    mapFitWidth:'Fit width',mapFitAll:'Fit all',editProject:'Edit project',addDetailMilestone:'Add milestone',addMilestone:'Add milestone',addOnDate:'Add milestone',addNote:'Add note',today:'Today',
+    pdfConnect:'Connect GitHub',pdfAdd:'Upload PDF',pdfRefresh:'Refresh',pdfClearSelection:'Clear selection',pdfBulkTags:'Add tags',pdfBulkDelete:'Delete selected',
+    ideasNewProject:'New project',ideasImage:'Image',ideasLink:'Link',ideasNote:'Note',ideasEdit:'Edit',ideasDelete:'Delete',ideasFit:'Fit all',ideasConnect:'Connect GitHub',ideasRefresh:'Sync',ideasExport:'Export board',ideasImport:'Import board',ideasRetry:'Retry save',cardScheduleEdit:'Edit schedule',
+    wnConnect:'Connect GitHub',wnRefresh:'Refresh',transferConnect:'Connect GitHub',transferUpload:'Add files',transferRefresh:'Refresh',transferRetry:'Retry upload',
+    signalPairButton:'Connect',signalForget:'Disconnect',signalRemoteConnect:'Connect',signalRemoteRefresh:'Refresh'
+  };
+  const $=id=>document.getElementById(id);
+  const make=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
+  const closeMenus=()=>document.querySelectorAll('.retro-page-menu details[open]').forEach(el=>el.open=false);
+  const home=()=>{closeMenus();location.hash='home';};
+  const help=document.createElement('dialog');help.className='retro-page-help';help.setAttribute('aria-label','Page help');
+  const helpTitle=make('h2'),helpText=make('p'),helpClose=make('button','btn','OK');helpClose.type='button';helpClose.onclick=()=>help.close();help.append(helpTitle,helpText,helpClose);document.body.append(help);
+  function showHelp(config){closeMenus();helpTitle.textContent=config[0]+' Help';helpText.textContent=config[3];help.showModal();}
+  function titleFor(key,config){if(key==='milestones'&&!$('projectDetail').hidden)return 'Milestones — '+($('title').textContent||'Project');if(key==='ideas'&&location.hash.startsWith('#card/'))return $('ideasTitle').textContent||'Reference';return config[0];}
+  function localize(){
+    Object.entries(labels).forEach(([id,label])=>{const el=$(id);if(el&&el.textContent!==label)el.textContent=label;});
+    const placeholders={pdfSearch:'Search documents and tags',wnSearch:'Search backups',signalPairCode:'Port:connection code'};
+    Object.entries(placeholders).forEach(([id,value])=>{if($(id))$(id).placeholder=value;});
+    const names={pdfTitle:'PDF Library',transfersTitle:'File Transfer',projectsTitle:'Projects',roadmapTitle:'Project roadmap'};
+    Object.entries(names).forEach(([id,name])=>{if($(id)&&$(id).textContent!==name)$(id).textContent=name;});
+    document.querySelectorAll('[data-tab]').forEach(el=>{const text={calendar:'Calendar',connections:'Connections',timeline:'Timeline',history:'History'}[el.dataset.tab];if(text&&el.textContent!==text)el.textContent=text;});
+    document.querySelectorAll('[data-map-view]').forEach(el=>{const text=el.dataset.mapView==='connections'?'Connection map':'Timeline';if(el.textContent!==text)el.textContent=text;});
+  }
+  Object.entries(configs).forEach(([key,config])=>{
+    const section=document.querySelector('[data-screen="'+key+'"]');if(!section)return;
+    section.classList.add('retro-page');
+    const body=make('div','retro-page-body');while(section.firstChild)body.append(section.firstChild);
+    const header=make('header','retro-titlebar'),icon=make('img');icon.src='assets/dashboard-objects/retro-v1/'+config[1]+'.png';icon.alt='';
+    const title=make('h2','retro-page-caption',config[0]);const controls=make('div','retro-controls');
+    for(const [label,glyph,fn] of [['Minimize','−',home],['Maximize','□',()=>{const max=section.classList.toggle('is-maximized');controls.querySelector('[data-maximize]').setAttribute('aria-pressed',String(max));window.dispatchEvent(new Event('resize'));}],['Close','×',home]]){
+      const b=make('button','retro-control',glyph);b.type='button';b.setAttribute('aria-label',label+' '+config[0]);if(label==='Maximize'){b.dataset.maximize='';b.setAttribute('aria-pressed','false');}b.onclick=fn;controls.append(b);
+    }
+    header.append(icon,title,controls);
+    const menu=make('nav','retro-page-menu');menu.setAttribute('aria-label',config[0]+' menu');
+    function addMenu(name,actions){const d=make('details'),s=make('summary',null,name),p=make('div','retro-menu-popup');for(const [label,fn,target] of actions){const b=make('button',null,label);b.type='button';b.onclick=()=>{closeMenus();fn();};if(target)b.dataset.target=target;p.append(b);}d.append(s,p);d.addEventListener('toggle',()=>{if(d.open){menu.querySelectorAll('details').forEach(other=>{if(other!==d)other.open=false;});d.querySelectorAll('[data-target]').forEach(b=>{b.disabled=!$(b.dataset.target)||$(b.dataset.target).disabled;});}});menu.append(d);}
+    addMenu('File',[...config[2].map(id=>[labels[id]||'Open',()=>$(id)?.click(),id]),['Back to Home',home]]);
+    addMenu('View',[['Maximize / Restore',()=>controls.querySelector('[data-maximize]').click()],['Back to Home',home]]);
+    addMenu('Help',[[config[0]+' Help',()=>showHelp(config)]]);
+    const status=make('footer','retro-page-status');status.append(make('span',null,config[0]),make('span',null,'Workspace'));
+    section.append(header,menu,body,status);
+    const update=()=>{const next=titleFor(key,config);if(title.textContent!==next)title.textContent=next;};
+    window.addEventListener('hashchange',()=>{closeMenus();update();});
+    if(key==='milestones')new MutationObserver(update).observe($('title'),{childList:true,subtree:true,characterData:true});
+    if(key==='ideas')new MutationObserver(update).observe($('ideasTitle'),{childList:true,subtree:true,characterData:true});
+    update();
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('.retro-page-menu'))closeMenus();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenus();});
+  // Explorer-style tag rail uses the existing filter and file nodes with their handlers intact.
+  const pdfBody=$('pdfPage')?.querySelector('.retro-page-body');
+  if(pdfBody){const layout=make('div','retro-library-layout'),aside=make('aside','retro-library-sidebar'),files=make('div','retro-library-main');aside.append(make('h2',null,'Tags'),$('pdfTags'));for(const id of ['pdfCount','pdfBulkbar','pdfList'])files.append($(id));layout.append(aside,files);pdfBody.querySelector('.library-toolbar').after(layout);}
+  // Decorative icons reuse the existing desktop artwork; all actions keep their original handlers.
+  for(const [page,icon] of [['transfersPage','transfers'],['wirenestPage','wirenest']]){
+    const heading=$(page)?.querySelector('.placeholder-heading>div:first-child');if(heading){heading.classList.add('retro-icon-heading');const img=make('img','retro-heading-icon');img.src='assets/dashboard-objects/retro-v1/'+icon+'.png';img.alt='';heading.prepend(img);}
+  }
+  const download=document.querySelector('#signaltesterPage .signal-download');
+  if(download){const img=make('img','retro-signal-icon');img.src='assets/dashboard-objects/retro-v1/signaltester.png';img.alt='';download.querySelector('strong').after(img);}
+  document.querySelectorAll('#signaltesterPage .signal-setup ol li').forEach((li,i)=>{const img=make('img','retro-step-icon');img.src='assets/dashboard-objects/retro-v1/'+['library','computer','wirenest'][i]+'.png';img.alt='';li.prepend(img);});
+  localize();window.addEventListener('hashchange',localize);
+  // Only labels of known controls are localized; user content and canvas nodes are never visited.
+  for(const id of ['projectOverview','projectDetail','pdfPage','wirenestPage','transfersPage']){
+    const el=$(id);if(el){let queued=false;new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(()=>{queued=false;localize();});}}).observe(el,{childList:true,subtree:true});}
+  }
+})();
