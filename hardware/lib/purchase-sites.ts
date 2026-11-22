@@ -25,7 +25,6 @@ export function groupPurchasesBySite<T extends {link:string}>(items:T[]){
  return [...groups.values()];
 }
 
-export function purchaseFilename(date:string,format:'csv'|'pdf',site?:PurchaseSite){
- const label=site?'-'+site.label.replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').slice(0,100):'';
- return '비품-구매-신청-목록'+label+'-'+date+'.'+format;
+export function purchaseFilename(date:string,format:'csv'|'pdf'){
+ return '비품-구매-신청-목록-'+date+'.'+format;
 }

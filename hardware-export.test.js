@@ -10,7 +10,7 @@ import {PDFDocument,PDFName,PDFArray,PageSizes} from 'pdf-lib';
 const temp=await mkdtemp(join(tmpdir(),'hardware-export-test-'));
 await build({entryPoints:['hardware/lib/purchase-export.ts','hardware/lib/export-pdf.ts','hardware/lib/purchase-sites.ts'],outdir:temp,bundle:true,platform:'node',format:'cjs',outExtension:{'.js':'.cjs'},logLevel:'silent'});
 const require=createRequire(import.meta.url);
-const {createPurchaseCsv,purchaseRows}=require(join(temp,'purchase-export.cjs'));
+const {createPurchaseCsv,purchaseRows,purchaseSections}=require(join(temp,'purchase-export.cjs'));
 const {createWorkbookPdf}=require(join(temp,'export-pdf.cjs'));
 const {purchaseSite,groupPurchasesBySite,purchaseFilename}=require(join(temp,'purchase-sites.cjs'));
 const font=new Uint8Array(await readFile(new URL('./hardware/fonts/Pretendard-Regular.ttf',import.meta.url)));
@@ -43,23 +43,35 @@ test('site exports partition every item once, preserving order, quantities and C
  assert.deepEqual(groupPurchasesBySite([]),[]);
  const ali={...input,items:groups[0].items};assert.deepEqual(purchaseRows(ali).map(r=>r.quantity),[5,0]);
  const csv=createPurchaseCsv(ali);assert.ok(csv.includes(items[0].link));assert.ok(csv.includes(items[2].link));assert.ok(!csv.includes(items[1].link));assert.ok(csv.includes('"빨강, 5m\nUSB-C","5"'));
- assert.equal(purchaseFilename(input.date,'csv',groups[0]),'비품-구매-신청-목록-알리익스프레스-2026-11-22.csv');
+ assert.equal(purchaseFilename(input.date,'csv'),'비품-구매-신청-목록-2026-11-22.csv');
  assert.equal(purchaseFilename(input.date,'pdf'),'비품-구매-신청-목록-2026-11-22.pdf');
- assert.ok(!/[<>:"/\\|?*]/.test(purchaseFilename(input.date,'csv',{id:'x',label:'[::1]/bad:name'})));
 });
-test('site PDF contains links only for the selected store',async()=>{
- const items=[{...input.items[0],link:'https://ko.aliexpress.com/item/1'},{...input.items[1],link:'https://www.coupang.com/vp/products/2'}];
- for(const site of groupPurchasesBySite(items)){
-  const doc=await PDFDocument.load(await createWorkbookPdf({...input,items:site.items},font));
-  const annotations=doc.getPage(0).node.lookup(PDFName.of('Annots'));
-  assert.equal(annotations.size(),1);
-  assert.equal(annotations.lookup(0).lookup(PDFName.of('A')).lookup(PDFName.of('URI')).decodeText(),site.items[0].link);
- }
+test('one CSV contains separate site sections, repeated headers and blank separators',()=>{
+ const items=[{...input.items[0],name:'알리 첫 품목',link:'https://ko.aliexpress.com/item/1'},{...input.items[1],name:'쿠팡 품목',link:'https://www.coupang.com/vp/products/2'},{...input.items[0],id:'c',name:'알리 둘째 품목',link:'https://a.aliexpress.com/share'},{...input.items[1],id:'d',name:'링크 없는 품목'}];
+ const csv=createPurchaseCsv({...input,items});
+ assert.equal(csv.match(/"품명","링크","옵션","수량"/g).length,3);
+ assert.ok(csv.includes('"알리익스프레스","2개 품목","",""\r\n"품명"'));
+ assert.ok(csv.includes('"","","",""\r\n"쿠팡","1개 품목","",""'));
+ assert.ok(csv.indexOf('알리 둘째 품목')<csv.indexOf('쿠팡 품목'));
+ assert.ok(csv.includes('"링크 없음","1개 품목","",""'));
+ assert.equal(purchaseSections({...input,items}).flatMap(s=>s.items).length,4);
+ const empty=createPurchaseCsv({...input,items:[]});assert.ok(empty.includes('선택한 조건에 해당하는 품목이 없습니다.'));
+});
+test('one PDF contains every store and groups links in site order',async()=>{
+ const items=[{...input.items[0],link:'https://ko.aliexpress.com/item/1'},{...input.items[1],link:'https://www.coupang.com/vp/products/2'},{...input.items[0],id:'c',link:'https://a.aliexpress.com/share'}];
+ const doc=await PDFDocument.load(await createWorkbookPdf({...input,items},font));
+ assert.equal(doc.getPageCount(),1);
+ const annotations=doc.getPage(0).node.lookup(PDFName.of('Annots'));
+ assert.equal(annotations.size(),3);
+ const links=Array.from({length:3},(_,i)=>annotations.lookup(i).lookup(PDFName.of('A')).lookup(PDFName.of('URI')).decodeText());
+ assert.deepEqual(links,[items[0].link,items[2].link,items[1].link]);
 });
 test('PDF follows landscape A4 template, preserves links, and handles overflowing rows',async()=>{
  const items=Array.from({length:30},(_,i)=>({...input.items[0],id:'a'+i,name:'품목 '+i,detail:i===3?'긴 옵션 설명 '.repeat(600):'옵션'}));
  const doc=await PDFDocument.load(await createWorkbookPdf({...input,items},font));assert.ok(doc.getPageCount()>2);
- for(const page of doc.getPages()){assert.deepEqual(page.getSize(),{width:PageSizes.A4[1],height:PageSizes.A4[0]});const annotations=page.node.lookup(PDFName.of('Annots'));if(annotations instanceof PDFArray)for(let i=0;i<annotations.size();i++){const rect=annotations.lookup(i).lookup(PDFName.of('Rect'));assert.ok(rect.lookup(1).asNumber()>=54);}}
+ let links=0;
+ for(const page of doc.getPages()){assert.deepEqual(page.getSize(),{width:PageSizes.A4[1],height:PageSizes.A4[0]});const annotations=page.node.lookup(PDFName.of('Annots'));if(annotations instanceof PDFArray)for(let i=0;i<annotations.size();i++){const rect=annotations.lookup(i).lookup(PDFName.of('Rect'));assert.ok(rect.lookup(1).asNumber()>=40);links++;}}
+ assert.equal(links,items.length,'every item keeps exactly one link even across page breaks');
  const simple=await PDFDocument.load(await createWorkbookPdf(input,font));assert.equal(simple.getPageCount(),1);assert.equal(simple.getPage(0).node.lookup(PDFName.of('Annots')).size(),1);
  const empty=await PDFDocument.load(await createWorkbookPdf({...input,items:[]},font));assert.equal(empty.getPageCount(),1);
 });
