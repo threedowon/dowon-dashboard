@@ -1,0 +1,91 @@
+/* Retro desktop home and persistent navigation. */
+@media screen {
+:root{--paper:#eee5d3;--ink:#492f20;--muted:#79634f;--rule:#d49c73;--accent:#a74725;--retro-bar-height:58px}
+html,body{background:var(--paper);color:var(--ink)}
+body{padding-bottom:calc(var(--retro-bar-height) + env(safe-area-inset-bottom))}
+html{scroll-padding-bottom:calc(var(--retro-bar-height) + 20px)}
+html[data-active-page="home"]{--paper:#119d98;--ink:#111;--muted:#333;--rule:#808080;--accent:#000080;background:#119d98}
+html[data-active-page="home"] body{background:#119d98}
+html[data-active-page="home"] .app{max-width:1450px;padding:30px 32px 24px;background:transparent}
+html[data-active-page="home"] .side{display:none}
+#homePage{display:grid;grid-template-columns:minmax(0,1fr) 240px;align-items:start;gap:28px;padding:0;font-family:Tahoma,"MS Sans Serif","Pretendard Variable",sans-serif;color:#111}
+#homePage[hidden]{display:none}
+.retro-window{background:#c0c0c0;border:2px solid;border-color:#fff #171717 #171717 #fff;box-shadow:inset -1px -1px #808080,inset 1px 1px #dfdfdf;padding:4px;min-width:0}
+.retro-titlebar{display:flex;align-items:center;gap:8px;background:#000080;color:white;padding:4px 5px;min-height:36px;font-family:"Lucida Console","Courier New",monospace;letter-spacing:.02em}
+.retro-titlebar h1,.retro-titlebar h2{font:inherit;font-size:22px;line-height:1.2;letter-spacing:inherit;margin:0;flex:1;color:#fff}
+.retro-titlebar img{width:25px;height:25px;object-fit:contain;image-rendering:pixelated}
+.retro-controls{display:flex;gap:3px;margin-left:auto}
+.retro-control,.retro-task,.retro-start,.retro-tool{font-family:Tahoma,"MS Sans Serif",sans-serif;color:#111;border-radius:0;cursor:pointer}
+.retro-control{width:27px;height:25px;padding:0;background:#c0c0c0;border:2px solid;border-color:#fff #111 #111 #fff;box-shadow:inset -1px -1px #808080;font:bold 20px/18px Arial,sans-serif;display:grid;place-items:center}
+.retro-control:active{border-color:#444 #fff #fff #444;box-shadow:none}
+.retro-menubar{display:flex;gap:4px;padding:3px 6px}
+.retro-tool{border:1px solid transparent;background:transparent;padding:5px 10px;font-size:16px}
+.retro-tool:hover{border-color:#fff #808080 #808080 #fff}
+#homePage .catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px;padding:18px 12px 14px;margin:0;border:2px solid;border-color:#808080 #fff #fff #808080;background:#faf8ef}
+#homePage .catalog-card:nth-child(n){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-width:0;min-height:0;height:auto;padding:6px 4px 12px;margin:0;color:#111;border:0;border-radius:0;box-shadow:none;background:transparent;text-decoration:none;transform:none}
+#homePage .catalog-card::before,#homePage .catalog-card::after{display:none}
+#homePage .catalog-symbol{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:100%;height:clamp(125px,13vw,180px);min-height:0;max-width:none;padding:0;margin:0;background:transparent;border:0;border-radius:0;filter:none;transform:none;overflow:hidden}
+#homePage .catalog-symbol::after{display:none}
+#homePage .catalog-symbol img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;transform:scale(1.4)}
+#homePage .catalog-card-head{padding:0;margin:0;border:0;text-align:center;max-width:100%}
+#homePage .catalog-card-head>div{display:block;width:auto}
+#homePage .catalog-card h2{display:inline;padding:3px 5px;margin:0;color:#111;background:transparent;font:500 clamp(17px,1.65vw,23px)/1.3 Tahoma,"Pretendard Variable",sans-serif;letter-spacing:-.025em;box-shadow:none;text-shadow:none;overflow-wrap:anywhere}
+#homePage .catalog-card:hover h2,#homePage .catalog-card:focus-visible h2{background:#000080;color:white}
+#homePage .catalog-card:focus-visible{outline:1px dotted #111;outline-offset:-2px}
+#homePage .object-label{display:none}
+#homePage .catalog-en,#homePage .catalog-details{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0}
+.retro-welcome{grid-column:span 2;display:flex;align-items:center;gap:20px;align-self:center;padding:20px;border-left:1px solid #aaa;margin:16px;color:#222}
+.retro-welcome span{font:60px/1 Georgia,serif;color:#73858f}
+.retro-welcome p{font:20px/1.45 "Lucida Console","Courier New",monospace;margin:0;max-width:260px}
+.retro-status{border:1px solid;border-color:#808080 #fff #fff #808080;margin-top:5px;padding:5px 8px;min-height:29px;font-size:14px;line-height:1.35;display:flex;justify-content:space-between;gap:8px}
+.retro-status::after{content:"◢";color:#777;align-self:end}
+.retro-desktop-side{display:flex;flex-direction:column;align-items:center;gap:26px;padding-top:20px}
+.retro-desktop-icon{display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;background:none;border:0;padding:0;font:18px/1.2 "Lucida Console","Courier New",monospace;text-align:center;margin:0}
+button.retro-desktop-icon{cursor:pointer}
+.retro-desktop-icon img{width:140px;height:135px;object-fit:contain;image-rendering:pixelated;transform:scale(1.4)}
+.retro-note{width:100%}
+.retro-note .retro-titlebar h2{font-size:18px}
+.retro-note textarea{display:block;width:100%;height:150px;resize:vertical;min-height:100px;max-height:280px;padding:14px 10px;margin-top:5px;border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;background:#faf8ef;color:#111;font:18px/1.45 "Lucida Console","Courier New",monospace;box-sizing:border-box}
+#homePage .retro-note[hidden],#homePage .retro-window[hidden]{display:none}
+#homePage.retro-maximized{grid-template-columns:1fr}
+#homePage.retro-maximized .retro-desktop-side{display:none}
+.retro-taskbar{position:fixed;inset:auto 0 0;z-index:1000;display:flex;align-items:stretch;gap:6px;padding:5px 6px calc(5px + env(safe-area-inset-bottom));height:calc(var(--retro-bar-height) + env(safe-area-inset-bottom));box-sizing:border-box;background:#c0c0c0;border-top:2px solid #fff;box-shadow:0 -1px #808080;color:#111;font:14px/1.15 Tahoma,"Pretendard Variable",sans-serif}
+.retro-taskbar nav{display:flex;gap:5px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;align-items:stretch}
+.retro-task,.retro-start{display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;text-decoration:none;background:#c0c0c0;border:2px solid;border-color:#fff #222 #222 #fff;box-shadow:inset -1px -1px #808080;padding:5px 9px;min-height:38px;box-sizing:border-box}
+.retro-task{flex:1 0 auto;font-size:14px}
+.retro-task img{width:23px;height:23px;object-fit:contain;image-rendering:pixelated;transform:scale(1.4)}
+.retro-start{font-size:19px;font-weight:bold;flex:none}
+.retro-start img{width:25px;height:25px;object-fit:contain;image-rendering:pixelated}
+.retro-task[aria-current="page"],.retro-start[aria-expanded="true"],.retro-task:active{border-color:#555 #fff #fff #555;box-shadow:inset 1px 1px #808080;background:#ddd}
+.retro-task[aria-current="page"]{font-weight:bold}
+.retro-task:hover{color:#000;background:#d4d4d4}
+.retro-clock{display:flex;align-items:center;justify-content:center;min-width:66px;border:2px solid;border-color:#808080 #fff #fff #808080;padding:5px;font:16px/1 "Lucida Console",monospace}
+.retro-start-menu{position:fixed;left:6px;bottom:calc(var(--retro-bar-height) + env(safe-area-inset-bottom));z-index:1001;width:255px;max-height:calc(100dvh - 80px);overflow:auto;background:#c0c0c0;border:2px solid;border-color:#fff #222 #222 #fff;padding:5px;box-shadow:2px 2px #333}
+.retro-start-menu[hidden]{display:none}
+.retro-start-menu a,.retro-start-menu button{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;background:transparent;border:0;color:#111;text-decoration:none;text-align:left;font:16px Tahoma,sans-serif;cursor:pointer;border-radius:0}
+.retro-start-menu a:hover,.retro-start-menu button:hover{color:white;background:#000080}
+.retro-start-menu img{width:26px;height:26px;object-fit:contain;image-rendering:pixelated}
+.retro-taskbar :focus-visible,.retro-start-menu :focus-visible,#homePage button:focus-visible,#homePage textarea:focus-visible{outline:2px dotted #111;outline-offset:-5px}
+}
+@media screen and (max-width:1000px){
+#homePage{grid-template-columns:minmax(0,1fr) 190px;gap:18px}
+html[data-active-page="home"] .app{padding:22px 20px}
+.retro-welcome{gap:12px;margin:8px;padding:12px}.retro-welcome p{font-size:17px}.retro-welcome span{font-size:44px}
+.retro-task{padding-inline:7px;gap:4px}.retro-task img{width:20px;height:20px}.retro-clock{display:none}
+}
+@media screen and (max-width:700px){
+:root{--retro-bar-height:132px}
+html[data-active-page="home"] .app{padding:14px 10px 22px}
+#homePage{grid-template-columns:1fr;gap:18px}
+#homePage .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 4px;padding:12px 5px}
+#homePage .catalog-symbol{height:130px}
+#homePage .catalog-card h2{font-size:17px}
+.retro-welcome{grid-column:auto;margin:4px;padding:8px;flex-direction:column;gap:4px;text-align:center;border:0}.retro-welcome p{font-size:15px}.retro-welcome span{font-size:32px}
+.retro-desktop-side{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0}.retro-note{grid-column:1/-1;grid-row:1}.retro-note textarea{height:115px}.retro-desktop-icon img{width:90px;height:90px}.retro-desktop-icon{font-size:15px}
+.retro-titlebar h1{font-size:21px}.retro-tool{padding:5px 8px}
+.retro-taskbar{gap:4px;padding-inline:4px}.retro-start{font-size:16px;padding:5px;flex-direction:column;gap:4px;min-width:48px}.retro-start img{width:24px;height:24px}
+.retro-taskbar nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,1fr);gap:3px;overflow:visible}
+.retro-task{font-size:14px;white-space:normal;text-align:center;padding:3px 2px;gap:2px;flex-direction:column;line-height:1.1;min-height:0}.retro-task img{width:17px;height:17px}.retro-task:last-child{grid-column:span 2;flex-direction:row;gap:4px}.retro-clock{display:none}
+}
+@media screen and (max-width:360px){:root{--retro-bar-height:186px}.retro-taskbar nav{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,1fr)}.retro-task:last-child{grid-column:span 3}}
+@media print{.retro-taskbar,.retro-start-menu{display:none}}

@@ -1,0 +1,42 @@
+{
+  "generator": "built-in image_gen",
+  "transparent_background": true,
+  "assets": [
+    {
+      "name": "milestones",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the blue desktop calendar with the little blue-rimmed analog clock in the upper left from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "library",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the overlapping white document sheets with the red PDF badge in the upper center from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "ideas",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the wooden cork pinboard with two tiny landscape photo thumbnails and red and blue pins in the upper right from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "wirenest",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the little green PCB and three looping red yellow blue wires in the middle left from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "transfers",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the blue and purple floppy disks with the small green right arrow BETWEEN them in the middle center, exclude the mouse cursor from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "hardware",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the large silver threaded bolt beside the white spreadsheet sheet with green header in the middle right from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "signaltester",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the grey oscilloscope with black green screen and bright yellow waveform in the lower left from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "computer",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the beige CRT desktop computer with blue C prompt screen outside the main window at the upper right from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    },
+    {
+      "name": "recycle",
+      "prompt": "Use case: background-extraction. Reproduce ONLY the silver recycle bin with green recycling symbol outside the main window at the lower right from this reference as one standalone crisp pixel-art object cutout. Match the exact 1990s Windows 95 hand-pixelled aesthetic, shapes, proportions, colors, chunky dark pixel outlines and restrained dithering of the reference. This will be displayed as a small 150px dashboard icon. Entire object/group centered on a square canvas with 12 percent transparent margin. Genuine transparent alpha background, including holes/gaps. Remove all UI, panels, frames, background, text labels below the object and cast shadow outside the object. Keep any intrinsic essential symbol such as PDF or waveform. Do not add objects. No smooth photorealistic rendering, no background checkerboard. Return only this individual icon, not the full dashboard."
+    }
+  ]
+}

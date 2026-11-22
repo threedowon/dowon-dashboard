@@ -149,7 +149,8 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/hardware-sheet.css?v=20261122">
 <script src="assets/hardware-sheet.js?v=20261122" defer></script>
 <link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
-<link rel="stylesheet" href="assets/object-catalog.css?v=20261122-compact-house-v2">
+<link rel="stylesheet" href="assets/retro-home.css?v=20261122-retro-v1">
+<script src="assets/retro-desktop.js?v=20261122-retro-v1" defer></script>
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -158,7 +159,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="workspace-link" href="#home" data-page="home"><span class="nav-symbol" aria-hidden="true">⌂</span>Home</a>
 <a class="workspace-link" href="#milestones" data-page="milestones"><span class="nav-symbol" aria-hidden="true">☷</span>Milestones</a>
 <a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF Library</a>
-<a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>Ideas &amp; References</a>
+<a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>Reference</a>
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
 <a class="workspace-link" href="#signaltester" data-page="signaltester">Signal Tester</a>
 <a class="workspace-link" href="#hardware" data-page="hardware">Hardware Sheet</a>
@@ -167,20 +168,26 @@ html[data-active-page="home"] .side{display:none}
 <p class="small side-note">Plans, ideas, and tools.<br>One place for my work.</p></aside>
 <main class="main"><div class="snapshot">Read-only shared snapshot. Data reflects the time of export.</div>
 <section lang="en" id="homePage" data-screen="home" aria-labelledby="homeTitle">
-<h1 id="homeTitle" class="sr-only" tabindex="-1">Workspace</h1>
-<svg class="house-roof" viewBox="0 0 1100 146" preserveAspectRatio="none" aria-hidden="true"><path d="M0 146 L360 1 H730 L1100 146 M888 62 V7 H968 V94"/></svg>
-<div class="catalog-grid">
-<div class="house-intro"><a class="house-wordmark" href="#home" aria-label="Workspace home">workspace</a><p>a place for things in progress</p></div>
-<div class="house-lamp" aria-hidden="true"><img src="assets/dashboard-objects/house-v1/lamp.png" alt="" decoding="async"></div>
-<a class="catalog-card object-card" href="#signaltester" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/house-v1/signaltester.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>Live sensor readings · Charts · Communication logs</p></div></a>
-<a class="catalog-card object-card" href="#milestones" aria-labelledby="milestoneCardTitle"><div class="catalog-symbol object-0" aria-hidden="true"><img src="assets/dashboard-objects/house-v1/milestones.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">01</span><div class="catalog-card-head"><div><h2 id="milestoneCardTitle">Milestones</h2><span class="catalog-en">Milestones</span></div></div><div class="catalog-details"><p>Plan project goals and schedules.</p><div class="catalog-status"><span id="homeMilestoneSummary">Explore projects</span></div></div></a>
-<a class="catalog-card object-card" href="#pdf" aria-labelledby="pdfCardTitle"><div class="catalog-symbol object-1" aria-hidden="true"><img src="assets/dashboard-objects/house-v2/library.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">02</span><div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF Library</h2><span class="catalog-en">Document library</span></div></div><div class="catalog-details"><p>Keep documents to read and revisit.</p><div class="catalog-status">Upload documents · Browse by tag</div></div></a>
-<a class="catalog-card object-card" href="#ideas" aria-labelledby="ideasCardTitle"><div class="catalog-symbol object-2" aria-hidden="true"><img src="assets/dashboard-objects/house-v2/ideas.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">03</span><div class="catalog-card-head"><div><h2 id="ideasCardTitle">Ideas &amp; References</h2><span class="catalog-en">Ideas & references</span></div></div><div class="catalog-details"><p>Collect images, references, and ideas.</p><div class="catalog-status">Images · Links · Project boards</div></div></a>
-<a class="catalog-card object-card" href="#wirenest" aria-labelledby="wireNestCardTitle"><div class="catalog-symbol object-3" aria-hidden="true"><img src="assets/dashboard-objects/house-v1/wirenest.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">04</span><div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB harness studio</span></div></div><div class="catalog-details"><p>Arrange components and design connections.</p><div class="catalog-status"><span id="wireNestCardAction">Open saved backups</span></div></div></a>
-<a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/house-v2/transfers.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">File Transfer</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>Move files between workspaces.</p><div class="catalog-status">Upload · Download</div></div></a>
-<a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/house-v2/hardware.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>Organize hardware requests and purchase quantities.</p></div></a>
-</div>
-</section>
+<div class="retro-window" id="retroMainWindow">
+<header class="retro-titlebar"><img src="assets/dashboard-objects/retro-v1/milestones.png" alt="" decoding="async"><h1 id="homeTitle" tabindex="-1">Workspace</h1><div class="retro-controls">
+<button type="button" class="retro-control" data-retro-action="minimize" aria-label="Minimize Workspace">_</button>
+<button type="button" class="retro-control" data-retro-action="maximize" aria-label="Maximize Workspace" aria-pressed="false">□</button>
+<button type="button" class="retro-control" data-retro-action="minimize" aria-label="Close Workspace window">×</button></div></header>
+<div class="retro-menubar" aria-label="Workspace tools"><button class="retro-tool" type="button" data-retro-action="menu">File</button><button class="retro-tool" type="button" data-retro-action="maximize" aria-pressed="false">View</button><button class="retro-tool" type="button" data-retro-action="menu">Tools</button><button class="retro-tool" type="button" data-retro-action="help">Help</button></div>
+<div class="catalog-grid"><a class="catalog-card object-card" href="#milestones" aria-labelledby="milestoneCardTitle"><div class="catalog-symbol object-0" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/milestones.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">01</span><div class="catalog-card-head"><div><h2 id="milestoneCardTitle">Milestones</h2><span class="catalog-en">Milestones</span></div></div><div class="catalog-details"><p>Plan project goals and schedules.</p><div class="catalog-status"><span id="homeMilestoneSummary">Explore projects</span></div></div></a>
+<a class="catalog-card object-card" href="#pdf" aria-labelledby="pdfCardTitle"><div class="catalog-symbol object-1" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/library.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">02</span><div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF Library</h2><span class="catalog-en">Document library</span></div></div><div class="catalog-details"><p>Keep documents to read and revisit.</p><div class="catalog-status">Upload documents · Browse by tag</div></div></a>
+<a class="catalog-card object-card" href="#ideas" aria-labelledby="ideasCardTitle"><div class="catalog-symbol object-2" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/ideas.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">03</span><div class="catalog-card-head"><div><h2 id="ideasCardTitle">Reference</h2><span class="catalog-en">Reference</span></div></div><div class="catalog-details"><p>Collect images, references, and ideas.</p><div class="catalog-status">Images · Links · Project boards</div></div></a>
+<a class="catalog-card object-card" href="#wirenest" aria-labelledby="wireNestCardTitle"><div class="catalog-symbol object-3" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">04</span><div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB harness studio</span></div></div><div class="catalog-details"><p>Arrange components and design connections.</p><div class="catalog-status"><span id="wireNestCardAction">Open saved backups</span></div></div></a>
+<a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">File Transfer</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>Move files between workspaces.</p><div class="catalog-status">Upload · Download</div></div></a>
+<a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>Organize hardware requests and purchase quantities.</p></div></a>
+<a class="catalog-card object-card" href="#signaltester" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>Live sensor readings · Charts · Communication logs</p></div></a>
+<div class="retro-welcome"><span aria-hidden="true">⚙</span><p>A place for things<br>in progress.</p></div></div>
+<footer class="retro-status"><span id="retroHomeStatus" role="status">7 tools ready</span></footer></div>
+<aside class="retro-desktop-side" aria-label="Desktop accessories">
+<button type="button" id="retroComputer" class="retro-desktop-icon" data-retro-action="restore"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>My Computer</span></button>
+<section class="retro-window retro-note" id="retroNote" aria-labelledby="retroNoteTitle"><header class="retro-titlebar"><h2 id="retroNoteTitle">Quick Note</h2><button type="button" class="retro-control" data-retro-action="close-note" aria-label="Close Quick Note">×</button></header><textarea id="retroNoteText" aria-label="Quick Note — saved on this device" spellcheck="false" maxlength="4000">Make something today.</textarea></section>
+<figure class="retro-desktop-icon"><img src="assets/dashboard-objects/retro-v1/recycle.png" alt="" decoding="async"><figcaption>Recycle Bin</figcaption></figure>
+</aside></section>
 <section id="hardwarePage" data-screen="hardware" aria-labelledby="hardwareTitle" hidden>
 <div class="page-top"><span class="eyebrow">HARDWARE / PURCHASES</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="placeholder-heading"><div><h1 id="hardwareTitle" tabindex="-1">Hardware Sheet</h1><p class="page-intro">이름을 추가하고 필요한 수량을 입력하세요. 팀원들과 같은 신청표를 사용합니다.</p></div><a class="btn primary" href="hardware/" target="_blank" rel="noopener noreferrer">새 탭에서 열기 ↗</a></div>
@@ -230,7 +237,7 @@ html[data-active-page="home"] .side{display:none}
 </section>
 <section id="ideasPage" data-screen="ideas" aria-labelledby="ideasTitle" hidden>
 <div class="page-top"><span class="eyebrow">IDEAS &amp; REFERENCES</span><a class="back-link" id="ideasBack" href="#home">← 대시보드 홈</a></div>
-<div class="ideas-heading"><div><span class="availability">PROJECT CANVAS</span><h1 id="ideasTitle" tabindex="-1">아이디어·레퍼런스</h1><p class="page-intro" id="ideasIntro">이미지, 영상, 메모를 자유롭게 펼쳐놓고 연결되는 생각을 모으세요.</p></div></div>
+<div class="ideas-heading"><div><span class="availability">PROJECT CANVAS</span><h1 id="ideasTitle" tabindex="-1">Reference</h1><p class="page-intro" id="ideasIntro">이미지, 영상, 메모를 자유롭게 펼쳐놓고 연결되는 생각을 모으세요.</p></div></div>
 <div class="ideas-project-row"><button class="btn" id="cardScheduleEdit" hidden>일정 정보 수정</button><label>프로젝트 보드<select id="ideasProject" aria-label="프로젝트 보드"></select></label><button class="btn" id="ideasNewProject">＋ 프로젝트 추가</button><span class="small" id="ideasCount"></span></div>
 <div class="ideas-toolbar" role="toolbar" aria-label="레퍼런스 보드 도구"><button class="btn primary" id="ideasImage">＋ 이미지</button><button class="btn" id="ideasLink">영상·링크</button><button class="btn" id="ideasNote">메모</button><button class="btn" id="ideasUndo" title="Ctrl+Z" disabled>↶</button><button class="btn" id="ideasRedo" title="Ctrl+Shift+Z" disabled>↷</button><button class="btn" id="ideasEdit" disabled>내용 수정</button><button class="btn" id="ideasDelete" disabled>삭제</button><div class="ideas-zoom-tools"><button class="btn" id="ideasZoomOut" aria-label="보드 축소">−</button><output id="ideasZoom">100%</output><button class="btn" id="ideasZoomIn" aria-label="보드 확대">＋</button><button class="btn" id="ideasFit">전체 보기</button></div></div>
 <div class="ideas-viewport" id="ideasViewport" tabindex="0" aria-label="프로젝트 레퍼런스 보드. 이미지나 영상 URL을 붙여넣으세요."><div class="ideas-world" id="ideasWorld"></div><div class="ideas-empty" id="ideasEmpty"><span class="ideas-empty-symbol" aria-hidden="true">✧</span><h2 id="ideasEmptyTitle">프로젝트를 선택해 보드를 시작하세요</h2><p>이미지 복사 후 Ctrl+V · 영상 URL 붙여넣기<br>파일을 끌어놓거나 위의 도구로 자료를 추가할 수도 있어요.</p></div></div>
@@ -272,6 +279,21 @@ html[data-active-page="home"] .side{display:none}
 </div>
 <details class="project-backup editable"><summary>파일 백업·불러오기 <span class="small" id="saveState">● 이 기기에 저장됨</span></summary><p class="small">GitHub 연결 후 프로젝트·일정·연결 맵 배치가 자동 저장됩니다. 다른 컴퓨터에서도 같은 계정으로 연결해 주세요.<br>오프라인 변경은 이 기기에 보관되며, 연결되면 다시 저장합니다.</p><div class="tools"><button class="btn" id="import">JSON 불러오기</button><button class="btn" id="backup">JSON 백업</button><button class="btn" id="cloudBackup" hidden>이전 기기 변경 JSON</button></div></details>
 </section></main></div>
+<div class="retro-taskbar" lang="en"><button type="button" class="retro-start" id="retroStart" aria-expanded="false" aria-controls="retroStartMenu"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>Start</span></button><nav aria-label="Taskbar navigation"><a class="retro-task" href="#home" data-page="home"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>Home</span></a>
+<a class="retro-task" href="#milestones" data-page="milestones"><img src="assets/dashboard-objects/retro-v1/milestones.png" alt="" decoding="async"><span>Milestones</span></a>
+<a class="retro-task" href="#pdf" data-page="pdf"><img src="assets/dashboard-objects/retro-v1/library.png" alt="" decoding="async"><span>PDF Library</span></a>
+<a class="retro-task" href="#ideas" data-page="ideas"><img src="assets/dashboard-objects/retro-v1/ideas.png" alt="" decoding="async"><span>Reference</span></a>
+<a class="retro-task" href="#wirenest" data-page="wirenest"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"><span>WireNest</span></a>
+<a class="retro-task" href="#signaltester" data-page="signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
+<a class="retro-task" href="#hardware" data-page="hardware"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"><span>Hardware Sheet</span></a></nav><time id="retroClock" class="retro-clock" aria-label="Current time"></time></div>
+<nav class="retro-start-menu" lang="en" id="retroStartMenu" aria-label="Start menu" hidden><a href="#home"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>Home</span></a>
+<a href="#milestones"><img src="assets/dashboard-objects/retro-v1/milestones.png" alt="" decoding="async"><span>Milestones</span></a>
+<a href="#pdf"><img src="assets/dashboard-objects/retro-v1/library.png" alt="" decoding="async"><span>PDF Library</span></a>
+<a href="#ideas"><img src="assets/dashboard-objects/retro-v1/ideas.png" alt="" decoding="async"><span>Reference</span></a>
+<a href="#wirenest"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"><span>WireNest</span></a>
+<a href="#signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
+<a href="#hardware"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"><span>Hardware Sheet</span></a>
+<a href="#transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a><button type="button" data-retro-action="note">Quick Note</button></nav>
 <dialog id="modal"><h2 id="modalTitle"></h2><form id="form"><div class="formgrid" id="fields"></div><div class="footer"><button type="button" class="btn danger" id="remove">삭제</button><div><button type="button" class="btn" id="cancel">취소</button> <button class="btn primary" type="submit">저장</button></div></div></form></dialog>
 <input type="file" accept=".json,application/json" id="file" hidden>
 <input type="file" id="ideasFiles" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" multiple hidden><input type="file" id="ideasBackupFile" accept=".json,application/json" hidden>
@@ -319,7 +341,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"아이디어 보드",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매"};
+const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
@@ -357,7 +379,7 @@ const cardHref=(pid,mid)=>"#card/"+encodeURIComponent(pid)+"/"+encodeURIComponen
 let cardBoardRoute=null,cardBoardRequest=0;
 async function syncCardBoard(project,milestone){
  const target=milestone?cardHref(project.id,milestone.id):null;
- $("ideasTitle").textContent=milestone?milestone.title:"아이디어·레퍼런스";
+ $("ideasTitle").textContent=milestone?milestone.title:"Reference";
  $("ideasIntro").textContent=milestone?project.name+" · 이 일정의 이미지와 메모를 자유롭게 정리하세요.":"이미지, 영상, 메모를 자유롭게 펼쳐놓고 연결되는 생각을 모으세요.";
  $("ideasBack").href=milestone?"#milestones":"#home";
  $("ideasBack").textContent=milestone?"← 마일스톤으로 돌아가기":"← 대시보드 홈";
