@@ -13,7 +13,7 @@ globalThis.EditHistory = {
 /* Direct manipulation for the SVG map; exported diagrams contain no editor controls. */
 globalThis.DependencyEditor = {
   attach({ board, toolbar, getProjects, getModel, isActive, commit, edit, navigate, createId, openBoard }) {
-    let selected=null,edge=null,pending=null,drag=null,suppressClickUntil=0;
+    let selected=null,edge=null,pending=null,drag=null,renaming=null,suppressClickUntil=0;
     const status=toolbar.querySelector('[data-flow-status]');
     const control=name=>toolbar.querySelector(`[data-flow-action="${name}"]`);
     const tell=text=>{status.textContent=text;};
@@ -74,6 +74,7 @@ globalThis.DependencyEditor = {
       decorate();tell('연결선 위치를 저장했어요. Ctrl+Z로 되돌릴 수 있습니다.');
     }
     function refresh(){
+      finishRename(false,false);
       drag=null;pending=null;clearPreview();
       if(!isActive()||!hasNode(selected))selected=null;
       if(edge&&(!hasNode(edge.from)||!hasNode(edge.to)||!DependencyMap.normalize(lookup(edge.to)?.milestone.dependsOn).some(r=>DependencyMap.key(r.projectId,r.milestoneId)===edge.from)))edge=null;
@@ -82,12 +83,48 @@ globalThis.DependencyEditor = {
       else if(selected)tell(`${lookup(selected)?.milestone.title||'일정'} · 네모 핸들을 빈 곳으로 끌면 연결된 새 카드가 생깁니다.`);
       else tell('카드 위·아래 테두리를 끌어 날짜를 조절하고, 카드 안에서 상태를 선택하세요.');
     }
-    function selectNode(id){selected=id;edge=null;decorate();tell(`${lookup(id)?.milestone.title||'일정'} · 네모 핸들: 새 카드 만들기 / 기존 카드에 놓기: 연결`);}
+    function selectNode(id){selected=id;edge=null;decorate();focusNode(id);tell(`${lookup(id)?.milestone.title||'일정'} · F2: 이름 수정 · 네모 핸들: 새 카드 만들기 / 기존 카드에 놓기: 연결`);}
+    function focusNode(id){[...board.querySelectorAll('.flow-node')].find(node=>node.dataset.m===id)?.focus({preventScroll:true});}
+    function finishRename(save,restoreFocus=true){
+      if(!renaming)return;
+      const {id,input,overlay}=renaming,title=input.value.trim();
+      renaming=null;overlay.remove();
+      const target=lookup(id);
+      if(save&&isActive()&&title&&target&&target.milestone.title!==title){
+        const previous=target.milestone.title;target.milestone.title=title;
+        commit(target.project,`일정 이름 변경: ${previous} → ${title}`);
+        tell('이름을 저장했어요. Ctrl+Z로 되돌릴 수 있습니다.');
+      }
+      if(restoreFocus)focusNode(id);
+    }
+    function startRename(id){
+      if(!isActive()||renaming)return;
+      const target=lookup(id),model=getModel(),item=model?.items.find(m=>m.id===id),svg=board.querySelector('svg');
+      if(!target||!item||!svg)return;
+      pending=null;drag=null;clearPreview();selectNode(id);
+      const overlay=document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+      for(const [name,value]of Object.entries({class:'flow-rename',x:item.x+8,y:model.top+item.y+8,width:item.width-16,height:Math.max(30,item.height-73)}))overlay.setAttribute(name,value);
+      const input=document.createElementNS('http://www.w3.org/1999/xhtml','textarea');
+      input.setAttribute('aria-label','일정 이름');input.setAttribute('placeholder','일정 이름');input.value=target.milestone.title;
+      overlay.append(input);svg.append(overlay);renaming={id,input,overlay};
+      input.addEventListener('keydown',e=>{
+        e.stopPropagation();
+        if(e.isComposing||e.keyCode===229)return;
+        if(e.key==='Escape'){e.preventDefault();finishRename(false);tell('이름 수정을 취소했어요.');}
+        else if(e.key==='Enter'){
+          e.preventDefault();
+          if(!input.value.trim()){tell('일정 이름을 입력해 주세요.');return;}
+          finishRename(true);
+        }
+      });
+      input.addEventListener('blur',()=>finishRename(true,false));
+      input.focus();input.select();tell('이름을 입력한 뒤 Enter로 저장, Esc로 취소하세요.');
+    }
     function start(port){
       pending=port;selected=port.id;edge=null;clearPreview();decorate();
       tell(`${lookup(port.id)?.milestone.title||'이 일정'} → 빈 곳에 놓으면 새 카드, 기존 카드에 놓으면 연결합니다. Esc로 취소합니다.`);
     }
-    function cancel(){pending=null;drag=null;clearPreview();decorate();tell('작업을 취소했어요.');}
+    function cancel(){finishRename(false,false);pending=null;drag=null;clearPreview();decorate();tell('작업을 취소했어요.');}
     function moveCard(id,targetColumn){
       const result=DependencyMap.move(getProjects(),id,targetColumn,getModel());
       drag=null;clearPreview();selected=id;edge=null;
@@ -198,7 +235,7 @@ globalThis.DependencyEditor = {
     }
     function activate(target){
       if(!isActive())return;
-      if(target.closest('[data-flow-status-select],[data-resize],[data-edge-handle],.flow-add-column'))return;
+      if(target.closest('[data-flow-status-select],[data-resize],[data-edge-handle],.flow-add-column,.flow-rename'))return;
       const port=target.closest('[data-port-node]'),node=target.closest('[data-m]'),line=target.closest('[data-edge-from]');
       if(port){if(pending&&pending.id!==port.dataset.portNode)finish(port.dataset.portNode,port.dataset.side);else start(portInfo(port));}
       else if(node){if(pending)finish(node.dataset.m);else selectNode(node.dataset.m);}
@@ -235,7 +272,7 @@ globalThis.DependencyEditor = {
     }
     board.addEventListener('pointerdown',e=>{
       if(!isActive()||e.button!==0)return;
-      if(e.target.closest('[data-flow-status-select],.flow-add-column'))return;
+      if(e.target.closest('[data-flow-status-select],.flow-add-column,.flow-rename'))return;
       const edgeHandle=e.target.closest('[data-edge-handle]');
       if(edgeHandle){
         const item=selectedEdge();if(!item)return;
@@ -292,7 +329,11 @@ globalThis.DependencyEditor = {
     board.addEventListener('click',e=>{if(!isActive()||Date.now()<suppressClickUntil)return;activate(e.target);});
     board.addEventListener('keydown',e=>{
       if(!isActive())return;
-      if(e.target.closest('[data-flow-status-select],.flow-add-column'))return;
+      if(e.target.closest('input,textarea,select,[contenteditable="true"],.flow-add-column')||e.isComposing)return;
+      if(e.key==='F2'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+        const id=e.target.closest('.flow-node')?.dataset.m||selected;
+        if(id){e.preventDefault();e.stopPropagation();startRename(id);}return;
+      }
       if(e.key==='Escape'){e.preventDefault();cancel();return;}
       const edgeHandle=e.target.closest('[data-edge-handle]');
       if(edgeHandle&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
@@ -328,6 +369,6 @@ globalThis.DependencyEditor = {
     control('edit').onclick=()=>{const target=lookup(selected);if(target)edit(target);};
     control('detail').onclick=()=>{const target=lookup(selected);if(target)navigate(target);};
     for(const [name,delta]of [['left',-1],['right',1]])control(name).onclick=()=>{const item=getModel()?.items?.find(m=>m.id===selected);if(item)moveCard(selected,item.column+delta);};
-    return { refresh, cancel, get busy(){return !!drag||!!pending;} };
+    return { refresh, cancel, get busy(){return !!drag||!!pending||!!renaming;} };
   }
 };
