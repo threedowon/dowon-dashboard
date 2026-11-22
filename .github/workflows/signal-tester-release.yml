@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install dashboard test dependencies
+        run: npm ci
       - name: Build standalone EXE
         run: python signal-tester/build_windows.py
       - name: Test source and packaged application
