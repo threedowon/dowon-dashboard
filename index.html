@@ -151,7 +151,7 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
 <link rel="stylesheet" href="assets/retro-home.css?v=20261122-taskbar-eight">
 <script src="assets/retro-desktop.js?v=20261122-retro-v1" defer></script>
-<link rel="stylesheet" href="assets/retro-pages.css?v=20261122-transfer-table-v1">
+<link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-explorer-v1">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -233,7 +233,7 @@ html[data-active-page="home"] .side{display:none}
 <button class="pdf-dropzone editable" id="pdfDropzone" type="button" disabled><strong>Drop PDF files here</strong><span>Upload multiple files · Up to 10 MB each</span><span>Or click to choose files and add tags</span></button>
 <div class="library-toolbar"><label>Search documents<input id="pdfSearch" type="search" placeholder="제목, 파일 이름, 태그 검색"></label><button class="btn" id="pdfRefresh">새로고침</button></div>
 <p class="small" id="pdfStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p>
-<div id="pdfTags" class="library-tags" aria-label="태그별 필터"></div><p class="small" id="pdfCount"></p><div class="pdf-bulkbar editable" id="pdfBulkbar"><label class="pdf-select-label"><input type="checkbox" id="pdfSelectAll"> Select all</label><span id="pdfSelectionCount" role="status">0개 선택</span><button class="btn" id="pdfClearSelection" disabled>선택 해제</button><button class="btn" id="pdfBulkTags" disabled>선택한 PDF에 태그 추가</button><button class="btn danger" id="pdfBulkDelete" disabled>선택 삭제</button><span class="small">Changing the search or tags clears your selection.</span></div><div id="pdfList" class="library-grid"></div>
+<div id="pdfTags" class="library-tags" aria-label="태그별 필터"></div><p class="small" id="pdfCount"></p><div class="pdf-bulkbar editable" id="pdfBulkbar"><label class="pdf-select-label"><input type="checkbox" id="pdfSelectAll"> Select all</label><span id="pdfSelectionCount" role="status">0개 선택</span><button class="btn" id="pdfClearSelection" disabled>선택 해제</button><button class="btn" id="pdfBulkTags" disabled>선택한 PDF에 태그 추가</button><button class="btn danger" id="pdfBulkDelete" disabled>선택 삭제</button><div class="pdf-view-switch" role="group" aria-label="Document view"><button class="btn" type="button" id="pdfGridView" aria-label="Grid view" aria-pressed="true" title="Grid view">▦</button><button class="btn" type="button" id="pdfListView" aria-label="List view" aria-pressed="false" title="List view">☰</button></div></div><div id="pdfList" class="library-grid"></div>
 <p class="small library-note">PDF 한 개당 최대 10MB · 비공개 저장소에 보관됩니다.<br>자료실은 업로드·수정 시 바로 저장되며, 마일스톤의 백업·복원과 별도로 관리됩니다.</p>
 </section>
 <section id="ideasPage" data-screen="ideas" aria-labelledby="ideasTitle" hidden>
@@ -306,7 +306,7 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
 <script src="assets/wirenest.js?v=20261122-retro-pages-v1" defer></script>
 <script src="assets/transfers.js?v=20261122-transfer-table-v1" defer></script>
-<script src="library.js?v=20261122-retro-pages-v1" defer></script>
+<script src="library.js?v=20261122-pdf-explorer-v1" defer></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){
@@ -622,5 +622,5 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261122-transfer-table-v1" defer></script>
+</script><script src="assets/retro-pages.js?v=20261122-pdf-explorer-v1" defer></script>
 </body></html>

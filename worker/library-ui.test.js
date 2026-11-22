@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const source=readFileSync(new URL('../library.js',import.meta.url),'utf8');
 function app(){
  const elements=new Map(),events={},uploads=[],holds=new Map(),stored=[],batches=[];
- const el=id=>{if(!elements.has(id))elements.set(id,{value:'',innerHTML:'',textContent:'',elements:[],open:false,opened:0,classList:{toggle(){},add(){},remove(){}},addEventListener(name,fn){this[name]=fn;},reset(){el('pdfTagInput').value='';},showModal(){this.open=true;this.opened++;},close(){this.open=false;}});return elements.get(id);};
+ const el=id=>{if(!elements.has(id))elements.set(id,{value:'',innerHTML:'',textContent:'',elements:[],open:false,opened:0,classList:{toggle(){},add(){},remove(){}},setAttribute(name,value){this[name]=value;},addEventListener(name,fn){this[name]=fn;},reset(){el('pdfTagInput').value='';},showModal(){this.open=true;this.opened++;},close(){this.open=false;}});return elements.get(id);};
  let failName=null,paused=false;
  const context={document:{documentElement:{dataset:{}},getElementById:el},window:{addEventListener:(name,fn)=>events[name]=fn},location:{hash:''},sessionStorage:{getItem:()=>null},URL,FormData,console,
  fetch:async(url,options)=>{
@@ -29,6 +29,18 @@ function app(){
 }
 const pdf=name=>new File(['%PDF-1.4'],name,{type:'application/pdf'});
 const settle=async()=>{for(let i=0;i<10;i++)await new Promise(resolve=>setImmediate(resolve));};
+
+test('grid/list switch preserves document selection and cards expose their open and edit actions',async()=>{
+ const a=app();await a.load();a.drop([pdf('guide.pdf'),pdf('notes.pdf')]);await settle();
+ a.el('pdfSelectAll').onchange({target:{checked:true}});
+ const cards=a.el('pdfList').innerHTML;
+ assert.match(cards,/class="pdf-card is-selected"/);assert.match(cards,/aria-label="Open PDF: guide.pdf"/);assert.match(cards,/aria-label="Edit details: guide.pdf"/);
+ assert.ok(!cards.includes('guide.pdf.pdf'));
+ a.el('pdfListView').onclick();assert.equal(a.el('pdfListView')['aria-pressed'],'true');assert.equal(a.el('pdfGridView')['aria-pressed'],'false');
+ assert.equal(a.el('pdfList').innerHTML,cards);assert.equal(a.el('pdfSelectionCount').textContent,'2 selected');
+ a.el('pdfGridView').onclick();assert.equal(a.el('pdfGridView')['aria-pressed'],'true');assert.equal(a.el('pdfListView')['aria-pressed'],'false');
+ a.el('pdfBulkTags').onclick();assert.match(a.el('pdfBulkTagNames').textContent,/guide.pdf/);assert.match(a.el('pdfBulkTagNames').textContent,/notes.pdf/);
+});
 test('drop uploads directly in the list without ever opening the upload modal',async()=>{
  const a=app();assert.equal(a.drop([pdf('a.pdf')]),true);assert.equal(a.uploads.length,0);
  await a.load();a.pause();a.el('pdfSearch').value='old filter';a.drop([pdf('a.pdf'),pdf('b.pdf')]);await settle();

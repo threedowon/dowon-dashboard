@@ -13,7 +13,7 @@
     newProject:'New project',cloudSave:'Sync',connectGithub:'Connect GitHub',backup:'Export JSON',import:'Import JSON',
     deleteSelectedProjects:'Delete selected',selectAllProjects:'Select all',clearProjects:'Clear selection',share:'Export HTML',exportPng:'Export PNG',printRoadmap:'Print / PDF',
     mapFitWidth:'Fit width',mapFitAll:'Fit all',editProject:'Edit project',addDetailMilestone:'Add milestone',addMilestone:'Add milestone',addOnDate:'Add milestone',addNote:'Add note',today:'Today',
-    pdfConnect:'Connect GitHub',pdfAdd:'Upload PDF',pdfRefresh:'Refresh',pdfClearSelection:'Clear selection',pdfBulkTags:'Add tags',pdfBulkDelete:'Delete selected',
+    pdfConnect:'Connect GitHub',pdfAdd:'Upload PDF',pdfRefresh:'Sync',pdfClearSelection:'Clear selection',pdfBulkTags:'Add tags',pdfBulkDelete:'Delete',
     ideasNewProject:'New project',ideasImage:'Image',ideasLink:'Link',ideasNote:'Note',ideasUndo:'Undo',ideasRedo:'Redo',ideasEdit:'Edit',ideasDelete:'Delete',ideasFit:'Fit all',ideasConnect:'Connect GitHub',ideasRefresh:'Sync',ideasExport:'Export board',ideasImport:'Import board',ideasRetry:'Retry save',cardScheduleEdit:'Edit schedule',
     wnConnect:'Connect GitHub',wnRefresh:'Refresh',transferConnect:'Connect GitHub',transferUpload:'Add files',transferRefresh:'Refresh',transferRetry:'Retry upload',
     signalPairButton:'Connect',signalForget:'Disconnect',signalRemoteConnect:'Connect',signalRemoteRefresh:'Refresh'
@@ -28,7 +28,7 @@
   function titleFor(key,config){if(key==='milestones'&&!$('projectDetail').hidden)return 'Milestones — '+($('title').textContent||'Project');if(key==='ideas'&&location.hash.startsWith('#card/'))return $('ideasTitle').textContent||'Reference';return config[0];}
   function localize(){
     Object.entries(labels).forEach(([id,label])=>{const el=$(id);if(el&&el.textContent!==label)el.textContent=label;});
-    const placeholders={pdfSearch:'Search documents and tags',wnSearch:'Search backups',signalPairCode:'Port:connection code'};
+    const placeholders={pdfSearch:'Search documents',wnSearch:'Search backups',signalPairCode:'Port:connection code'};
     Object.entries(placeholders).forEach(([id,value])=>{if($(id))$(id).placeholder=value;});
     const names={pdfTitle:'PDF Library',transfersTitle:'File Transfer',projectsTitle:'Projects',roadmapTitle:'Project roadmap'};
     Object.entries(names).forEach(([id,name])=>{if($(id)&&$(id).textContent!==name)$(id).textContent=name;});
@@ -48,8 +48,8 @@
     const menu=make('nav','retro-page-menu');menu.setAttribute('aria-label',config[0]+' menu');
     function addMenu(name,actions){const d=make('details'),s=make('summary',null,name),p=make('div','retro-menu-popup');for(const [label,fn,target] of actions){const b=make('button',null,label);b.type='button';b.onclick=()=>{closeMenus();fn();};if(target)b.dataset.target=target;p.append(b);}d.append(s,p);d.addEventListener('toggle',()=>{if(d.open){menu.querySelectorAll('details').forEach(other=>{if(other!==d)other.open=false;});d.querySelectorAll('[data-target]').forEach(b=>{b.disabled=!$(b.dataset.target)||$(b.dataset.target).disabled;});}});menu.append(d);return p;}
     addMenu('File',[...config[2].map(id=>[labels[id]||'Open',()=>$(id)?.click(),id]),['Back to Home',home]]);
-    const editMenu=key==='ideas'?addMenu('Edit',[['Undo',()=>$('ideasUndo').click(),'ideasUndo'],['Redo',()=>$('ideasRedo').click(),'ideasRedo']]):key==='transfers'?addMenu('Edit',[['Retry upload',()=>$('transferRetry').click(),'transferRetry']]):null;
-    const viewMenu=addMenu('View',[['Maximize / Restore',()=>controls.querySelector('[data-maximize]').click()],['Back to Home',home]]);
+    const editMenu=key==='ideas'?addMenu('Edit',[['Undo',()=>$('ideasUndo').click(),'ideasUndo'],['Redo',()=>$('ideasRedo').click(),'ideasRedo']]):key==='transfers'?addMenu('Edit',[['Retry upload',()=>$('transferRetry').click(),'transferRetry']]):key==='pdf'?addMenu('Edit',[['Select all',()=>{if(!$('pdfSelectAll').checked)$('pdfSelectAll').click();},'pdfSelectAll'],['Clear selection',()=>$('pdfClearSelection').click(),'pdfClearSelection'],['Add tags',()=>$('pdfBulkTags').click(),'pdfBulkTags'],['Delete',()=>$('pdfBulkDelete').click(),'pdfBulkDelete']]):null;
+    const viewMenu=addMenu('View',[...(key==='pdf'?[['Grid view',()=>$('pdfGridView').click()],['List view',()=>$('pdfListView').click()]]:[]),['Maximize / Restore',()=>controls.querySelector('[data-maximize]').click()],['Back to Home',home]]);
     addMenu('Help',[[config[0]+' Help',()=>showHelp(config)]]);
     const status=make('footer','retro-page-status');status.append(make('span',null,config[0]),make('span',null,'Workspace'));
     section.append(header,menu,body,status);
@@ -82,7 +82,18 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenus();});
   // Explorer-style tag rail uses the existing filter and file nodes with their handlers intact.
   const pdfBody=$('pdfPage')?.querySelector('.retro-page-body');
-  if(pdfBody){const layout=make('div','retro-library-layout'),aside=make('aside','retro-library-sidebar'),files=make('div','retro-library-main');aside.append(make('h2',null,'Tags'),$('pdfTags'));for(const id of ['pdfCount','pdfBulkbar','pdfList'])files.append($(id));layout.append(aside,files);pdfBody.querySelector('.library-toolbar').after(layout);}
+  if(pdfBody){
+    const layout=make('div','retro-library-layout'),aside=make('aside','retro-library-sidebar'),files=make('div','retro-library-main');
+    aside.append(make('h2',null,'Tags'),$('pdfTags'));
+    const toolbar=pdfBody.querySelector('.library-toolbar'),search=toolbar.querySelector('label');
+    search.classList.add('pdf-search-control');search.firstChild.textContent='';$('pdfSearch').setAttribute('aria-label','Search documents');
+    const searchButton=make('button','btn pdf-search-button');searchButton.type='button';searchButton.setAttribute('aria-label','Search documents');searchButton.onclick=()=>{$('pdfSearch').focus();$('pdfSearch').oninput();};search.append(searchButton);
+    toolbar.prepend($('pdfAdd'),$('pdfRefresh'),$('pdfBulkDelete'));toolbar.append(search);
+    files.append($('pdfBulkbar'),$('pdfDropzone'),$('pdfList'));layout.append(aside,files);toolbar.after(layout);
+    $('pdfClearSelection').hidden=true;
+    const status=$('pdfPage').querySelector('.retro-page-status');status.replaceChildren($('pdfCount'),make('span',null,'/'),$('pdfSelectionCount'));
+    $('pdfPage').querySelector('.retro-titlebar>img').src='assets/pdf-file.svg';
+  }
   // Decorative icons reuse the existing desktop artwork; all actions keep their original handlers.
   for(const [page,icon] of [['transfersPage','transfers'],['wirenestPage','wirenest']]){
     const heading=$(page)?.querySelector('.placeholder-heading>div:first-child');if(heading){heading.classList.add('retro-icon-heading');const img=make('img','retro-heading-icon');img.src='assets/dashboard-objects/retro-v1/'+icon+'.png';img.alt='';heading.prepend(img);}
