@@ -27,7 +27,7 @@ export async function createWorkbookPdf(input:PdfInput,fontBytes:Uint8Array){
  };
  const sections=purchaseSections(input);
  newPage();
- if(!sections.length){box(page!,left,y,width,36);text(page!,'선택한 조건에 해당하는 품목이 없습니다.',left+7,y-23);}
+ if(!sections.length){box(page!,left,y,width,36);text(page!,'선택한 조건에서 신청 수량이 1개 이상인 품목이 없습니다.',left+7,y-23);}
  for(const [sectionIndex,section] of sections.entries()){
   const sectionColor=section.id==='aliexpress'?color(0xB85C18):section.id==='coupang'?color(0x2267A6):navy;
   const sectionLines=(continued:boolean)=>wrap(section.label+' '+section.items.length+'개 품목'+(continued?' (계속)':''),width-14,12);
