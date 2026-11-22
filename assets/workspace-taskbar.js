@@ -25,7 +25,7 @@
     a.append(image(icon),text); return a;
   };
   const css=document.createElement('link'); css.rel='stylesheet';
-  css.href=new URL('assets/workspace-taskbar.css?v=20261122-all-pages',base).href;
+  css.href=new URL('assets/workspace-taskbar.css?v=20261122-all-pages-v2',base).href;
   document.head.append(css);
   document.documentElement.dataset.workspaceTool=page;
   document.body.classList.add('workspace-taskbar-host');
