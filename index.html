@@ -371,7 +371,7 @@ function route(focus=false){
  $("projectOverview").hidden=!!detailId;$("projectDetail").hidden=!detailId;
  $("milestonesPage").setAttribute("aria-labelledby",detailId?"title":"projectsTitle");
  document.title=(cardOpen?cardMilestone.title+" · "+cardProject.name:project?project.name+" · "+pages.milestones:pages[page])+" | 대시보드";
- $("pageIcon").href="assets/tab-icons/"+(cardOpen?"card":page)+".svg?v=2";
+ $("pageIcon").href="assets/tab-icons/"+(cardOpen?"card":page)+".svg?v="+(page==="hardware"&&!cardOpen?"3":"2");
  if(focus){const heading=page==="milestones"?$(detailId?"title":"projectsTitle"):document.querySelector('[data-screen="'+page+'"] h1');heading?.focus({preventScroll:true});window.scrollTo(0,0);}
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
