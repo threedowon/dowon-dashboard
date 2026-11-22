@@ -12,7 +12,7 @@ export async function createWorkbookPdf(input:PdfInput,fontBytes:Uint8Array){
  const navy=color(0x1E3A8A),blue=color(0x2563EB),ink=color(0x243246),line=color(0xD6DDE6),pale=color(0xEDF2FA),white=rgb(1,1,1);
  const [pageHeight,pageWidth]=PageSizes.A4;
  const left=42,width=pageWidth-left*2,bottom=40,lineHeight=13,padding=6;
- const widths=[150,44,width-392,58,140],xs=[left,left+150,left+194,left+width-198,left+width-140];
+ const widths=[182,54,width-300,64],xs=[left,left+182,left+236,left+width-64];
  const text=(p:PDFPage,s:string,x:number,y:number,size=10,fill=ink)=>p.drawText(clean(s),{x,y,size,font,color:fill});
  const wrap=(s:string,w:number,size=10)=>{const lines:string[]=[];for(const para of clean(s).split('\n')){let current='';for(const c of Array.from(para)){if(current&&font.widthOfTextAtSize(current+c,size)>w){lines.push(current);current=c}else current+=c}lines.push(current)}return lines};
  const box=(p:PDFPage,x:number,top:number,w:number,h:number,fill=white)=>p.drawRectangle({x,y:top-h,width:w,height:h,color:fill,borderColor:line,borderWidth:.4});
@@ -35,21 +35,21 @@ export async function createWorkbookPdf(input:PdfInput,fontBytes:Uint8Array){
   const heading=(continued:boolean)=>{
    const lines=sectionLines(continued),h=sectionHeight(continued)-19;
    box(page!,left,y,width,h,sectionColor);lines.forEach((l,n)=>text(page!,l,left+7,y-18-n*16,12,white));y-=h;
-   for(const [i,label] of ['품명','링크','옵션','필요 수량','주문 수량'].entries()){
+   for(const [i,label] of ['품명','링크','옵션','필요 수량'].entries()){
     box(page!,xs[i],y,widths[i],19,navy);text(page!,label,xs[i]+(widths[i]-font.widthOfTextAtSize(label,10))/2,y-13,10,white);
    }
    y-=19;
   };
   const nextPage=()=>{newPage();heading(true)};
   if(sectionIndex)y-=12;
-  const first=section.items[0],firstHeight=Math.max(wrap(first.name,widths[0]-14).length,wrap(first.option,widths[2]-14).length,wrap(first.orderText,widths[4]-14).length)*lineHeight+padding;
+  const first=section.items[0],firstHeight=Math.max(wrap(first.name,widths[0]-14).length,wrap(first.option,widths[2]-14).length)*lineHeight+padding;
   const rowAreaHeight=contentTop-sectionHeight(true)-bottom;
   // Keep a section title with its first row; exceptionally tall rows may span pages.
   if(y-bottom<sectionHeight(false)+Math.min(firstHeight,rowAreaHeight))newPage();
   heading(false);
   for(const [index,row] of section.items.entries()){
-   const names=wrap(row.name,widths[0]-14),options=wrap(row.option,widths[2]-14),orders=wrap(row.orderText,widths[4]-14);let offset=0;
-   const length=Math.max(names.length,options.length,orders.length);
+   const names=wrap(row.name,widths[0]-14),options=wrap(row.option,widths[2]-14);let offset=0;
+   const length=Math.max(names.length,options.length);
    while(offset<length){
     const remaining=length-offset,fullHeight=remaining*lineHeight+padding;
     if(y-bottom<lineHeight+padding||(fullHeight>y-bottom&&fullHeight<=rowAreaHeight))nextPage();
@@ -57,7 +57,6 @@ export async function createWorkbookPdf(input:PdfInput,fontBytes:Uint8Array){
     box(page!,left,y,width,height,index%2===0?color(0xF8FAFC):white);
     names.slice(offset,offset+take).forEach((l,n)=>text(page!,l,left+7,y-13-n*lineHeight));
     options.slice(offset,offset+take).forEach((l,n)=>text(page!,l,xs[2]+7,y-13-n*lineHeight));
-    orders.slice(offset,offset+take).forEach((l,n)=>text(page!,l,xs[4]+7,y-13-n*lineHeight));
     if(offset===0){
      const quantity=String(row.quantity);text(page!,quantity,xs[3]+(widths[3]-font.widthOfTextAtSize(quantity,10))/2,y-13);
      if(/^https?:\/\//i.test(row.link)){
