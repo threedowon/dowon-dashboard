@@ -6,7 +6,7 @@
     ideas: ['Reference','ideas',['ideasImage','ideasLink','ideasNote','ideasRefresh'],'Paste images or links into the board. Drag cards to arrange them. Ctrl+wheel zooms; Ctrl+Z undoes.'],
     wirenest: ['WireNest','wirenest',['wnUpload','wnRefresh','wnConnect'],'Open the editor in a separate tab. Upload saved .wnest files here to keep backups.'],
     transfers: ['File Transfer','transfers',['transferUpload','transferRefresh','transferConnect'],'Choose files and a retention period. Downloads expire automatically after that period.'],
-    signaltester: ['Signal Tester','signaltester',[],'Download and run SignalTester.exe. The local testing interface opens automatically.'],
+    signaltester: ['Signal Tester','signaltester',['signalBackupConnect','signalBackupRefresh'],'Download and run SignalTester.exe. The local testing interface opens automatically.'],
     hardware: ['Hardware Sheet','hardware',[],'Choose a project to edit its shared sheet. Product photos and purchase links appear in each item column. Open in new tab keeps the original green workbook design.']
   };
   const labels = {
@@ -16,7 +16,7 @@
     pdfConnect:'Connect GitHub',pdfAdd:'Upload PDF',pdfRefresh:'Sync',pdfClearSelection:'Clear selection',pdfBulkTags:'Add tags',pdfBulkDelete:'Delete',
     ideasNewProject:'New project',ideasImage:'Image',ideasLink:'Link',ideasNote:'Note',ideasUndo:'Undo',ideasRedo:'Redo',ideasEdit:'Edit',ideasDelete:'Delete',ideasFit:'Fit all',ideasConnect:'Connect GitHub',ideasRefresh:'Sync',ideasExport:'Export board',ideasImport:'Import board',ideasRetry:'Retry save',cardScheduleEdit:'Edit schedule',
     wnConnect:'Connect GitHub',wnRefresh:'Sync',transferConnect:'Connect GitHub',transferUpload:'Add files',transferRefresh:'Refresh',transferRetry:'Retry upload',
-    signalPairButton:'Connect',signalForget:'Disconnect',signalRemoteConnect:'Connect',signalRemoteRefresh:'Refresh'
+    signalBackupConnect:'Connect account',signalBackupRefresh:'Sync',signalPairButton:'Connect',signalForget:'Disconnect',signalRemoteConnect:'Connect',signalRemoteRefresh:'Refresh'
   };
   const $=id=>document.getElementById(id);
   const make=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
