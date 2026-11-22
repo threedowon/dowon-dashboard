@@ -2,7 +2,8 @@
 <html lang="ko" data-active-page="home">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Workspace — Home</title>
+<title>홈 | 대시보드</title>
+<link id="pageIcon" rel="icon" type="image/svg+xml" href="assets/tab-icons/home.svg">
 <link rel="preload" href="assets/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
 <style id="workspaceFont">
 /*
@@ -318,7 +319,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"Home",milestones:"Milestones",pdf:"PDF Library",ideas:"Ideas & References",wirenest:"WireNest",transfers:"File Transfer",signaltester:"Signal Tester",hardware:"Hardware Sheet"};
+const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"아이디어 보드",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
@@ -347,7 +348,8 @@ function route(focus=false){
  document.documentElement.dataset.projectView=detailId?"detail":"overview";
  $("projectOverview").hidden=!!detailId;$("projectDetail").hidden=!detailId;
  $("milestonesPage").setAttribute("aria-labelledby",detailId?"title":"projectsTitle");
- document.title="Workspace — "+(cardOpen?cardProject.name+" / "+cardMilestone.title:project?project.name:pages[page]);
+ document.title=(cardOpen?cardMilestone.title+" · "+cardProject.name:project?project.name+" · "+pages.milestones:pages[page])+" | 대시보드";
+ $("pageIcon").href="assets/tab-icons/"+(cardOpen?"card":page)+".svg";
  if(focus){const heading=page==="milestones"?$(detailId?"title":"projectsTitle"):document.querySelector('[data-screen="'+page+'"] h1');heading?.focus({preventScroll:true});window.scrollTo(0,0);}
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
