@@ -1,6 +1,6 @@
 /* A date-led dependency map shared by the page and static exports. */
 globalThis.DependencyMap = (() => {
-  const cardInset = 18, cardWidth = 116, columnPitch = 150;
+  const cardInset = 18, cardWidth = 180, columnPitch = 216;
   const DAY = 86400000, key = (projectId, milestoneId) => JSON.stringify([projectId, milestoneId]);
   const esc = value => Roadmap.escape(value);
   const sides = ['top','right','bottom','left'];
@@ -327,8 +327,9 @@ globalThis.DependencyMap = (() => {
         const parent = byId.get(id);
         if (parent.last === m.first) m.rank = Math.max(m.rank, (parent.first === parent.last ? parent.rank || 0 : 0) + 1);
       }
-      m.titleLines = wrap(m.title, cardWidth-24, 13);
-      m.nodeHeight = Math.max(110, 82 + m.titleLines.length * 18 + (m.hiddenRefs ? 32 : 0));
+      m.titleLines = wrap(m.title, cardWidth-40, 13);
+      m.titleHeight = 10 + m.titleLines.length * 18;
+      m.nodeHeight = Math.max(84, 64 + m.titleLines.length * 18 + (m.hiddenRefs ? 32 : 0));
     }
     const slot = Math.max(130, ...items.map(m => m.nodeHeight + cardInset*2));
     const days=weeks.flatMap(w=>{
@@ -401,43 +402,47 @@ globalThis.DependencyMap = (() => {
     const headerHeight=Math.max(40,...model.lanes.map(l=>20+wrap(l.name,l.width-76,15).length*19));
     const top = 48+headerHeight, height = top + model.height + 16;
     model.top=top;
-    const rect = (x,y,w,h,fill,extra='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
-    const text = (x,y,value,size=12,fill='#334b3d',extra='') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${extra}>${esc(value)}</text>`;
-    let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="${interactive?'group':'img'}" aria-label="프로젝트 연결 맵" style="font-family:'Pretendard Variable','Malgun Gothic',sans-serif"><title>${esc(project.name)} — 프로젝트 연결 맵</title>`;
-    out += '<defs><marker id="dependency-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#647568"/></marker><marker id="dependency-warning" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b74736"/></marker></defs>';
-    out += rect(0,0,width,height,'#faf8e9');
-    out += rect(172,19,12,12,'#fffdf2','stroke="#9ca995"') + text(190,30,'시작 전',11);
-    out += rect(244,19,12,12,'#ffe27a','stroke="#9ca995"') + text(262,30,'진행중',11);
-    out += rect(316,19,12,12,'#d5e5fc','stroke="#9ca995"') + text(334,30,'완료',11);
+    const rect = (x,y,w,h,fill,extra='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" ${extra}/>`;
+    const text = (x,y,value,size=12,fill='#111',extra='') => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${extra}>${esc(value)}</text>`;
+    // SVG bevels and icons also render in PNG and offline HTML exports.
+    const bevel=(x,y,w,h,fill='#c0c0c0',extra='')=>rect(x,y,w,h,fill,`stroke="#404040" ${extra}`)
+      +`<path d="M${x+1} ${y+h-1}V${y+1}H${x+w-1}" fill="none" stroke="#fff" pointer-events="none"/><path d="M${x+2} ${y+h-2}H${x+w-2}V${y+2}" fill="none" stroke="#808080" pointer-events="none"/>`;
+    const icon=(x,y,kind)=>{
+      const shapes=kind==='folder'?'<path d="M1 4V2h6l2 2h6v11H1z" fill="#f4cc4c" stroke="#4b420b"/><path d="M1 6h15l-2 9H1z" fill="#ffe879" stroke="#705c10"/><path d="M2 7h12" stroke="#fff5c2"/>':kind==='done'?'<path d="M1 1h14v14H1z" fill="#fff" stroke="#808080"/><path d="m3 8 3 3 7-7" fill="none" stroke="#008000" stroke-width="3"/>':kind==='doing'?'<circle cx="8" cy="8" r="7" fill="#fff" stroke="#555"/><path d="M8 3v5l4 2" fill="none" stroke="#000080" stroke-width="2"/>':'<path d="M3 1h7l4 4v10H3z" fill="#fff" stroke="#555"/><path d="M10 1v4h4M5 8h6m-6 3h6" fill="none" stroke="#000080"/>';
+      return shapes.replace(/<(path|circle) /g,`<$1 transform="translate(${x} ${y})" pointer-events="none" `);
+    };
+    let out = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="${interactive?'group':'img'}" aria-label="프로젝트 연결 맵" data-map-theme="win98" style="font-family:Tahoma,'Pretendard Variable','Malgun Gothic',sans-serif"><title>${esc(project.name)} — 프로젝트 연결 맵</title>`;
+    out += '<defs><marker id="dependency-arrow" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#222"/></marker><marker id="dependency-warning" viewBox="0 0 10 10" refX="10" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#b74736"/></marker></defs>';
+    out += rect(0,0,width,height,'#faf8ef');
+    out += rect(172,19,12,12,'#eee','stroke="#808080"') + text(190,30,'시작 전',11);
+    out += rect(244,19,12,12,'#fff2ae','stroke="#808080"') + text(262,30,'진행중',11);
+    out += rect(316,19,12,12,'#d5e5fc','stroke="#808080"') + text(334,30,'완료',11);
     if(report)out += text(396,30,'공유 시점 '+today,11);
     if(interactive)out+=`<foreignObject class="flow-add-column" x="24" y="13" width="120" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" id="mapAddColumn" aria-label="오른쪽에 열 추가" ${model.lanes[0]?.columnCount>=100?'disabled="disabled"':''}>＋ 열 추가</button></foreignObject>`;
-    const palette=[['#edf3e9','#dce9d5','#789a77'],['#f0edf7','#e1d9ee','#9680b3'],['#eaf2f6','#d5e7ee','#7596a6'],['#f8eee5','#eedecd','#b29174'],['#f5edf0','#ead9e1','#aa8094']];
     for(const lane of model.lanes){
-      const hash=Array.from(String(lane.id)).reduce((n,c)=>(n*31+c.charCodeAt(0))>>>0,0),[fill,header,border]=palette[hash%palette.length];
       out+=`<g class="flow-project-region" data-project-region="${esc(lane.id)}" aria-label="${esc(lane.name)} 영역">`;
-      out+=rect(lane.x,48,lane.width,headerHeight+model.height-8,fill,`stroke="${border}"`);
-      out+=rect(lane.x+1,49,lane.width-2,headerHeight-1,header);
-      out+=rect(lane.x+14,63,10,10,border);
+      out+=rect(lane.x,48,lane.width,headerHeight+model.height-8,'#faf8ef','stroke="#808080"');
+      out+=bevel(lane.x,48,lane.width,headerHeight);
+      out+=rect(lane.x+4,52,lane.width-8,headerHeight-8,'#000080');
+      out+=icon(lane.x+10,60,'folder');
       const lines=wrap(lane.name,lane.width-76,15);
-      lines.forEach((line,i)=>{out+=text(lane.x+34,73+i*19,line,15,'#253b30','font-weight="650"');});
+      lines.forEach((line,i)=>{out+=text(lane.x+34,73+i*19,line,15,'#fff','font-weight="700"');});
       if(interactive)out+=`<foreignObject class="flow-add-column" x="${lane.x+lane.width-34}" y="56" width="24" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" data-add-project-column="${esc(lane.id)}" aria-label="${esc(lane.name)} 열 추가" ${lane.columnCount>=100?'disabled="disabled"':''}>＋</button></foreignObject>`;
       out+='</g>';
     }
     for (const week of model.weeks) {
-      const active = week.start !== null && Roadmap.date(today) >= week.start && Roadmap.date(today) < week.end;
-      out += rect(14,top+week.y,width-28,week.height-8,'transparent',`stroke="${active?'#b74736':'#c5c4af'}" stroke-dasharray="4 5"`);
-      out += rect(24,top+week.y+8,120,26,active?'#b74736':'#43594c');
-      out += text(84,top+week.y+26,week.label,12,'#fff','text-anchor="middle" font-weight="700"');
+      out+=bevel(24,top+week.y,120,42);
+      out+=text(84,top+week.y+26,week.label,12,'#111','text-anchor="middle" font-weight="700"');
       for(const d of week.days){
         const date=new Date(d.time),todayBand=d.date===today;
         out+=`<g class="flow-day" data-date="${d.date}">`;
-        out+=rect(24,top+d.y,120,d.height,todayBand?'#f5edcb':'transparent');
-        out+=text(132,top+d.y+Math.min(d.height/2,18)+4,`${date.getUTCDate()}일 (${['일','월','화','수','목','금','토'][date.getUTCDay()]})`,11,todayBand?'#b74736':'#537264','text-anchor="end"');
-        out+=`<path d="M148 ${top+d.y}H${width-20}" stroke="#c5c4af" stroke-opacity=".28" stroke-dasharray="2 6" pointer-events="none"/></g>`;
+        out+=rect(24,top+d.y,120,d.height,todayBand?'#fff2ae':'#eee','stroke="#aaa" stroke-width=".5"');
+        out+=text(84,top+d.y+Math.min(d.height/2,18)+4,`${date.getUTCDate()}일 (${['일','월','화','수','목','금','토'][date.getUTCDay()]})`,12,'#111','text-anchor="middle"');
+        out+=`<path d="M148 ${top+d.y}H${width-20}" stroke="#999" stroke-opacity=".65" stroke-dasharray="2 4" pointer-events="none"/></g>`;
       }
     }
     if(interactive)for(const col of model.columns){
-      out+=rect(col.x,top,col.width,model.height-8,'transparent',`class="flow-column" data-flow-column="${col.index}" data-x="${col.x}" data-top="${top}" data-width="${col.width}" data-height="${model.height-8}" stroke="#aebca7" stroke-dasharray="3 7" stroke-opacity="0.55"`);
+      out+=rect(col.x,top,col.width,model.height-8,'transparent',`class="flow-column" data-flow-column="${col.index}" data-x="${col.x}" data-top="${top}" data-width="${col.width}" data-height="${model.height-8}" stroke="#aaa" stroke-dasharray="2 6" stroke-opacity="0.25"`);
     }
     // Use orthogonal corridors around cards, including manually adjusted connections.
     for (const edge of model.edges) {
@@ -446,24 +451,30 @@ globalThis.DependencyMap = (() => {
       const path=routed.path;
       const warning=edge.conflict||edge.cycle;
       if(interactive)out+=`<g class="flow-edge" data-edge-from="${esc(a.id)}" data-edge-to="${esc(b.id)}" tabindex="0" role="button" aria-label="연결 선택: ${esc(a.title)} → ${esc(b.title)}"><path d="${path}" fill="none" stroke="transparent" stroke-width="18" class="flow-edge-hit"/>`;
-      out+=`<path d="${path}" fill="none" stroke="${warning?'#b74736':'#647568'}" stroke-width="1.5" ${warning?'stroke-dasharray="5 4"':''} marker-end="url(#${warning?'dependency-warning':'dependency-arrow'})"><title>${esc(a.title)} → ${esc(b.title)}${edge.cycle?' · 순환 연결 확인':edge.conflict?' · 선행 일정 종료 전 시작':''}</title></path>`;
+      out+=`<path d="${path}" fill="none" stroke="${warning?'#b74736':'#222'}" stroke-width="1.5" ${warning?'stroke-dasharray="5 4"':''} marker-end="url(#${warning?'dependency-warning':'dependency-arrow'})"><title>${esc(a.title)} → ${esc(b.title)}${edge.cycle?' · 순환 연결 확인':edge.conflict?' · 선행 일정 종료 전 시작':''}</title></path>`;
       if(interactive)out+='</g>';
     }
     for (const m of model.items) {
-      const fill=m.status==='done'?'#d5e5fc':m.status==='doing'?'#ffe27a':'#fffdf2', y=top+m.y;
+      const fill=m.status==='done'?'#d5e5fc':m.status==='doing'?'#fff2ae':'#eee', y=top+m.y;
       const label=`${m.projectName} / ${m.title} · ${m.start||m.due||'날짜 미정'} ~ ${m.due||'날짜 미정'} · ${m.parents.length+m.hiddenRefs}개 선행 일정`;
       out+=`<g ${interactive?`class="flow-node" data-m="${esc(m.id)}" data-column="${m.column}" data-x="${m.x}" tabindex="0" role="button" aria-pressed="false" aria-label="${esc(label)} · ${m.column+1}열"`:''}><title>${esc(label)}</title>`;
-      out+=rect(m.x,y,m.width,m.height,fill,'stroke="#9ca995"');
-      const centerX=m.x+m.width/2,centered='text-anchor="middle"';
-      const contentHeight=m.titleLines.length*18+(m.hiddenRefs?24:0);
-      let cy=y+12+Math.max(0,(m.height-77-contentHeight)/2);
-      for(const line of m.titleLines){out+=text(centerX,cy+13,line,13,'#253b30',centered+' font-weight="650"');cy+=18;}
-      if(m.hiddenRefs)out+=text(centerX,cy+18,`화면 밖 선행 ${m.hiddenRefs}개`,10,'#a04736',centered);
-      out+=text(centerX,y+m.height-34,statuses[m.status]||statuses.todo,11,'#334b3d',centered+(interactive?' class="flow-status-print"':''));
+      out+=bevel(m.x,y,m.width,m.height,'#c0c0c0','class="flow-card-frame"');
+      out+=rect(m.x+3,y+m.titleHeight+4,m.width-6,m.height-m.titleHeight-7,fill);
+      out+=rect(m.x+4,y+4,m.width-8,m.titleHeight,'#000080','class="flow-card-titlebar"');
+      out+=icon(m.x+9,y+9,m.status);
+      m.titleLines.forEach((line,i)=>{out+=text(m.x+30,y+22+i*18,line,13,'#fff','class="flow-card-title" font-weight="700"');});
+      if(m.hiddenRefs)out+=text(m.x+12,y+m.titleHeight+24,`화면 밖 선행 ${m.hiddenRefs}개`,10,'#8b2020');
+      const controlX=m.x+12,controlY=y+m.height-49,controlWidth=m.width-54;
+      out+=`<g${interactive?' class="flow-status-print"':''}>`;
+      out+=rect(controlX,controlY,controlWidth,26,'#fff','stroke="#808080"');
+      out+=bevel(controlX+controlWidth-23,controlY+2,21,22);
+      out+=`<path d="m${controlX+controlWidth-17} ${controlY+10} 9 0 -4.5 5z" fill="#111"/>`;
+      out+=text(controlX+7,controlY+18,statuses[m.status]||statuses.todo,12);
+      out+='</g>';
       if(interactive){
-        out+=`<foreignObject class="flow-status-control" x="${centerX-(m.width-24)/2}" y="${y+m.height-57}" width="${m.width-24}" height="30"><select xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;text-align-last:center" data-flow-status-select="${esc(m.id)}" aria-label="${esc(m.title)} 상태">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${m.status===value?'selected="selected"':''}>${label}</option>`).join('')}</select></foreignObject>`;
+        out+=`<foreignObject class="flow-status-control" x="${controlX}" y="${controlY}" width="${controlWidth}" height="28"><select xmlns="http://www.w3.org/1999/xhtml" data-flow-status-select="${esc(m.id)}" aria-label="${esc(m.title)} 상태">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${m.status===value?'selected="selected"':''}>${label}</option>`).join('')}</select></foreignObject>`;
       }
-      if(interactive)out+=`<foreignObject class="flow-open-board" x="${m.x+m.width-30}" y="${y+m.height-27}" width="24" height="20"><button xmlns="http://www.w3.org/1999/xhtml" type="button" data-open-board="${esc(m.id)}" aria-label="${esc(m.title)} 상세 보드 열기" title="상세 보드 열기"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M9 2h5v5M14 2 9 7M7 14H2V9M2 14l5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></foreignObject>`;
+      if(interactive)out+=`<foreignObject class="flow-open-board" x="${m.x+m.width-30}" y="${y+m.height-30}" width="24" height="24"><button xmlns="http://www.w3.org/1999/xhtml" type="button" data-open-board="${esc(m.id)}" aria-label="${esc(m.title)} 상세 보드 열기" title="상세 보드 열기"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M9 2h5v5M14 2 9 7M7 14H2V9M2 14l5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></foreignObject>`;
       if(interactive&&m.resizable)for(const [edge,yy,label]of [['start',y,'시작일'],['due',y+m.height,'종료일']]){
         out+=`<g class="flow-resize" data-resize="${edge}" data-resize-node="${esc(m.id)}" tabindex="0" role="button" aria-label="${esc(m.title)} ${label} 조절. 위아래 화살표로 하루씩 변경"><title>${label}: 테두리를 드래그하거나 ↑ ↓로 하루씩 변경</title><path d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="transparent" stroke-width="14"/><path class="flow-resize-line" d="M${m.x+5} ${yy}H${m.x+m.width-5}" stroke="#4265ff" stroke-width="3" opacity="0"/></g>`;
       }

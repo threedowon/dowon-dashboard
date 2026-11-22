@@ -103,7 +103,7 @@ globalThis.DependencyEditor = {
       if(!target||!item||!svg)return;
       pending=null;drag=null;clearPreview();selectNode(id);
       const overlay=document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
-      for(const [name,value]of Object.entries({class:'flow-rename',x:item.x+8,y:model.top+item.y+8,width:item.width-16,height:Math.max(30,item.height-73)}))overlay.setAttribute(name,value);
+      for(const [name,value]of Object.entries({class:'flow-rename',x:item.x+4,y:model.top+item.y+4,width:item.width-8,height:Math.max(30,item.titleHeight||item.height-73)}))overlay.setAttribute(name,value);
       const input=document.createElementNS('http://www.w3.org/1999/xhtml','textarea');
       input.setAttribute('aria-label','일정 이름');input.setAttribute('placeholder','일정 이름');input.value=target.milestone.title;
       overlay.append(input);svg.append(overlay);renaming={id,input,overlay};
