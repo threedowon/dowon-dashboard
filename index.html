@@ -151,7 +151,7 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
 <link rel="stylesheet" href="assets/retro-home.css?v=20261122-taskbar-eight">
 <script src="assets/retro-desktop.js?v=20261122-retro-v1" defer></script>
-<link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-explorer-v1">
+<link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-previews-v1">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -306,7 +306,8 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
 <script src="assets/wirenest.js?v=20261122-retro-pages-v1" defer></script>
 <script src="assets/transfers.js?v=20261122-transfer-table-v1" defer></script>
-<script src="library.js?v=20261122-pdf-explorer-v1" defer></script>
+<script src="library.js?v=20261122-pdf-previews-v1" defer></script>
+<script type="module" src="assets/pdf-thumbnails.mjs?v=20261122-v1"></script>
 <script type="application/json" id="seed">null</script>
 <script>
 (function(){

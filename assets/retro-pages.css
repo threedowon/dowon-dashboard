@@ -336,3 +336,12 @@ html:not([data-active-page="home"]) dialog :is(input,select,textarea){border-rad
 #pdfPage #pdfBulkTags:before, #pdfPage .pdf-card-tags .tag:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2034%2034%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20fill%3D%22%23ffe56a%22%20d%3D%22m3%2017%2014-14h12v12L15%2029z%22/%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%228%22%20r%3D%222%22%20fill%3D%22%23111%22/%3E%3C/svg%3E")}
 
 @media screen{#pdfPage .retro-library-sidebar .library-tags button{border:0;box-shadow:none}#pdfPage .pdf-view-switch .btn{font-size:26px}#pdfPage .pdf-card.is-selected input[type="checkbox"]{accent-color:#fff}}
+
+@media screen {
+#pdfPage .pdf-cover-art{height:190px;padding:20px 12px 6px}
+#pdfPage .pdf-thumbnail{display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:inherit;font:13px/1.4 Tahoma,sans-serif;text-align:center;overflow:hidden}
+#pdfPage .pdf-thumbnail img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;background:white;border:1px solid #555;box-shadow:1px 2px 3px #0003}
+#pdfPage .pdf-thumbnail.preview-unavailable{padding:12px;background:#7771;border:1px dashed #999}
+#pdfPage #pdfList.is-list-view .pdf-cover-art{height:58px;flex:0 0 45px;width:45px;padding:0}
+#pdfPage #pdfList.is-list-view .pdf-thumbnail{font-size:10px}
+}
