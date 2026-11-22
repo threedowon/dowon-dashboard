@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="tester-token" content="__TESTER_TOKEN__">
   <title>Signal Tester</title><link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script>
+  <link rel="stylesheet" href="style.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script><script src="updates.js" defer></script>
 </head>
 <body>
   <aside class="sidebar">
@@ -20,6 +20,7 @@
     </div>
   </aside>
   <main class="app">
+    <div id="updateBar" class="update-bar" hidden><span id="updateStatus" role="status">새 버전 확인 중…</span><button id="updateCheck" class="button">업데이트 확인</button><button id="updateInstall" class="button dark" hidden>업데이트</button></div>
     <div id="desktopBar" class="desktop-bar" hidden><div><strong>이 PC에서 실행 중</strong><span id="desktopBackupStatus" role="status">백업 상태 확인 중…</span></div><button id="desktopBackup" class="button">설정 자동 백업</button><button id="desktopExit" class="button desktop-exit">프로그램 종료</button></div>
     <div id="workspaceStatus" class="notice" role="status"><strong id="workspaceTitle">Loading workspace…</strong><p id="workspaceDetail">Reading saved connections and Signals from the tester engine.</p><button id="retryWorkspace" class="button" disabled>Retry loading</button></div>
     <div id="warning" class="notice error" hidden></div>

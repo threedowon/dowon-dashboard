@@ -1,5 +1,7 @@
 """Exercise only the shipped EXE, outside the checkout and without Python on PATH."""
 import json
+import hashlib
+import io
 import os
 from pathlib import Path
 import shutil
@@ -8,6 +10,7 @@ import subprocess
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 import urllib.request
 
 import tester_launcher as launcher
@@ -47,6 +50,9 @@ class PackagedTests(unittest.TestCase):
                     process.wait(5)
             for log in self.logs:
                 log.close()
+            if self.exe.exists():
+                from tester_update import wait_unlocked
+                wait_unlocked(self.exe, timeout=20)
             self.temp.cleanup()
 
     def start(self):
@@ -130,6 +136,45 @@ class PackagedTests(unittest.TestCase):
         self.assertIn(0, [first.poll(), second.poll()])
         state = self.ready(timeout=10)
         self.assertEqual([r['pid'] for r in launcher.discover_testers(self.exe, self.exe)], [state['pid']])
+
+    def test_verified_update_replaces_running_exe_and_preserves_workspace_and_cloud_identity(self):
+        import tester_update as update
+        from test_update import release
+        first=self.start();previous=self.ready(timeout=40)
+        initial=self.call(previous)
+        data=initial['workspace'];data['targets'][0]['port']=9876
+        saved=self.call(previous,'workspace',{**data,'revision':initial['revision']})['workspace']
+        identity=self.call(previous,'cloud/status')['cloud']['device']
+        # Change the shipped binary bytes while keeping its real embedded version.
+        payload=self.exe.read_bytes()+b'\nverified-updater-roundtrip-fixture\n'
+        digest=hashlib.sha256(payload).hexdigest()
+        checksums=(digest+'  SignalTester.exe\n').encode()
+        opener=lambda url:io.BytesIO(checksums if url.endswith('.txt') else payload)
+        def launch(command):
+            process=update.spawn(command);self.processes.append(process);return process
+        with patch.dict(os.environ,self.env):
+            updater=update.Updater(self.exe,['--config',str(self.config),'--no-browser'],current='1.1.0',opener=opener,launch=launch)
+            updater.release=update.choose_release([release(update.VERSION,payload)],current='1.1.0')
+            updater.shutdown=lambda:self.call(previous,'shutdown',{'instance':previous['instance']})
+            updater.install(update.VERSION)
+            updater.thread.join(35)
+            self.assertTrue(updater.handoff,updater.status())
+            self.assertEqual(first.wait(30),0)
+            current=self.ready(previous['pid'],timeout=60)
+            deadline=time.monotonic()+15
+            while time.monotonic()<deadline:
+                result=launcher.read_instance(updater.root/'result.json')
+                if result.get('kind') in ('success','error'):break
+                time.sleep(.1)
+            self.assertEqual(result.get('kind'),'success',result)
+            self.assertEqual(update.sha256(self.exe),digest)
+            self.assertEqual(self.call(current)['workspace'],saved)
+            self.assertEqual(self.call(current,'cloud/status')['cloud']['device'],identity)
+            self.assertEqual(self.call(current,'update/status')['current'],update.VERSION)
+            self.call(current,'shutdown',{'instance':current['instance']})
+            deadline=time.monotonic()+20
+            while self.file.exists() and time.monotonic()<deadline:time.sleep(.1)
+            updater.close()
 
 
 if __name__ == '__main__':

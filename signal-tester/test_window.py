@@ -18,11 +18,12 @@ class WindowTests(unittest.TestCase):
                 stopped=threading.Event();destroyed=threading.Event();armed=[]
                 server=SimpleNamespace(sensors=SimpleNamespace(arm=armed.append),
                     serve_forever=lambda **kw:stopped.wait(3),shutdown=stopped.set)
-                closing=Event()
+                closing=Event();loaded=Event()
                 def destroy():destroyed.set();closing.fire()
-                window=SimpleNamespace(events=SimpleNamespace(closing=closing),destroy=destroy)
+                window=SimpleNamespace(events=SimpleNamespace(closing=closing,loaded=loaded),destroy=destroy)
                 def start(watch,**options):
                     self.assertEqual(options['gui'],'edgechromium')
+                    self.assertFalse(server.ui_ready);loaded.fire();self.assertTrue(server.ui_ready)
                     thread=threading.Thread(target=watch);thread.start()
                     if mode=='native-close':closing.fire()
                     else:server.shutdown()

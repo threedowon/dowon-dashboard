@@ -302,7 +302,7 @@ def perform_send(store, body, target_snapshot=None):
 DASHBOARD_ORIGIN = 'https://dashboard.3dowon.com'
 
 
-def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False, cloud=None, desktop=False):
+def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False, cloud=None, desktop=False, updater=None):
     token = secrets.token_urlsafe(32)
     sensors = SensorEngine(store.emit, lambda body: perform_send(store, body, body.get('_target')))
     sensors.configure(store.snapshot())
@@ -365,6 +365,10 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             if not self.allowed(self.path.startswith('/api/')):
                 return self.reply(403, {'error': 'Open this tester from its local launch address.'})
             route = urlsplit(self.path)
+            if route.path == '/api/update/status':
+                from tester_version import VERSION
+                return self.reply(200, {**(updater.status() if updater else {'enabled': False, 'current': VERSION}),
+                                        'ready': self.server.ui_ready})
             if route.path == '/cloud/callback' and cloud:
                 query = parse_qs(route.query)
                 try:
@@ -393,7 +397,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 data = store.activity(after)
                 data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(parse_qs(route.query).get('monitor', [None])[0]))
                 return self.reply(200, data)
-            assets = {'/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            assets = {'/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if self.path not in assets:
                 return self.reply(404, {'error': 'Not found.'})
             name, mime = assets[self.path]
@@ -419,6 +423,10 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                     raise ValueError('Expected a JSON object.')
                 if stopping.is_set():
                     return self.reply(503, {'error': 'Tester is restarting. Use the newly opened page.'})
+                if self.path == '/api/update/check' and updater:
+                    return self.reply(200, updater.start_check())
+                if self.path == '/api/update/install' and updater:
+                    return self.reply(200, updater.install(body.get('version')))
                 if self.path == '/api/exit' and desktop:
                     with operation_lock:
                         stopping.set()
@@ -531,6 +539,8 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
         def server_close(self):
             stopping.set()
             sensors.arm(False)
+            if updater:
+                updater.close()
             super().server_close()
             # An in-flight request may have opened a port or armed rules. Clean up
             # after all handlers finish so none can reopen them during shutdown.
@@ -547,6 +557,14 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
     server.token = token
     server.hub = hub
     server.sensors = sensors
+    server.ui_ready = True
+    if updater:
+        def update_shutdown():
+            with operation_lock:
+                stopping.set()
+                sensors.arm(False)
+            server.shutdown()
+        updater.shutdown = update_shutdown
     hub.start()
     return server
 
@@ -579,18 +597,29 @@ def main(argv=None, native=False):
             data['signals'].append({'id': uid(), 'name': key, 'key': key, 'value': None}); store.save(data)
     if args.scene:
         store.import_scene(json.loads(args.scene.read_text(encoding='utf-8-sig')))
-    cloud = None
+    cloud, updater = None, None
     if native:
         from tester_cloud import CloudSync
         if not store.file.exists():
             store.save(store.snapshot())
         cloud = CloudSync(store)
-    server = create_server(store, args.ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native)
+        import sys
+        from tester_update import Updater
+        restart_args = ['--config', str(config.resolve())]
+        if args.no_browser:
+            restart_args.append('--no-browser')
+        if args.dashboard:
+            restart_args.append('--dashboard')
+        updater = Updater(sys.executable if getattr(sys, 'frozen', False) else None, restart_args)
+        updater.cleanup()
+    server = create_server(store, args.ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native, updater=updater)
     url = f'http://127.0.0.1:{server.server_port}/'
     try:
         publish_instance(server)
         if cloud:
             cloud.start()
+        if updater and not args.no_browser:
+            updater.start_check()
         print(f'Signal Tester: {url}\nWorkspace: {store.file}\nKeep this window open. Ctrl+C stops the tester.', flush=True)
         if args.dashboard:
             print(f'\nDashboard pairing code (paste into Signal Tester):\n{server.server_port}:{server.token}\n', flush=True)

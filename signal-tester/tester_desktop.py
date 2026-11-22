@@ -27,6 +27,9 @@ def main():
         sys.stdout = sys.stderr = LogStream()
     args = sys.argv[1:]
     try:
+        if args[:1] == ['--apply-update'] and len(args) == 2:
+            from tester_update import apply_update
+            return apply_update(args[1])
         if args[:1] == ['--tester-engine']:
             from signal_tester import main as run_engine
             run_engine(['--desktop', *args[1:]], native=True)
