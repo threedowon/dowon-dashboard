@@ -1,0 +1,43 @@
+/* Open tabletop: the empty space belongs to the objects, not cards. */
+@media screen {
+:root{--paper:#eee5d3;--ink:#492f20;--muted:#79634f;--rule:#d49c73;--accent:#a74725}
+html,body{background:var(--paper);color:var(--ink)}
+html[data-active-page="home"] .app{max-width:1320px}
+html[data-active-page="home"] .side{color:var(--ink);border-color:#c9bca7;padding-block:22px}
+html[data-active-page="home"] .brand{font-family:"Pretendard Variable",sans-serif;font-size:28px;font-weight:750;letter-spacing:-1.4px}
+html[data-active-page="home"] .workspace-link{color:#79634f;font-size:13px}
+html[data-active-page="home"] .workspace-link:hover,html[data-active-page="home"] .workspace-link[aria-current="page"]{color:var(--accent);border-color:var(--accent)}
+#homePage{padding:20px 0 36px}
+.catalog-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(34,28px);gap:0;padding:0;border:0;background:none;max-width:1080px;margin:auto}
+.catalog-grid .catalog-card:nth-child(n){position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;padding:0;border:0;background:none;gap:0}
+.catalog-grid .catalog-card:nth-child(1){grid-column:1/5;grid-row:2/12;--angle:-9deg;--object-width:88%}
+.catalog-grid .catalog-card:nth-child(2){grid-column:5/10;grid-row:1/10;--angle:6deg;--object-width:90%}
+.catalog-grid .catalog-card:nth-child(3){grid-column:10/13;grid-row:3/15;--angle:5deg;--object-width:100%}
+.catalog-grid .catalog-card:nth-child(4){grid-column:1/5;grid-row:13/25;--angle:-17deg;--object-width:95%}
+.catalog-grid .catalog-card:nth-child(5){grid-column:9/13;grid-row:17/26;--angle:-10deg;--object-width:95%}
+.catalog-grid .catalog-card:nth-child(7){grid-column:5/9;grid-row:25/35;--angle:-6deg;--object-width:90%}
+.catalog-grid .catalog-card:nth-child(6){grid-column:5/9;grid-row:11/23;--angle:8deg;--object-width:86%}
+.catalog-grid .catalog-symbol{width:var(--object-width);max-width:300px;height:auto;min-height:0;aspect-ratio:1;flex:none;padding:0;margin:0;background:none;mix-blend-mode:darken;filter:brightness(1.08);transform:rotate(var(--angle));transition:transform .2s}
+.catalog-symbol img{display:block;width:100%;height:100%;object-fit:contain}
+.catalog-card:hover .catalog-symbol{transform:translateY(-5px) rotate(0deg)}
+.object-label{position:absolute;top:12%;right:7%;display:grid;place-items:center;background:#faf8f1;width:27px;height:29px;box-shadow:0 1px 3px #49342012;font-size:11px;color:#756a58;transform:rotate(3deg)}
+.catalog-card:nth-child(even) .object-label{left:4%;right:auto;top:17%;transform:rotate(-5deg)}
+.catalog-grid .catalog-card-head{flex:none;position:relative;z-index:1}
+.catalog-card-head>div{display:block;width:auto}
+.catalog-grid .catalog-card h2{color:var(--ink);font-size:15px;font-weight:550;line-height:1.5;letter-spacing:-.3px;margin:3px 0 0;padding:3px 10px;background:#f8f3e8;box-shadow:0 1px 2px #49342009}
+.catalog-card h2:before{display:none}
+.catalog-grid .catalog-en,.catalog-grid .catalog-details{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0}
+.catalog-card:focus-visible{outline:2px dashed var(--accent);outline-offset:4px;border-radius:10px}
+}
+@media screen and (max-width:800px){
+.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto;column-gap:20px;row-gap:24px;padding:10px 0 30px}
+.catalog-grid .catalog-card:nth-child(n){grid-column:auto;grid-row:auto;min-height:240px;--object-width:90%}
+.catalog-grid .catalog-card:nth-child(even){transform:translateY(38px)}
+.catalog-grid .catalog-symbol{max-width:240px}
+}
+@media screen and (max-width:450px){
+.catalog-grid{gap:16px 10px}.catalog-grid .catalog-card:nth-child(n){min-height:190px}
+.catalog-grid .catalog-card h2{font-size:12px;padding:4px 6px}.object-label{width:21px;height:23px;font-size:10px}
+html[data-active-page="home"] .workspace-nav{gap:6px 14px}
+}
+@media(prefers-reduced-motion:reduce){.catalog-grid .catalog-symbol{transition:none}.catalog-card:hover .catalog-symbol{transform:rotate(var(--angle))}}

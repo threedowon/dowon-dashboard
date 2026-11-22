@@ -146,6 +146,8 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/hardware-sheet.js?v=20261122" defer></script>
 <link rel="stylesheet" href="assets/signal-tester.css?v=20261121-exe">
 <script src="assets/signal-tester.js?v=20261121" defer></script>
+<link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
+<link rel="stylesheet" href="assets/object-catalog.css?v=20261122-flatlay">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -156,7 +158,6 @@ html[data-active-page="home"] .side{display:none}
 <a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF 자료실</a>
 <a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>아이디어·레퍼런스</a>
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
-<a class="workspace-link" href="#transfers" data-page="transfers">⇄ 파일 전달</a>
 <a class="workspace-link" href="#signaltester" data-page="signaltester">Signal Tester</a>
 <a class="workspace-link" href="#hardware" data-page="hardware">Hardware Sheet</a>
 </nav>
@@ -166,36 +167,13 @@ html[data-active-page="home"] .side{display:none}
 <section id="homePage" data-screen="home" aria-labelledby="homeTitle">
 <h1 id="homeTitle" class="sr-only" tabindex="-1">작업 공간</h1>
 <div class="catalog-grid">
-<a class="catalog-card" href="#milestones" aria-labelledby="milestoneCardTitle">
-<div class="catalog-card-head"><div><h2 id="milestoneCardTitle">마일스톤</h2><span class="catalog-en">Milestones</span></div><span class="catalog-number">01</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M19 84V63h20V43h20V23h22v61Z"/><path d="M59 8h3v39h-3zM62 8h24l-6 8 6 8H62Z"/></svg></div>
-<div class="catalog-details"><p>프로젝트의 목표와 일정<br>타임라인 · 캘린더 · 업데이트 기록</p><div class="catalog-status live"><span id="homeMilestoneSummary">프로젝트 살펴보기</span></div></div><div class="catalog-link"><span>프로젝트 관리하기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#pdf" aria-labelledby="pdfCardTitle">
-<div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF 자료실</h2><span class="catalog-en">Document library</span></div><span class="catalog-number">02</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M19 25h47v61H19z"/><path class="cutout" d="M28 20h46v59H28z"/><path d="M32 13h33l16 17v44H32Z"/><path class="cutout" d="M64 13v19h17M42 44h28v3H42zm0 10h28v3H42zm0 10h19v3H42z"/></svg></div>
-<div class="catalog-details"><p>읽어야 할 문서와 참고 자료<br>태그로 정리하는 나만의 자료실</p><div class="catalog-status live"><span>PDF 업로드 · 태그별 모아보기</span></div></div><div class="catalog-link"><span>자료실 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#ideas" aria-labelledby="ideasCardTitle">
-<div class="catalog-card-head"><div><h2 id="ideasCardTitle">아이디어·레퍼런스</h2><span class="catalog-en">Ideas &amp; references</span></div><span class="catalog-number">03</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M43 9h14v25l18-18 10 10-18 18h25v14H67l18 18-10 10-18-18v25H43V68L25 86 15 76l18-18H8V44h25L15 26l10-10 18 18Z"/><circle class="cutout" cx="50" cy="51" r="10"/></svg></div>
-<div class="catalog-details"><p>마음에 남은 이미지와 링크<br>아이디어를 모으는 수집 공간</p><div class="catalog-status live"><span>프로젝트별 보드 · 이미지 붙여넣기 · 영상</span></div></div><div class="catalog-link"><span>수집 공간 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#wirenest" aria-labelledby="wireNestCardTitle">
-<div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB Harness Studio</span></div><span class="catalog-number">04</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><rect x="10" y="19" width="30" height="42" rx="3"/><rect x="60" y="39" width="30" height="42" rx="3"/><path d="M35 29h18v30h12v6H47V35H35zm0 16h9v29h21v6H38V51h-3z"/><path class="cutout" d="M18 27h14v5H18zm0 12h14v5H18zm0 12h14v5H18zm50-4h14v5H68zm0 12h14v5H68zm0 12h14v5H68z"/></svg></div>
-<div class="catalog-details"><p>하우징·PCB 배치와 배선 계획<br>3D로 설계하는 나만의 하네스</p><div class="catalog-status live"><span>배선 작업 · .wnest 파일 백업</span></div></div><div class="catalog-link"><span id="wireNestCardAction">백업 보관함 열기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#signaltester" aria-labelledby="signalTesterCardTitle">
-<div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div><span class="catalog-number">05</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M8 47h17l12-30 18 66 12-30h25v-7H62l-6 15-18-66-18 45H8Z" transform="translate(0 9)"/></svg></div>
-<div class="catalog-details"><p>이 PC에 연결된 센서와 장비<br>실시간 값 · 그래프 · 송수신 기록</p><div class="catalog-status live"><span>Serial · UDP · HTTP Signal</span></div></div><div class="catalog-link"><span>센서·신호 테스트하기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#hardware" aria-labelledby="hardwareCardTitle">
-<div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div><span class="catalog-number">06</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M12 16h76v68H12z"/><path class="cutout" d="M20 24h60v12H20zm0 20h16v12H20zm24 0h16v12H44zm24 0h12v12H68zM20 64h16v12H20zm24 0h16v12H44zm24 0h12v12H68z"/></svg></div>
-<div class="catalog-details"><p>팀원별 필요한 공구와 부품 신청<br>품목별 수량 합계 · 구매 링크 · PDF</p><div class="catalog-status live"><span>공용·개인 품목을 함께 관리</span></div></div><div class="catalog-link"><span>구매 신청표 열기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
+<a class="catalog-card object-card" href="#milestones" aria-labelledby="milestoneCardTitle"><div class="catalog-symbol object-0" aria-hidden="true"><img src="assets/dashboard-objects/milestones.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">01</span><div class="catalog-card-head"><div><h2 id="milestoneCardTitle">마일스톤</h2><span class="catalog-en">Milestones</span></div></div><div class="catalog-details"><p>프로젝트의 목표와 일정을 차곡차곡.</p><div class="catalog-status"><span id="homeMilestoneSummary">프로젝트 살펴보기</span></div></div></a>
+<a class="catalog-card object-card" href="#pdf" aria-labelledby="pdfCardTitle"><div class="catalog-symbol object-1" aria-hidden="true"><img src="assets/dashboard-objects/library.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">02</span><div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF 자료실</h2><span class="catalog-en">Document library</span></div></div><div class="catalog-details"><p>읽고 싶은 문서와 오래 두고 볼 자료.</p><div class="catalog-status">문서 업로드 · 태그별 모아보기</div></div></a>
+<a class="catalog-card object-card" href="#ideas" aria-labelledby="ideasCardTitle"><div class="catalog-symbol object-2" aria-hidden="true"><img src="assets/dashboard-objects/ideas.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">03</span><div class="catalog-card-head"><div><h2 id="ideasCardTitle">아이디어·레퍼런스</h2><span class="catalog-en">Ideas & references</span></div></div><div class="catalog-details"><p>눈길이 머문 이미지와 작은 아이디어.</p><div class="catalog-status">이미지 · 링크 · 프로젝트별 보드</div></div></a>
+<a class="catalog-card object-card" href="#wirenest" aria-labelledby="wireNestCardTitle"><div class="catalog-symbol object-3" aria-hidden="true"><img src="assets/dashboard-objects/wirenest.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">04</span><div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB harness studio</span></div></div><div class="catalog-details"><p>부품을 배치하고 연결을 설계하는 곳.</p><div class="catalog-status"><span id="wireNestCardAction">백업 보관함 열기</span></div></div></a>
+<a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/transfers.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">파일 전달</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>다른 작업 공간으로 옮겨 둘 파일들.</p><div class="catalog-status">파일 올리기 · 내려받기</div></div></a>
+<a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/study.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>필요한 하드웨어와 구매 수량을 모으는 곳.</p></div></a>
+<a class="catalog-card object-card" href="#signaltester" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/signaltester.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>실시간 센서값 · 그래프 · 송수신 기록</p></div></a>
 </div>
 </section>
 <section id="hardwarePage" data-screen="hardware" aria-labelledby="hardwareTitle" hidden>
