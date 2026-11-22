@@ -1,0 +1,38 @@
+/* Shared taskbar; no application palette overrides. */
+@media screen {
+:root{--retro-bar-height:58px;--workspace-bottom:calc(var(--retro-bar-height) + env(safe-area-inset-bottom))}
+body.workspace-taskbar-host{padding-bottom:var(--workspace-bottom)}
+html:has(body.workspace-taskbar-host){scroll-padding-bottom:calc(var(--workspace-bottom) + 16px)}
+.retro-taskbar,.retro-start-menu,.retro-taskbar *,.retro-start-menu *{box-sizing:border-box}
+.retro-task,.retro-start{font-family:Tahoma,"MS Sans Serif",sans-serif;color:#111;border-radius:0;cursor:pointer}
+html[data-workspace-tool="wirenest"] body.workspace-taskbar-host{padding-bottom:0}
+html[data-workspace-tool="wirenest"] #app{height:calc(100dvh - var(--workspace-bottom))}
+html[data-workspace-tool="signaltester"] body.workspace-taskbar-host>.sidebar{bottom:var(--workspace-bottom)}
+html[data-workspace-tool="signaltester"] body.workspace-taskbar-host>.app{min-height:calc(100dvh - var(--workspace-bottom))}
+.retro-taskbar{position:fixed;inset:auto 0 0;z-index:40;display:flex;align-items:stretch;gap:6px;padding:5px 6px calc(5px + env(safe-area-inset-bottom));height:calc(var(--retro-bar-height) + env(safe-area-inset-bottom));box-sizing:border-box;background:#c0c0c0;border-top:2px solid #fff;box-shadow:0 -1px #808080;color:#111;font:14px/1.15 Tahoma,"Pretendard Variable",sans-serif}
+.retro-taskbar nav{height:auto;background:transparent;padding:0;border:0;margin:0;display:flex;gap:5px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;align-items:stretch}
+.retro-task,.retro-start{display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;text-decoration:none;background:#c0c0c0;border:2px solid;border-color:#fff #222 #222 #fff;box-shadow:inset -1px -1px #808080;padding:5px 9px;min-height:38px;box-sizing:border-box}
+.retro-task{flex:1 0 auto;font-size:14px}
+.retro-task img{width:23px;height:23px;object-fit:contain;image-rendering:pixelated;transform:scale(1.4)}
+.retro-start{font-size:19px;font-weight:bold;flex:none}
+.retro-start img{width:25px;height:25px;object-fit:contain;image-rendering:pixelated}
+.retro-task[aria-current="page"],.retro-start[aria-expanded="true"],.retro-task:active{border-color:#555 #fff #fff #555;box-shadow:inset 1px 1px #808080;background:#ddd}
+.retro-task[aria-current="page"]{font-weight:bold}
+.retro-task:hover{color:#000;background:#d4d4d4}
+.retro-clock{display:flex;align-items:center;justify-content:center;min-width:66px;border:2px solid;border-color:#808080 #fff #fff #808080;padding:5px;font:16px/1 "Lucida Console",monospace}
+.retro-start-menu{display:block;height:auto;margin:0;position:fixed;left:6px;bottom:calc(var(--retro-bar-height) + env(safe-area-inset-bottom));z-index:41;width:255px;max-height:calc(100dvh - 80px);overflow:auto;background:#c0c0c0;border:2px solid;border-color:#fff #222 #222 #fff;padding:5px;box-shadow:2px 2px #333}
+.retro-start-menu[hidden]{display:none}
+.retro-start-menu a,.retro-start-menu button{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;background:transparent;border:0;color:#111;text-decoration:none;text-align:left;font:16px Tahoma,sans-serif;cursor:pointer;border-radius:0}
+.retro-start-menu a:hover,.retro-start-menu button:hover{color:white;background:#000080}
+.retro-start-menu img{width:26px;height:26px;object-fit:contain;image-rendering:pixelated}
+.retro-taskbar :focus-visible,.retro-start-menu :focus-visible,#homePage button:focus-visible,#homePage textarea:focus-visible{outline:2px dotted #111;outline-offset:-5px}
+}
+@media screen and (max-width:1000px){.retro-clock{display:none}}
+@media screen and (max-width:700px){
+:root{--retro-bar-height:132px}
+.retro-taskbar{gap:4px;padding-inline:4px}.retro-start{font-size:16px;padding:5px;flex-direction:column;gap:4px;min-width:48px}.retro-start img{width:24px;height:24px}
+.retro-taskbar nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,1fr);gap:3px;overflow:visible}
+.retro-task{font-size:14px;white-space:normal;text-align:center;padding:3px 2px;gap:2px;flex-direction:column;line-height:1.1;min-height:0}.retro-task img{width:17px;height:17px}.retro-task:last-child{grid-column:span 2;flex-direction:row;gap:4px}.retro-clock{display:none}
+}
+@media screen and (max-width:360px){:root{--retro-bar-height:186px}.retro-taskbar nav{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,1fr)}.retro-task:last-child{grid-column:span 3}}
+@media print{.retro-taskbar,.retro-start-menu{display:none}}
