@@ -6,6 +6,7 @@ html:has(body.workspace-taskbar-host){scroll-padding-bottom:calc(var(--workspace
 .retro-taskbar,.retro-start-menu,.retro-taskbar *,.retro-start-menu *{box-sizing:border-box}
 .retro-task,.retro-start{font-family:Tahoma,"MS Sans Serif",sans-serif;color:#111;border-radius:0;cursor:pointer}
 html[data-workspace-tool="wirenest"] body.workspace-taskbar-host{padding-bottom:0}
+html[data-workspace-tool="wirenest"] #home.overlay{bottom:var(--workspace-bottom);z-index:39}
 html[data-workspace-tool="wirenest"] #app{height:calc(100dvh - var(--workspace-bottom))}
 html[data-workspace-tool="signaltester"] body.workspace-taskbar-host>.sidebar{bottom:var(--workspace-bottom)}
 html[data-workspace-tool="signaltester"] body.workspace-taskbar-host>.app{min-height:calc(100dvh - var(--workspace-bottom))}
