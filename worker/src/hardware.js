@@ -1,3 +1,4 @@
+import {validPackSize} from '../../hardware/lib/order-quantity.js';
 // Permanent workbook objects live outside the expiring transfers/ prefix.
 export const SHEET_KEY = 'hardware/sheet.json';
 export const ORIGINAL_KEY = 'hardware/migration-original.json';
@@ -35,6 +36,7 @@ export function validSheet(data) {
   if (data.people.some(p => !record(p) || !text(p.id,100) || !p.id || p.id.includes(':') || !text(p.name,200) || !p.name.trim())) return false;
   if (data.items.some(i => !record(i) || !text(i.id,100) || !i.id || i.id.includes(':') || !text(i.name,200) || !i.name.trim() || !text(i.detail,2000) || !text(i.link,8000) || (i.link && !/^https?:\/\//i.test(i.link)) || !text(i.image,MAX_BYTES) || (i.image && !/^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=\s]+$/i.test(i.image)) || !groups.includes(i.group) || !['공용','개인'].includes(i.usage))) return false;
   if (!ids(data.people) || !ids(data.items)) return false;
+  if (data.items.some(item => !validPackSize(item.packSize))) return false;
   const people = new Set(data.people.map(p => p.id)), items = new Set(data.items.map(i => i.id));
   return Object.entries(data.quantities).every(([key,n]) => {
     const parts = key.split(':');

@@ -67,3 +67,17 @@ test('invalid links, categories and quantities are rejected',()=>{
   assert.equal(validSheet({...data,quantities:{'person:item':-1}}),false);
   assert.equal(validSheet({...data,quantities:{'unknown:item':1}}),false);
 });
+test('optional bundle sizes survive saving and reloading, and can be removed',async()=>{
+ const bucket=storage(),env={TRANSFERS:bucket};await bucket.put(SHEET_KEY,JSON.stringify({data,version:8}));
+ const bundled={...data,items:[{...data.items[0],packSize:3}]};
+ assert.equal((await hardware(request({data:bundled,version:8}),env,{})).status,200);
+ assert.deepEqual(await(await hardware(request(),env,{})).json(),{data:bundled,version:9});
+ for(const packSize of [null,0,1,-3,2.5,'3',true,10001]){
+  const invalid={...data,items:[{...data.items[0],packSize}]};
+  assert.equal(validSheet(invalid),false);
+  assert.equal((await hardware(request({data:invalid,version:9}),env,{})).status,400);
+ }
+ assert.equal((await hardware(request({data,version:9}),env,{})).status,200);
+ assert.deepEqual(await(await hardware(request(),env,{})).json(),{data,version:10});
+ assert.ok(validSheet({...data,items:[{...data.items[0],packSize:10000}]}));
+});
