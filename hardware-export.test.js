@@ -18,13 +18,25 @@ const input={items:[{id:'a',name:'테스트 부품',detail:'빨강, 5m\nUSB-C',l
 test('purchase export keeps filtered item order and sums all included people only',()=>{
  assert.deepEqual(purchaseRows(input).map(r=>r.quantity),[5,0]);
  assert.deepEqual(purchaseRows({...input,items:[input.items[1]]}).map(r=>r.name),['수량 없는 품목']);
- const csv=createPurchaseCsv(input);assert.ok(csv.startsWith('\uFEFF'));assert.ok(csv.includes('"품명","링크","옵션","수량"'));
+ const csv=createPurchaseCsv(input);assert.ok(csv.startsWith('\uFEFF'));assert.ok(csv.includes('"품명","링크","옵션","필요 수량","주문 수량"'));
  assert.ok(csv.includes('"테스트 부품","https://example.com/item","빨강, 5m\nUSB-C","5"'));
  assert.ok(!csv.includes('신청자 1'));
 });
 test('CSV escapes quotes and neutralizes formulas including whitespace prefixes',()=>{
  const csv=createPurchaseCsv({...input,projectName:'=SUM(A1)',customsNumber:' @x',items:[{id:'a',name:'"quoted"',detail:'\t=1+1',link:'https://example.com/?q="'}]});
  assert.ok(csv.includes('"\'=SUM(A1)"'));assert.ok(csv.includes('"\' @x"'));assert.ok(csv.includes('"\'\t=1+1"'));assert.ok(csv.includes('""quoted""'));
+});
+test('bundle export rounds the total across people, and keeps required and order quantities distinct',()=>{
+ const bundled={...input,items:[{...input.items[0],packSize:3}]};
+ const [row]=purchaseRows(bundled);
+ assert.equal(row.quantity,5);assert.equal(row.orderQuantity,2);assert.equal(row.receivedQuantity,6);assert.equal(row.extraQuantity,1);
+ const csv=createPurchaseCsv(bundled);
+ assert.ok(csv.includes('"필요 수량","주문 수량"'));
+ assert.ok(csv.includes('"5","2묶음\n3개입 · 총 6개\n여분 1개"'));
+ const [shared]=purchaseRows({...bundled,quantities:{'p:a':1,'q:a':2}});
+ assert.equal(shared.quantity,3);assert.equal(shared.orderQuantity,1,'sum demand before rounding, rather than round each person separately');
+ assert.ok(createPurchaseCsv(input).includes('"5","5"'),'normal product uses the same requested and order counts');
+ assert.deepEqual(purchaseSections({...bundled,quantities:{}}),[],'zero-quantity bundles stay excluded');
 });
 test('both exports omit zero and unset quantities, including sites with no requested items',async()=>{
  const items=[
@@ -73,11 +85,11 @@ test('one CSV contains separate site sections, repeated headers and blank separa
  const items=[{...input.items[0],name:'알리 첫 품목',link:'https://ko.aliexpress.com/item/1'},{...input.items[1],name:'쿠팡 품목',link:'https://www.coupang.com/vp/products/2'},{...input.items[0],id:'c',name:'알리 둘째 품목',link:'https://a.aliexpress.com/share'},{...input.items[1],id:'d',name:'링크 없는 품목'}];
  const groupedInput={...input,items,quantities:{...input.quantities,'p:b':2,'p:c':1,'q:d':3}};
  const csv=createPurchaseCsv(groupedInput);
- assert.equal(csv.match(/"품명","링크","옵션","수량"/g).length,3);
- assert.ok(csv.includes('"알리익스프레스","2개 품목","",""\r\n"품명"'));
- assert.ok(csv.includes('"","","",""\r\n"쿠팡","1개 품목","",""'));
+ assert.equal(csv.match(/"품명","링크","옵션","필요 수량","주문 수량"/g).length,3);
+ assert.ok(csv.includes('"알리익스프레스","2개 품목","","",""\r\n"품명"'));
+ assert.ok(csv.includes('"","","","",""\r\n"쿠팡","1개 품목","","",""'));
  assert.ok(csv.indexOf('알리 둘째 품목')<csv.indexOf('쿠팡 품목'));
- assert.ok(csv.includes('"링크 없음","1개 품목","",""'));
+ assert.ok(csv.includes('"링크 없음","1개 품목","","",""'));
  assert.equal(purchaseSections(groupedInput).flatMap(s=>s.items).length,4);
  const empty=createPurchaseCsv({...input,items:[]});assert.ok(empty.includes('신청 수량이 1개 이상인 품목이 없습니다.'));
 });
