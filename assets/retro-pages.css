@@ -141,3 +141,46 @@ html:not([data-active-page="home"]) dialog :is(input,select,textarea){border-rad
 
 }
 @media print{.retro-page>.retro-titlebar,.retro-page-menu,.retro-page-status{display:none!important}.retro-page,.retro-page-body{border:0;box-shadow:none;padding:0;background:white}}
+
+/* Reference toolbar: the canvas remains unchanged; secondary actions live in menus. */
+@media screen {
+#ideasPage .ideas-toolbar{gap:10px;padding:10px 14px;align-items:center}
+#ideasPage .ideas-project-row{padding:0;gap:10px;flex-wrap:nowrap;flex:0 0 auto}
+#ideasPage .ideas-project-row label{gap:8px;min-width:0;width:auto;max-width:none;flex-basis:auto;white-space:nowrap;font:15px Tahoma,sans-serif}
+#ideasPage .ideas-project-row select{width:160px;max-width:200px;min-height:32px;padding:4px 6px;font-size:15px}
+#ideasPage .ideas-toolbar .btn{min-height:38px;padding:6px 10px;font:15px Tahoma,sans-serif;white-space:nowrap}
+#ideasPage .reference-tool-group,#ideasPage .ideas-zoom-tools{display:flex;align-items:center;gap:8px;border-left:1px solid #808080;box-shadow:-1px 0 #fff;padding-left:12px;margin:0;flex:0 0 auto;width:auto}
+#ideasPage .ideas-zoom-tools{margin-left:auto}
+#ideasPage #ideasZoomLevel{width:88px;min-height:32px;padding:4px;font:15px Tahoma,sans-serif}
+#ideasPage .reference-icon-button{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+#ideasPage .reference-icon-button:before{content:'';display:block;width:22px;height:22px;flex-shrink:0;background:center/contain no-repeat}
+#ideasPage .reference-icon-button:disabled:before{filter:grayscale(1);opacity:.45}
+#ideasPage .retro-menu-popup hr{border:0;border-top:1px solid #808080;border-bottom:1px solid #fff;margin:4px 0}
+#ideasPage .retro-menu-popup .ideas-snap-tools{display:block;border:0;padding:0}
+#ideasPage .retro-menu-popup .ideas-snap-tools button{outline:0;background:transparent}
+#ideasPage .retro-menu-popup .ideas-snap-tools button:before{content:'';display:inline-block;width:20px}
+#ideasPage .retro-menu-popup .ideas-snap-tools button[aria-pressed="true"]:before{content:'✓'}
+#ideasPage .retro-menu-popup button:hover:not(:disabled){background:#000080;color:#fff}
+#ideasPage .retro-menu-popup button:disabled{color:#777;background:transparent;cursor:default}
+#ideasPage .retro-menu-popup .ideas-snap-tools label{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;font:14px Tahoma,sans-serif}
+#ideasPage .retro-menu-popup #ideasSpacing{width:86px;min-height:30px;padding:3px;font:14px Tahoma,sans-serif}
+#ideasPage .reference-count{font:13px Tahoma,sans-serif;color:#333}
+@media(max-width:1250px){#ideasPage .ideas-toolbar{gap:8px;padding:8px}#ideasPage .ideas-toolbar .btn{font-size:14px;padding:6px 8px}#ideasPage .ideas-project-row select{width:135px}#ideasPage .reference-tool-group,#ideasPage .ideas-zoom-tools{gap:6px;padding-left:9px}}
+@media(max-width:700px){#ideasPage .ideas-project-row{width:100%;flex-wrap:wrap}#ideasPage .ideas-project-row label{flex:1}#ideasPage .ideas-project-row select{flex:1;width:120px}#ideasPage .reference-insert{border:0;box-shadow:none;padding:0}#ideasPage .ideas-zoom-tools{margin-left:0}#ideasPage .retro-menu-popup{min-width:200px}}
+}
+
+#ideasPage #ideasNewProject:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23fff6a1%22%20d%3D%22M2%206h7l3-3h8v5h2v13H2z%22/%3E%3Cpath%20fill%3D%22%23ffe354%22%20d%3D%22M2%2010h20v11H2z%22/%3E%3Cpath%20fill%3D%22white%22%20stroke%3D%22none%22%20d%3D%22M4%2011h16v2H4z%22/%3E%3C/svg%3E")}
+
+#ideasPage #ideasImage:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22white%22%20d%3D%22M2%203h20v18H2z%22/%3E%3Cpath%20fill%3D%22%23258dc6%22%20stroke%3D%22none%22%20d%3D%22M5%206h14v12H5z%22/%3E%3Cpath%20fill%3D%22%23328a35%22%20d%3D%22m4%2017%205-7%204%204%203-5%204%208z%22/%3E%3Cpath%20fill%3D%22%23fce54d%22%20stroke%3D%22none%22%20d%3D%22M6%207h3v3H6z%22/%3E%3C/svg%3E")}
+
+#ideasPage #ideasLink:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%232527ab%22%20stroke-width%3D%223%22%3E%3Cpath%20d%3D%22m9%2015-2%202a4%204%200%200%201-5-5l5-5a4%204%200%200%201%205%200%22/%3E%3Cpath%20d%3D%22m15%209%202-2a4%204%200%200%201%205%205l-5%205a4%204%200%200%201-5%200%22/%3E%3Cpath%20d%3D%22m8%2014%208-4%22/%3E%3C/g%3E%3C/svg%3E")}
+
+#ideasPage #ideasNote:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23fffac0%22%20d%3D%22M2%203h16v18H2z%22/%3E%3Cpath%20stroke%3D%22%23777%22%20d%3D%22M5%207h9M5%2011h6M5%2016h8%22/%3E%3Cpath%20fill%3D%22%23ffd844%22%20d%3D%22m10%2015%202-6%208-7%203%203-8%208z%22/%3E%3Cpath%20fill%3D%22%23222%22%20d%3D%22m10%2015%202-3%201%202z%22/%3E%3C/svg%3E")}
+
+#ideasPage #ideasUndo:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke-width%3D%222.5%22%20d%3D%22M3%2010h9a7%207%200%201%201%200%2012M3%2010l5-6M3%2010l6%204%22/%3E%3C/svg%3E")}
+
+#ideasPage #ideasRedo:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke-width%3D%222.5%22%20d%3D%22M21%2010h-9a7%207%200%201%200%200%2012M21%2010l-5-6M21%2010l-6%204%22/%3E%3C/svg%3E")}
+
+#ideasPage #ideasFit:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke-width%3D%222.5%22%20d%3D%22M3%209V3h6M15%203h6v6M21%2015v6h-6M9%2021H3v-6M3%203l6%206M21%203l-6%206M21%2021l-6-6M3%2021l6-6%22/%3E%3C/svg%3E")}
+
+#ideasPage .retro-menu-popup .btn{border:0;box-shadow:none;border-radius:0;text-align:left;min-height:34px}

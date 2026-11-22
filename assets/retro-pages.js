@@ -14,7 +14,7 @@
     deleteSelectedProjects:'Delete selected',selectAllProjects:'Select all',clearProjects:'Clear selection',share:'Export HTML',exportPng:'Export PNG',printRoadmap:'Print / PDF',
     mapFitWidth:'Fit width',mapFitAll:'Fit all',editProject:'Edit project',addDetailMilestone:'Add milestone',addMilestone:'Add milestone',addOnDate:'Add milestone',addNote:'Add note',today:'Today',
     pdfConnect:'Connect GitHub',pdfAdd:'Upload PDF',pdfRefresh:'Refresh',pdfClearSelection:'Clear selection',pdfBulkTags:'Add tags',pdfBulkDelete:'Delete selected',
-    ideasNewProject:'New project',ideasImage:'Image',ideasLink:'Link',ideasNote:'Note',ideasEdit:'Edit',ideasDelete:'Delete',ideasFit:'Fit all',ideasConnect:'Connect GitHub',ideasRefresh:'Sync',ideasExport:'Export board',ideasImport:'Import board',ideasRetry:'Retry save',cardScheduleEdit:'Edit schedule',
+    ideasNewProject:'New project',ideasImage:'Image',ideasLink:'Link',ideasNote:'Note',ideasUndo:'Undo',ideasRedo:'Redo',ideasEdit:'Edit',ideasDelete:'Delete',ideasFit:'Fit all',ideasConnect:'Connect GitHub',ideasRefresh:'Sync',ideasExport:'Export board',ideasImport:'Import board',ideasRetry:'Retry save',cardScheduleEdit:'Edit schedule',
     wnConnect:'Connect GitHub',wnRefresh:'Refresh',transferConnect:'Connect GitHub',transferUpload:'Add files',transferRefresh:'Refresh',transferRetry:'Retry upload',
     signalPairButton:'Connect',signalForget:'Disconnect',signalRemoteConnect:'Connect',signalRemoteRefresh:'Refresh'
   };
@@ -46,12 +46,32 @@
     }
     header.append(icon,title,controls);
     const menu=make('nav','retro-page-menu');menu.setAttribute('aria-label',config[0]+' menu');
-    function addMenu(name,actions){const d=make('details'),s=make('summary',null,name),p=make('div','retro-menu-popup');for(const [label,fn,target] of actions){const b=make('button',null,label);b.type='button';b.onclick=()=>{closeMenus();fn();};if(target)b.dataset.target=target;p.append(b);}d.append(s,p);d.addEventListener('toggle',()=>{if(d.open){menu.querySelectorAll('details').forEach(other=>{if(other!==d)other.open=false;});d.querySelectorAll('[data-target]').forEach(b=>{b.disabled=!$(b.dataset.target)||$(b.dataset.target).disabled;});}});menu.append(d);}
+    function addMenu(name,actions){const d=make('details'),s=make('summary',null,name),p=make('div','retro-menu-popup');for(const [label,fn,target] of actions){const b=make('button',null,label);b.type='button';b.onclick=()=>{closeMenus();fn();};if(target)b.dataset.target=target;p.append(b);}d.append(s,p);d.addEventListener('toggle',()=>{if(d.open){menu.querySelectorAll('details').forEach(other=>{if(other!==d)other.open=false;});d.querySelectorAll('[data-target]').forEach(b=>{b.disabled=!$(b.dataset.target)||$(b.dataset.target).disabled;});}});menu.append(d);return p;}
     addMenu('File',[...config[2].map(id=>[labels[id]||'Open',()=>$(id)?.click(),id]),['Back to Home',home]]);
-    addMenu('View',[['Maximize / Restore',()=>controls.querySelector('[data-maximize]').click()],['Back to Home',home]]);
+    const editMenu=key==='ideas'?addMenu('Edit',[['Undo',()=>$('ideasUndo').click(),'ideasUndo'],['Redo',()=>$('ideasRedo').click(),'ideasRedo']]):null;
+    const viewMenu=addMenu('View',[['Maximize / Restore',()=>controls.querySelector('[data-maximize]').click()],['Back to Home',home]]);
     addMenu('Help',[[config[0]+' Help',()=>showHelp(config)]]);
     const status=make('footer','retro-page-status');status.append(make('span',null,config[0]),make('span',null,'Workspace'));
     section.append(header,menu,body,status);
+    if(key==='ideas'){
+      // Move the existing controls, retaining their listeners and selection state.
+      const toolbar=body.querySelector('.ideas-toolbar'),projects=body.querySelector('.ideas-project-row');
+      toolbar.prepend(projects);projects.querySelector('label').firstChild.textContent='Project: ';
+      const group=(className,ids)=>{const g=make('div','reference-tool-group '+className);ids.forEach(id=>g.append($(id)));toolbar.append(g);return g;};
+      group('reference-insert',['ideasImage','ideasLink','ideasNote']);
+      group('reference-history',['ideasUndo','ideasRedo']);
+      const zoomTools=body.querySelector('.ideas-zoom-tools');toolbar.append(zoomTools);
+      editMenu.append(make('hr'),$('ideasEdit'),$('ideasDelete'));
+      const syncEditLabel=()=>{$('ideasEdit').textContent='Edit selected';};
+      editMenu.parentElement.addEventListener('toggle',()=>{if(editMenu.parentElement.open)syncEditLabel();});
+      viewMenu.append(make('hr'),body.querySelector('.ideas-snap-tools'),make('hr'));
+      $('ideasZoomOut').textContent='Zoom out';$('ideasZoomIn').textContent='Zoom in';$('ideasZoomOut').setAttribute('aria-label','Zoom out');$('ideasZoomIn').setAttribute('aria-label','Zoom in');$('ideasImage').classList.remove('primary');
+      viewMenu.append($('ideasZoomIn'),$('ideasZoomOut'));
+      for(const id of ['ideasEdit','ideasDelete','ideasZoomIn','ideasZoomOut'])$(id).addEventListener('click',closeMenus);
+      for(const id of ['ideasNewProject','ideasImage','ideasLink','ideasNote','ideasUndo','ideasRedo','ideasFit'])$(id).classList.add('reference-icon-button');
+      $('ideasCount').classList.add('reference-count');status.firstChild.replaceWith($('ideasCount'));
+    }
+
     const update=()=>{const next=titleFor(key,config);if(title.textContent!==next)title.textContent=next;};
     window.addEventListener('hashchange',()=>{closeMenus();update();});
     if(key==='milestones')new MutationObserver(update).observe($('title'),{childList:true,subtree:true,characterData:true});

@@ -15,12 +15,29 @@ function setup(saved=new Map()){
  }
  const $=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
  const document={getElementById:$,createElement:()=>new Element(),addEventListener(){},activeElement:new Element()};
- const context=vm.createContext({document,window:{addEventListener(){}},localStorage:{getItem(){return null;},setItem(){}},crypto:webcrypto,TextEncoder,Blob,URL,Image:class{},setTimeout,clearTimeout,setInterval(){},console});
+ const context=vm.createContext({document,window:{addEventListener(){}},localStorage:{getItem(){return null;},setItem(){}},crypto:webcrypto,CSS:{escape:s=>s},TextEncoder,Blob,URL,Image:class{},setTimeout,clearTimeout,setInterval(){},console});
  vm.runInContext(source,context);
  const storage={all:async()=>structuredClone([...saved.values()]),get:async id=>structuredClone(saved.get(id)),put:async r=>saved.set(r.projectId,structuredClone(r))};
  const board=context.IdeasBoard.attach({getProjects:()=>[{id:'project',name:'Project'}],createProject(){},isActive:()=>true,storage});
  return {board,saved,model:context.IdeaModel,$};
 }
+
+test('zoom selector scales the board without changing cards and follows non-preset zoom',async()=>{
+ const {board,saved,$}=setup();await board.ready;
+ await board.ingest({text:'Keep the original content'});await board.flush();
+ const before=structuredClone(saved.get('project').items);
+ $('ideasZoomLevel').onchange({target:{value:'0.5'}});
+ assert.match($('ideasWorld').style.transform,/scale\(0\.5\)/);
+ assert.equal($('ideasZoom').textContent,'50%');
+ $('ideasZoomIn').onclick();
+ assert.equal($('ideasZoomLevel').value,'0.6');
+ assert.equal($('ideasZoomCurrent').textContent,'60%');
+ $('ideasZoomLevel').onchange({target:{value:'invalid'}});
+ assert.equal($('ideasZoomLevel').value,'0.6');
+ $('ideasFit').onclick();await board.flush();
+ assert.equal($('ideasZoomLevel').value,'1');
+ assert.deepEqual(saved.get('project').items,before);
+});
 test('card board IDs are stable, bounded and isolated across projects and milestones',async()=>{
  const {model,board}=setup();await board.ready;
  const a=await model.cardBoardId('p','m');assert.equal(a,await model.cardBoardId('p','m'));assert.match(a,/^milestone:[a-f0-9]{64}$/);
