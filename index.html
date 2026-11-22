@@ -238,10 +238,10 @@ html[data-active-page="home"] .side{display:none}
 <div class="page-top"><span class="eyebrow">PROJECTS / OVERVIEW</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="head projects-heading"><div><h1 id="projectsTitle" tabindex="-1">프로젝트</h1><p class="page-intro">전체 흐름은 한눈에, 자세한 일정은 프로젝트 안에서.</p></div><button class="btn primary editable" id="newProject">＋ 프로젝트 추가</button></div>
 <div class="sectionhead"><h2>프로젝트 목록 <span class="small" id="projectCount"></span></h2><div class="tools"><button class="btn danger editable" id="deleteSelectedProjects" disabled>선택한 프로젝트 삭제</button><button class="btn" id="selectAllProjects">전체 선택</button><button class="btn" id="clearProjects">선택 해제</button></div></div>
-<p class="small">체크박스로 로드맵에 표시하거나 삭제할 프로젝트를 선택하세요. 프로젝트 이름을 누르면 캘린더와 상세 일정을 볼 수 있어요.</p>
+<p class="small">체크박스로 로드맵에 표시하거나 삭제할 프로젝트를 선택하세요. 프로젝트 이름을 누르면 캘린더, 연결 맵과 상세 일정을 볼 수 있어요.</p>
 <div id="projectList" class="project-list"></div>
 <section id="roadmapView">
-<div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2>한눈에 보는 프로젝트 일정</h2><p class="small">목록에서 체크한 프로젝트만 모아 보고 공유하세요.</p></div><span class="small" id="selectionSummary" role="status"></span></div>
+<div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2 id="roadmapTitle">한눈에 보는 프로젝트 일정</h2><p class="small" id="roadmapDescription">목록에서 체크한 프로젝트만 모아 보고 공유하세요.</p></div><span class="small" id="selectionSummary" role="status"></span></div>
 <div class="roadmap-controls">
 <div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
@@ -257,8 +257,9 @@ html[data-active-page="home"] .side{display:none}
 <a class="back-link milestone-back" href="#milestones">← 프로젝트 목록</a>
 <div class="top"><span class="small">PROJECT MANAGEMENT / MILESTONES</span><button class="btn editable" id="addDetailMilestone">＋ 일정 추가</button></div><div class="head"><div><h1 id="title" tabindex="-1"></h1><div id="desc" class="muted"></div></div><div class="tools editable"><button class="btn" id="editProject">프로젝트 수정</button></div></div>
 <div class="stats"><div class="stat"><span class="small">전체 진행률</span><b id="progress">0%</b><div class="bar"><i id="fill"></i></div></div><div class="stat"><span class="small">완료</span><b id="completed">0 / 0</b></div><div class="stat"><span class="small">마지막 업데이트</span><b style="font-size:16px" id="updated">—</b></div></div>
-<div class="tabs"><button class="tab active" data-tab="calendar">캘린더</button><button class="tab" data-tab="timeline">상세 일정</button><button class="tab" data-tab="history">업데이트 히스토리</button></div>
+<div class="tabs"><button class="tab active" data-tab="calendar">캘린더</button><button class="tab" data-tab="connections">연결 맵</button><button class="tab" data-tab="timeline">상세 일정</button><button class="tab" data-tab="history">업데이트 히스토리</button></div>
 
+<section id="connectionsView" aria-label="현재 프로젝트 연결 맵" hidden></section>
 <section id="timelineView"><div class="sectionhead"><h2>마일스톤 타임라인</h2><button class="btn editable" id="addMilestone">＋ 마일스톤</button></div><div id="milestones" class="items"></div></section>
 <section id="calendarView" hidden><div class="calendar"><div class="calhead"><strong id="month"></strong><div role="group" aria-label="월 이동"><button class="btn" id="prevMonth" aria-label="이전 달">‹</button><button class="btn" id="today">오늘</button><button class="btn" id="nextMonth" aria-label="다음 달">›</button></div></div><div class="calgrid" id="calgrid"></div></div><div class="daydetails"><div class="sectionhead"><h2 id="dayTitle"></h2><button class="btn editable" id="addOnDate">＋ 이 날짜에 추가</button></div><div id="dayItems"></div></div></section>
 <section id="historyView" hidden><div class="sectionhead"><h2>업데이트 히스토리</h2><button class="btn editable" id="addNote">＋ 메모 추가</button></div><div id="history"></div></section>
@@ -330,6 +331,7 @@ function route(focus=false){
   if(detailId!==project.id){tab="calendar";month=new Date();selected=day();}
   state.selectedId=project.id;
  }
+ if(detailId!==(project?.id||null))flowEditor?.cancel();
  detailId=project?.id||null;
  const syncAnchor=$(detailId?"projectDetail":"projectOverview").querySelector(".head");
  if(syncAnchor.nextElementSibling!==$("milestoneSync"))syncAnchor.after($("milestoneSync"));
@@ -369,6 +371,8 @@ async function syncCardBoard(project,milestone){
  finally{if(request===cardBoardRequest)$("ideasPage").inert=false;}
 }
 function selectedProjects(){return Roadmap.selectedProjects(state.projects,state.roadmapIds);}
+function mapProjects(){return detailId?state.projects.filter(p=>p.id===detailId):selectedProjects();}
+function activeMapView(){return detailId?"connections":state.mapView||"connections";}
 let mapScale=1,mapFit=null,flowEditor=null,mapDrawing=null,ideasBoard=null;
 function applyMapZoom(){
  const board=$("roadmapBoard"),svg=board.querySelector("svg");
@@ -387,7 +391,7 @@ $("mapZoomOut").onclick=()=>zoomMap(-0.1);$("mapZoomIn").onclick=()=>zoomMap(0.1
 $("mapFitWidth").onclick=()=>{mapFit="width";applyMapZoom();$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;};
 $("mapFitAll").onclick=()=>{mapFit="all";applyMapZoom();$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;};
 window.addEventListener("resize",applyMapZoom);
-function drawOverview(project,options){return state.mapView==="timeline"?Roadmap.svg(project,day(),options):DependencyMap.svg({...project,mapColumns:state.mapColumns,name:project.name==="프로젝트 로드맵"?"프로젝트 연결 맵":project.name},day(),options);}
+function drawOverview(project,options){return activeMapView()==="timeline"?Roadmap.svg(project,day(),options):DependencyMap.svg({...project,mapColumns:state.mapColumns,name:project.name==="프로젝트 로드맵"?"프로젝트 연결 맵":project.name},day(),options);}
 function renderOverview(){
  const chosen=selectedProjects(),ids=new Set(chosen.map(p=>p.id));
  $("deleteSelectedProjects").disabled=readonly||!chosen.length;
@@ -398,13 +402,19 @@ function renderOverview(){
   const next=p.milestones.filter(m=>m.status!=="done"&&Roadmap.date(m.due)!==null).sort((a,b)=>a.due.localeCompare(b.due))[0];
   return '<article class="project-list-row '+(ids.has(p.id)?'is-selected':'')+'"><label class="project-check"><input type="checkbox" data-project-check="'+esc(p.id)+'" '+(ids.has(p.id)?'checked':'')+' aria-label="'+esc(p.name)+' 로드맵에 표시"><span>로드맵 표시</span></label><a class="project-detail-link" href="'+esc(projectHref(p.id))+'"><div class="project-summary"><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||"프로젝트 설명을 추가해 보세요.")+'</p></div><div class="project-list-progress"><b>'+rate+'%</b><span>완료 '+done+' / '+total+'</span><div class="bar"><i style="width:'+rate+'%"></i></div></div><div class="project-next"><span>다음 목표일</span><b>'+esc(next?.due||"—")+'</b><span>'+esc(next?.title||"예정된 일정 없음")+'</span></div><span class="project-open">상세 보기 ↗</span></a></article>';
  }).join(""):'<div class="empty">프로젝트를 추가해 목표와 일정을 모아 보세요.</div>';
- $("selectionSummary").textContent=chosen.length+" / "+state.projects.length+"개 프로젝트 표시 중";
- for(const name of ["share","exportPng","printRoadmap"])$(name).disabled=!chosen.length;
- document.querySelectorAll("[data-map-view]").forEach(b=>{const active=b.dataset.mapView===(state.mapView||"connections");b.classList.toggle("primary",active);b.setAttribute("aria-pressed",String(active));});
+ const displayed=mapProjects(),view=activeMapView(),host=$(detailId?"connectionsView":"projectOverview");
+ if($("roadmapView").parentElement!==host){host.append($("roadmapView"));$("exportStatus").textContent="";$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;}
+ $("connectionsView").hidden=tab!=="connections";
+ $("roadmapTitle").textContent=detailId?"프로젝트 연결 맵":"한눈에 보는 프로젝트 일정";
+ $("roadmapDescription").textContent=detailId?"이 프로젝트의 일정과 연결 관계를 보고 공유하세요.":"목록에서 체크한 프로젝트만 모아 보고 공유하세요.";
+ $("selectionSummary").textContent=detailId?displayed[0]?.name||"":chosen.length+" / "+state.projects.length+"개 프로젝트 표시 중";
+ document.querySelector(".map-view-switch").hidden=!!detailId;
+ for(const name of ["share","exportPng","printRoadmap"])$(name).disabled=!displayed.length;
+ document.querySelectorAll("[data-map-view]").forEach(b=>{const active=b.dataset.mapView===view;b.classList.toggle("primary",active);b.setAttribute("aria-pressed",String(active));});
  $("timelineLegend").hidden=true;
- $("roadmapBoard").dataset.view=state.mapView||"connections";
- $("roadmapBoard").setAttribute("aria-label",state.mapView==="timeline"?"월별 기간 로드맵":"주차별 프로젝트 연결 맵");
- mapDrawing=chosen.length?drawOverview(Roadmap.portfolio(chosen),{interactive:true}):null;
+ $("roadmapBoard").dataset.view=view;
+ $("roadmapBoard").setAttribute("aria-label",view==="timeline"?"월별 기간 로드맵":"주차별 프로젝트 연결 맵");
+ mapDrawing=displayed.length?drawOverview(Roadmap.portfolio(displayed),{interactive:true}):null;
  $("roadmapBoard").innerHTML=mapDrawing?mapDrawing.markup:'<div class="empty">로드맵에 표시할 프로젝트를 목록에서 선택해 주세요.</div>';
  applyMapZoom();
  flowEditor?.refresh();
@@ -422,7 +432,7 @@ $("homeMilestoneSummary").textContent=state.projects.length+" project"+(state.pr
 const p=current();if(!p){$("title").textContent="프로젝트 없음";return;}state.selectedId=p.id;
 $("title").textContent=p.name;$("desc").textContent=p.description;let n=p.milestones.length,k=p.milestones.filter(m=>m.status==="done").length,rate=n?Math.round(100*k/n):0;
 $("progress").textContent=rate+"%";$("fill").style.width=rate+"%";$("completed").textContent=k+" / "+n;$("updated").textContent=displayDate(p.updatedAt);
-document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["timeline","calendar","history"].forEach(x=>$(x+"View").hidden=x!==tab);
+document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["timeline","calendar","connections","history"].forEach(x=>$(x+"View").hidden=x!==tab);
 $("milestones").innerHTML=p.milestones.length?p.milestones.slice().sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")).map(m=>'<div class="item"><div class="row"><div><h3>'+esc(m.title)+'</h3><span class="tag '+esc(m.status)+'">'+status[m.status]+'</span> <span class="small">'+esc(m.group?m.group+" · ":"")+esc(m.start?m.start+" ~ ":"목표일 ")+esc(displayDate(m.due))+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(m.id)+'">수정</button>')+'</div>'+(m.details?'<p>'+esc(m.details)+'</p>':"")+dependencySummary(m)+'</div>').join(""):'<div class="empty">아직 마일스톤이 없어요. 첫 마일스톤을 추가해 보세요.</div>';
 $("history").innerHTML=p.history.length?p.history.map(h=>'<div class="log"><b>'+esc(h.title)+'</b><div class="small">'+esc(new Date(h.at).toLocaleString("ko-KR"))+'</div>'+(h.details?'<p>'+esc(h.details)+'</p>':"")+'</div>').join(""):'<div class="empty">아직 업데이트 기록이 없어요.</div>';
 drawCalendar();}
@@ -483,8 +493,8 @@ $("deleteSelectedProjects").onclick=deleteSelectedProjects;
 $("selectAllProjects").onclick=()=>{state.roadmapIds=state.projects.map(p=>p.id);persist();renderOverview();};
 $("clearProjects").onclick=()=>{state.roadmapIds=[];persist();renderOverview();};
 document.querySelectorAll("[data-map-view]").forEach(b=>b.onclick=()=>{state.mapView=b.dataset.mapView;persist();renderOverview();});
-document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();});
-function openRoadmapProject(e){const bar=e.target.closest("[data-m]");if(!bar)return;const m=Roadmap.portfolio(selectedProjects()).milestones.find(m=>m.id===bar.dataset.m);if(m&&!readonly)location.hash=cardHref(m.projectId,m.originalId||JSON.parse(m.id)[1]);}
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{flowEditor?.cancel();tab=b.dataset.tab;render();});
+function openRoadmapProject(e){const bar=e.target.closest("[data-m]");if(!bar)return;const m=Roadmap.portfolio(mapProjects()).milestones.find(m=>m.id===bar.dataset.m);if(m&&!readonly)location.hash=cardHref(m.projectId,m.originalId||JSON.parse(m.id)[1]);}
 $("roadmapBoard").ondblclick=e=>{
  const hit=document.elementFromPoint(e.clientX,e.clientY)||e.target;
  if(readonly||!$("roadmapBoard").contains(hit)||hit.closest('button,select,input,[data-port-node],[data-resize],[data-edge-handle]'))return;
@@ -492,7 +502,7 @@ $("roadmapBoard").ondblclick=e=>{
  const target=DependencyMap.find(state.projects,node.dataset.m);if(!target)return;
  flowEditor?.cancel();location.hash=cardHref(target.project.id,target.milestone.id);
 };
-$("roadmapBoard").onkeydown=e=>{if(state.mapView!=="timeline")return;if(e.target.closest("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRoadmapProject(e);}};
+$("roadmapBoard").onkeydown=e=>{if(activeMapView()!=="timeline")return;if(e.target.closest("[data-m]")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRoadmapProject(e);}};
 $("roadmapBoard").onclick=e=>{const add=e.target.closest("#mapAddColumn,[data-add-project-column]");if(add){addMapColumn(add.dataset.addProjectColumn);return;}};
 $("milestones").onclick=$("dayItems").onclick=e=>{let b=e.target.closest("[data-m]");if(b)open("milestone",b.dataset.m);};
 $("calgrid").onclick=e=>{let b=e.target.closest("[data-day]");if(b){selected=b.dataset.day;drawCalendar();}};
@@ -510,16 +520,16 @@ async function shareFont(){
  const blob=await response.blob();
  return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("글꼴 변환 실패"));reader.readAsDataURL(new Blob([blob],{type:"font/woff2"}));});
 }
-function shareFilename(project,extension){return project.name.replace(/[<>:"/\\|?*\x00-\x1f]/g,"-").slice(0,80)+(state.mapView==="timeline"?"-로드맵-":"-연결맵-")+day()+"."+extension;}
+function shareFilename(project,extension){return project.name.replace(/[<>:"/\\|?*\x00-\x1f]/g,"-").slice(0,80)+(activeMapView()==="timeline"?"-로드맵-":"-연결맵-")+day()+"."+extension;}
 async function exportRoadmap(kind){
  const button=$(kind==="png"?"exportPng":"share");button.disabled=true;$("exportStatus").textContent="공유 파일을 만드는 중…";
  try{
-  const chosen=selectedProjects();if(!chosen.length)throw Error("공유할 프로젝트를 선택해 주세요.");
-  const p=Roadmap.portfolio(chosen),drawing=drawOverview(p,{report:true}),font=await shareFont();
+  const chosen=mapProjects();if(!chosen.length)throw Error("공유할 프로젝트를 선택해 주세요.");
+  const p=Roadmap.portfolio(chosen),drawing=drawOverview(p,{report:true}),filename=shareFilename(p,kind),font=await shareFont();
   const fontCss="@font-face{font-family:'Pretendard Variable';src:url('"+font+"') format('woff2')}";
   if(kind==="html"){
    const html='<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(p.name)+' — 로드맵</title><style>'+fontCss+'body{margin:0;padding:24px;background:#eeece5;color:#11563f;font-family:"Pretendard Variable",sans-serif}main{overflow:auto}svg{display:block;width:100%;min-width:1000px;height:auto}p{font-size:12px} @media print{@page{size:A3 landscape;margin:10mm}body{padding:0}main{overflow:visible}svg{min-width:0}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><main>'+drawing.markup+'</main><p>공유한 시점의 읽기 전용 일정입니다. 선택한 프로젝트만 포함하며 변경 사항은 자동으로 반영되지 않습니다.</p></body></html>';
-   download(shareFilename(p,"html"),html,"text/html;charset=utf-8");
+   download(filename,html,"text/html;charset=utf-8");
   }else{
    const markup=drawing.markup.replace('><title>', '><style>'+fontCss+'</style><title>');
    const url=URL.createObjectURL(new Blob([markup],{type:"image/svg+xml;charset=utf-8"}));
@@ -529,7 +539,7 @@ async function exportRoadmap(kind){
     const canvas=document.createElement("canvas");canvas.width=Math.ceil(drawing.width*scale);canvas.height=Math.ceil(drawing.height*scale);
     canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);
     const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));if(!blob)throw Error("이미지 생성 실패");
-    download(shareFilename(p,"png"),blob,"image/png");
+    download(filename,blob,"image/png");
    }finally{URL.revokeObjectURL(url);}
   }
   $("exportStatus").textContent="선택한 프로젝트의 로드맵을 저장했어요. 내려받은 파일을 공유하세요.";
@@ -541,7 +551,7 @@ $("printRoadmap").onclick=()=>window.print();
 
 function addMapColumn(projectId){
  if(readonly||!mapDrawing?.model?.lanes)return;
- const lane=mapDrawing.model.lanes.find(l=>l.id===(projectId||selectedProjects()[0]?.id));
+ const lane=mapDrawing.model.lanes.find(l=>l.id===(projectId||mapProjects()[0]?.id));
  const project=state.projects.find(p=>p.id===lane?.id);
  if(!project||lane.columnCount>=100)return;
  for(const region of mapDrawing.model.lanes){const owner=state.projects.find(p=>p.id===region.id);if(owner)owner.flowColumns=region.columnCount;}
@@ -552,7 +562,7 @@ function addMapColumn(projectId){
 }
 flowEditor=DependencyEditor.attach({
  board:$("roadmapBoard"),toolbar:$("flowToolbar"),getProjects:()=>state.projects,getModel:()=>mapDrawing?.model,createId:id,
- isActive:()=>state.mapView!=="timeline"&&!readonly,
+ isActive:()=>activeMapView()==="connections"&&(!detailId||tab==="connections")&&!readonly,
  commit:(project,message)=>{record(project,message);persist();render();},
  edit:({project,milestone})=>{state.selectedId=project.id;open("milestone",milestone.id);},
  openBoard:({project,milestone})=>{location.hash=cardHref(project.id,milestone.id);},
