@@ -152,6 +152,7 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/retro-home.css?v=20261122-taskbar-eight">
 <script src="assets/retro-desktop.js?v=20261122-retro-v1" defer></script>
 <link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-previews-v1">
+<link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-v1">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -342,7 +343,7 @@ document.addEventListener("keydown",e=>{
  const key=e.key.toLowerCase(),direction=key==="z"?(e.shiftKey?"redo":"undo"):key==="y"?"redo":null;
  if(!direction)return;e.preventDefault();restoreEdit(direction);
 });
-let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
+let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
 const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
@@ -359,7 +360,7 @@ function route(focus=false){
  const page=cardOpen?"ideas":requested.startsWith("card/")?"milestones":isProject?"milestones":Object.hasOwn(pages,requested)?requested:(readonly?"milestones":"home");
  if(isProject&&!project)history.replaceState(null,"","#milestones");
  if(project){
-  if(detailId!==project.id){tab="connections";month=new Date();selected=day();}
+  if(detailId!==project.id){tab="calendar";month=new Date();selected=day();}
   state.selectedId=project.id;
  }
  if(detailId!==(project?.id||null))flowEditor?.cancel();
@@ -432,7 +433,7 @@ function renderOverview(){
  $("projectList").innerHTML=state.projects.length?state.projects.map(p=>{
   const done=p.milestones.filter(m=>m.status==="done").length,total=p.milestones.length,rate=total?Math.round(done/total*100):0;
   const next=p.milestones.filter(m=>m.status!=="done"&&Roadmap.date(m.due)!==null).sort((a,b)=>a.due.localeCompare(b.due))[0];
-  return '<article class="project-list-row '+(ids.has(p.id)?'is-selected':'')+'"><label class="project-check"><input type="checkbox" data-project-check="'+esc(p.id)+'" '+(ids.has(p.id)?'checked':'')+' aria-label="'+esc(p.name)+' 로드맵에 표시"><span>로드맵 표시</span></label><a class="project-detail-link" href="'+esc(projectHref(p.id))+'"><div class="project-summary"><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||"프로젝트 설명을 추가해 보세요.")+'</p></div><div class="project-list-progress"><b>'+rate+'%</b><span>완료 '+done+' / '+total+'</span><div class="bar"><i style="width:'+rate+'%"></i></div></div><div class="project-next"><span>다음 목표일</span><b>'+esc(next?.due||"—")+'</b><span>'+esc(next?.title||"예정된 일정 없음")+'</span></div><span class="project-open">상세 보기 ↗</span></a></article>';
+  return '<article class="project-list-row '+(ids.has(p.id)?'is-selected':'')+'"><label class="project-check"><input type="checkbox" data-project-check="'+esc(p.id)+'" '+(ids.has(p.id)?'checked':'')+' aria-label="'+esc(p.name)+' 로드맵에 표시"><span>로드맵 표시</span></label><a class="project-detail-link" href="'+esc(projectHref(p.id))+'"><div class="project-summary"><h3>'+esc(p.name)+'</h3><p>'+esc(p.description||"프로젝트 설명을 추가해 보세요.")+'</p></div><div class="project-list-progress"><b>'+rate+'%</b><span>완료 '+done+' / '+total+'</span><div class="bar"><i style="width:'+rate+'%"></i></div></div><div class="project-updated"><time datetime="'+esc(p.updatedAt||'')+'">'+esc(p.updatedAt?new Date(p.updatedAt).toLocaleString('sv-SE',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'—')+'</time></div><div class="project-next"><span>다음 목표일</span><b>'+esc(next?.due||"—")+'</b><span>'+esc(next?.title||"예정된 일정 없음")+'</span></div><span class="project-open">상세 보기 ↗</span></a></article>';
  }).join(""):'<div class="empty">프로젝트를 추가해 목표와 일정을 모아 보세요.</div>';
  const displayed=mapProjects(),view=activeMapView(),host=$(detailId?"connectionsView":"projectOverview");
  if($("roadmapView").parentElement!==host){host.append($("roadmapView"));$("exportStatus").textContent="";$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;}
@@ -468,9 +469,9 @@ document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b
 $("milestones").innerHTML=p.milestones.length?p.milestones.slice().sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")).map(m=>'<div class="item"><div class="row"><div><h3>'+esc(m.title)+'</h3><span class="tag '+esc(m.status)+'">'+status[m.status]+'</span> <span class="small">'+esc(m.group?m.group+" · ":"")+esc(m.start?m.start+" ~ ":"목표일 ")+esc(displayDate(m.due))+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(m.id)+'">수정</button>')+'</div>'+(m.details?'<p>'+esc(m.details)+'</p>':"")+dependencySummary(m)+'</div>').join(""):'<div class="empty">아직 마일스톤이 없어요. 첫 마일스톤을 추가해 보세요.</div>';
 $("history").innerHTML=p.history.length?p.history.map(h=>'<div class="log"><b>'+esc(h.title)+'</b><div class="small">'+esc(new Date(h.at).toLocaleString("ko-KR"))+'</div>'+(h.details?'<p>'+esc(h.details)+'</p>':"")+'</div>').join(""):'<div class="empty">아직 업데이트 기록이 없어요.</div>';
 drawCalendar();}
-function drawCalendar(){let p=current(),y=month.getFullYear(),m=month.getMonth();$("month").textContent=y+"년 "+(m+1)+"월";let first=new Date(y,m,1).getDay(),max=new Date(y,m+1,0).getDate();let s=["일","월","화","수","목","금","토"].map(x=>'<div class="weekday">'+x+'</div>').join("");
-for(let i=0;i<42;i++){let d=new Date(y,m,1-first+i),ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");let ms=p.milestones.filter(x=>x.due===ds);s+='<button class="day '+(d.getMonth()!==m?"out ":"")+(ds===selected?"selected ":"")+(ds===day()?"today":"")+'" data-day="'+ds+'"><span class="num">'+d.getDate()+'</span>'+ms.slice(0,3).map(x=>'<span class="event '+esc(x.status)+'">'+esc(x.title)+'</span>').join("")+(ms.length>3?'<span class="small">+'+(ms.length-3)+'개</span>':"")+'</button>';}
-$("calgrid").innerHTML=s;$("dayTitle").textContent=selected+" 마일스톤";let ms=p.milestones.filter(x=>x.due===selected);$("dayItems").innerHTML=ms.length?ms.map(x=>'<div class="item row"><div><b>'+esc(x.title)+'</b> <span class="tag '+esc(x.status)+'">'+status[x.status]+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(x.id)+'">수정</button>')+'</div>').join(""):'<p class="small">이 날짜에는 마일스톤이 없어요.</p>';}
+function drawCalendar(){let p=current(),y=month.getFullYear(),m=month.getMonth();$("month").textContent=month.toLocaleDateString("en-US",{month:"long",year:"numeric"});let first=new Date(y,m,1).getDay(),max=new Date(y,m+1,0).getDate();let s=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>'<div class="weekday">'+x+'</div>').join("");
+for(let i=0;i<Math.ceil((first+max)/7)*7;i++){let d=new Date(y,m,1-first+i),ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");let ms=p.milestones.filter(x=>x.due===ds);s+='<button class="day '+(d.getMonth()!==m?"out ":"")+(ds===selected?"selected ":"")+(ds===day()?"today":"")+'" data-day="'+ds+'"><span class="num">'+d.getDate()+'</span>'+ms.slice(0,3).map(x=>'<span class="event '+esc(x.status)+'">'+esc(x.title)+'</span>').join("")+(ms.length>3?'<span class="small">+'+(ms.length-3)+'개</span>':"")+'</button>';}
+$("calgrid").innerHTML=s;$("dayTitle").textContent=new Date(selected+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});let ms=p.milestones.filter(x=>x.due===selected);$("dayItems").innerHTML=ms.length?ms.map(x=>'<div class="item row"><div><b>'+esc(x.title)+'</b> <span class="tag '+esc(x.status)+'">'+status[x.status]+'</span></div>'+(readonly?"":'<button class="btn" data-m="'+esc(x.id)+'">Edit</button>')+'</div>').join(""):'<p class="small">No milestones on this date.</p>';}
 function dependencyFields(project,milestone){
  const refs=DependencyMap.normalize(milestone?.dependsOn),chosen=new Set(refs.map(r=>DependencyMap.key(r.projectId,r.milestoneId))),seen=new Set();
  const groups=state.projects.map(p=>{
@@ -623,5 +624,5 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261122-pdf-explorer-v1" defer></script>
+</script><script src="assets/retro-pages.js?v=20261122-pdf-explorer-v1" defer></script><script src="assets/retro-milestones.js?v=20261122-v1" defer></script>
 </body></html>
