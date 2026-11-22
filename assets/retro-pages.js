@@ -48,7 +48,7 @@
     const menu=make('nav','retro-page-menu');menu.setAttribute('aria-label',config[0]+' menu');
     function addMenu(name,actions){const d=make('details'),s=make('summary',null,name),p=make('div','retro-menu-popup');for(const [label,fn,target] of actions){const b=make('button',null,label);b.type='button';b.onclick=()=>{closeMenus();fn();};if(target)b.dataset.target=target;p.append(b);}d.append(s,p);d.addEventListener('toggle',()=>{if(d.open){menu.querySelectorAll('details').forEach(other=>{if(other!==d)other.open=false;});d.querySelectorAll('[data-target]').forEach(b=>{b.disabled=!$(b.dataset.target)||$(b.dataset.target).disabled;});}});menu.append(d);return p;}
     addMenu('File',[...config[2].map(id=>[labels[id]||'Open',()=>$(id)?.click(),id]),['Back to Home',home]]);
-    const editMenu=key==='ideas'?addMenu('Edit',[['Undo',()=>$('ideasUndo').click(),'ideasUndo'],['Redo',()=>$('ideasRedo').click(),'ideasRedo']]):null;
+    const editMenu=key==='ideas'?addMenu('Edit',[['Undo',()=>$('ideasUndo').click(),'ideasUndo'],['Redo',()=>$('ideasRedo').click(),'ideasRedo']]):key==='transfers'?addMenu('Edit',[['Retry upload',()=>$('transferRetry').click(),'transferRetry']]):null;
     const viewMenu=addMenu('View',[['Maximize / Restore',()=>controls.querySelector('[data-maximize]').click()],['Back to Home',home]]);
     addMenu('Help',[[config[0]+' Help',()=>showHelp(config)]]);
     const status=make('footer','retro-page-status');status.append(make('span',null,config[0]),make('span',null,'Workspace'));
@@ -87,6 +87,8 @@
   for(const [page,icon] of [['transfersPage','transfers'],['wirenestPage','wirenest']]){
     const heading=$(page)?.querySelector('.placeholder-heading>div:first-child');if(heading){heading.classList.add('retro-icon-heading');const img=make('img','retro-heading-icon');img.src='assets/dashboard-objects/retro-v1/'+icon+'.png';img.alt='';heading.prepend(img);}
   }
+  $('transferUpload')?.classList.remove('primary');
+  document.querySelectorAll('#transfersPage .retro-heading-icon,#transfersPage>.retro-titlebar>img').forEach(img=>img.src='assets/transfer-floppies.svg');
   const download=document.querySelector('#signaltesterPage .signal-download');
   if(download){const img=make('img','retro-signal-icon');img.src='assets/dashboard-objects/retro-v1/signaltester.png';img.alt='';download.querySelector('strong').after(img);}
   document.querySelectorAll('#signaltesterPage .signal-setup ol li').forEach((li,i)=>{const img=make('img','retro-step-icon');img.src='assets/dashboard-objects/retro-v1/'+['library','computer','wirenest'][i]+'.png';img.alt='';li.prepend(img);});

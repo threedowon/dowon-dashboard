@@ -184,3 +184,65 @@ html:not([data-active-page="home"]) dialog :is(input,select,textarea){border-rad
 #ideasPage #ideasFit:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2026%2026%22%20stroke%3D%22%23161616%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke-width%3D%222.5%22%20d%3D%22M3%209V3h6M15%203h6v6M21%2015v6h-6M9%2021H3v-6M3%203l6%206M21%203l-6%206M21%2021l-6-6M3%2021l6-6%22/%3E%3C/svg%3E")}
 
 #ideasPage .retro-menu-popup .btn{border:0;box-shadow:none;border-radius:0;text-align:left;min-height:34px}
+
+/* Temporary transfers use a classic file table, with live expiry labels. */
+@media screen {
+#transfersPage .retro-page-body{padding:24px}
+#transfersPage .placeholder-heading{margin-bottom:20px;gap:20px;align-items:center}
+#transfersPage .retro-icon-heading{padding-left:170px;min-height:86px}
+#transfersPage .retro-icon-heading .retro-heading-icon{width:145px;height:80px;top:0;object-fit:contain;padding-right:20px;border-right:1px solid #666}
+#transfersPage #transfersTitle{font:700 36px/1.15 'Lucida Console',monospace;margin:0 0 8px}
+#transfersPage .page-intro{font:18px/1.45 'Lucida Console',monospace;margin:0;color:#111}
+#transfersPage .library-toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 22px;padding:0;border:0;background:none}
+#transfersPage .library-toolbar>label{order:2;margin-left:auto;display:flex;align-items:center;gap:12px;max-width:none;font-size:18px;white-space:nowrap}
+#transfersPage #transferMinutes{width:185px;font-size:18px;padding:5px 8px;min-height:37px}
+#transfersPage #transferUpload,#transfersPage #transferRefresh{display:inline-flex;align-items:center;gap:12px;font-size:18px;padding:10px 18px;min-height:48px}
+#transfersPage #transferUpload:before,#transfersPage #transferRefresh:before{content:'';width:30px;height:30px;background:center/contain no-repeat;display:block}
+#transfersPage #transferConnect{font-size:14px;white-space:nowrap}
+#transfersPage .transfer-dropzone{border:2px dashed #666;text-align:center;padding:22px 16px;margin-bottom:22px;background:#faf8ef}
+#transfersPage .transfer-dropzone>div{display:flex;align-items:center;justify-content:center;gap:18px}
+#transfersPage .transfer-dropzone strong{font:700 24px/1.3 'Lucida Console',monospace}
+#transfersPage .transfer-dropzone p{margin:8px 0 0;color:#555;font-size:15px}
+#transfersPage .transfer-folder-icon{width:46px;height:42px;background:center/contain no-repeat;display:inline-block}
+#transfersPage #transferStatus{font-size:14px;margin:10px 0;color:#555;overflow-wrap:anywhere}
+#transfersPage #transferStatus:empty{display:none}
+#transfersPage .transfer-list{overflow-x:auto;border:2px solid;border-color:#808080 #fff #fff #808080;background:#faf8ef}
+#transfersPage .transfer-table{width:100%;border-collapse:collapse;table-layout:fixed;font:16px/1.35 Tahoma,'Pretendard Variable',sans-serif;min-width:660px}
+#transfersPage .transfer-table th{background:#c0c0c0;border:1px solid #808080;box-shadow:inset 1px 1px #fff;text-align:left;padding:9px 12px;font-size:17px;color:#111}
+#transfersPage .transfer-table th:nth-child(1){width:34%}#transfersPage .transfer-table th:nth-child(2){width:14%}#transfersPage .transfer-table th:nth-child(3){width:31%}#transfersPage .transfer-table th:nth-child(4){width:21%}
+#transfersPage .transfer-table td{border:1px solid #aaa;padding:12px;vertical-align:middle;color:#111}
+#transfersPage .transfer-file{display:flex;align-items:center;gap:14px;min-width:0}
+#transfersPage .transfer-file>span:last-child{overflow-wrap:anywhere;font-size:17px}
+#transfersPage .transfer-file-icon{display:block;flex:0 0 38px;width:38px;height:46px;background:center/contain no-repeat}
+#transfersPage .transfer-countdown{display:block;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
+#transfersPage .transfer-table .is-uploading{background:#000080}
+#transfersPage .transfer-table .is-uploading td{color:white}
+#transfersPage .transfer-table progress{appearance:none;display:block;width:100%;max-width:290px;height:22px;border:2px solid;border-color:#808080 #fff #fff #808080;background:#c0c0c0;margin-top:5px}
+#transfersPage .transfer-table progress::-webkit-progress-bar{background:repeating-linear-gradient(90deg,transparent 0 19px,#fff 19px 22px),#c0c0c0}
+#transfersPage .transfer-table progress::-webkit-progress-value{background:repeating-linear-gradient(90deg,#0000ad 0 19px,#fff 19px 22px)}
+#transfersPage .transfer-table progress::-moz-progress-bar{background:repeating-linear-gradient(90deg,#0000ad 0 19px,#fff 19px 22px)}
+#transfersPage .transfer-actions{text-align:center}
+#transfersPage .transfer-actions .btn{padding:6px 14px;min-height:34px;min-width:110px;font-size:15px}
+#transfersPage .transfer-actions .transfer-delete{display:block;min-width:0;min-height:0;padding:2px 5px;margin:4px auto 0;border:0;box-shadow:none;background:transparent;text-decoration:underline;color:#666;font-size:13px}
+#transfersPage .transfer-actions>span{font-size:14px}
+#transfersPage .transfer-error{display:block;color:#a31313;margin-top:4px;overflow-wrap:anywhere}
+#transfersPage .transfer-empty{text-align:center;padding:32px;color:#555}
+#transfersPage .transfer-footnote{display:flex;gap:12px;align-items:center;border-top:1px solid #aaa;margin:24px 0 0;padding-top:16px;font-size:16px}
+#transfersPage .transfer-footnote>span{display:inline-flex;align-items:center;justify-content:center;background:#0000aa;color:#fff;font:bold 24px Georgia,serif;border:1px solid #000080;box-shadow:inset 2px 2px #9292ff;border-radius:50%;width:30px;height:30px;flex:0 0 30px}
+@media(max-width:900px){#transfersPage .retro-page-body{padding:18px}#transfersPage .placeholder-heading{flex-wrap:wrap}#transfersPage #transfersTitle{font-size:30px}#transfersPage .page-intro{font-size:16px}#transfersPage .library-toolbar>label{font-size:16px}#transfersPage #transferMinutes{width:140px;font-size:16px}}
+@media(max-width:600px){#transfersPage .retro-page-body{padding:14px 10px}#transfersPage .retro-icon-heading{padding-left:95px;min-height:65px}#transfersPage .retro-icon-heading .retro-heading-icon{width:80px;height:65px;padding-right:12px}#transfersPage #transfersTitle{font-size:24px}#transfersPage .page-intro{font-size:14px}#transfersPage .library-toolbar{gap:10px}#transfersPage #transferUpload,#transfersPage #transferRefresh{font-size:16px;padding:8px 12px}#transfersPage .library-toolbar>label{margin-left:0;width:100%}#transfersPage .transfer-dropzone strong{font-size:20px}}
+}
+
+#transfersPage .transfer-icon-file{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2036%2046%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20fill%3D%22%23fff%22%20d%3D%22M4%201h18l9%209v33H4z%22/%3E%3Cpath%20fill%3D%22%23ccc%22%20d%3D%22M22%201v9h9%22/%3E%3Cpath%20stroke%3D%22%23777%22%20stroke-width%3D%222%22%20d%3D%22M9%2018h16M9%2023h16M9%2028h16%22/%3E%3C/svg%3E")}
+
+#transfersPage .transfer-icon-pdf{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2036%2046%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20fill%3D%22%23fff%22%20d%3D%22M4%201h18l9%209v33H4z%22/%3E%3Cpath%20fill%3D%22%23ccc%22%20d%3D%22M22%201v9h9%22/%3E%3Cpath%20fill%3D%22%23e00000%22%20d%3D%22M4%2025h27v18H4z%22/%3E%3Ctext%20x%3D%226%22%20y%3D%2238%22%20fill%3D%22white%22%20stroke%3D%22none%22%20font-family%3D%22Arial%22%20font-weight%3D%22bold%22%20font-size%3D%2212%22%3EPDF%3C/text%3E%3C/svg%3E")}
+
+#transfersPage .transfer-icon-image{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2036%2046%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20fill%3D%22%23fff%22%20d%3D%22M4%201h18l9%209v33H4z%22/%3E%3Cpath%20fill%3D%22%23ccc%22%20d%3D%22M22%201v9h9%22/%3E%3Cpath%20fill%3D%22%2358bcff%22%20stroke%3D%22none%22%20d%3D%22M7%2018h21v21H7z%22/%3E%3Cpath%20fill%3D%22%23258c35%22%20stroke%3D%22none%22%20d%3D%22m7%2034%208-11%206%208%203-4%204%206v6H7z%22/%3E%3Cpath%20fill%3D%22white%22%20stroke%3D%22none%22%20d%3D%22M9%2020h6v4H9z%22/%3E%3C/svg%3E")}
+
+#transfersPage .transfer-icon-archive{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2036%2046%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20fill%3D%22%23ffe569%22%20d%3D%22M2%209h13l4%204h15v29H2z%22/%3E%3Cpath%20fill%3D%22%23fff7a6%22%20d%3D%22M3%2013h29v4H3z%22/%3E%3Cpath%20fill%3D%22%23aaa%22%20d%3D%22M15%209h5v25h-5z%22/%3E%3Cpath%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-dasharray%3D%222%202%22%20d%3D%22M17%2010v22%22/%3E%3Cpath%20fill%3D%22%23fff%22%20d%3D%22M14%2032h7v7h-7z%22/%3E%3C/svg%3E")}
+
+#transfersPage .transfer-folder-icon, #transfersPage #transferUpload:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2036%2046%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20fill%3D%22%23ffe35e%22%20d%3D%22M2%209h13l4%204h15v29H2z%22/%3E%3Cpath%20fill%3D%22%23fff7a6%22%20d%3D%22M3%2013h29v4H3z%22/%3E%3C/svg%3E")}
+
+#transfersPage #transferRefresh:before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2036%2046%22%20stroke%3D%22%23111%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%230935bb%22%20stroke-width%3D%224%22%20d%3D%22M29%2016a12%2012%200%200%200-23%202M5%2028a12%2012%200%200%200%2023-2%22/%3E%3Cpath%20fill%3D%22%230935bb%22%20stroke%3D%22none%22%20d%3D%22m23%2016%209%205-1-11zM11%2028l-9-5%201%2011z%22/%3E%3C/svg%3E")}
+
+@media screen{#transfersPage .library-toolbar>label{flex:0 0 auto;margin-left:auto}#transfersPage .retro-icon-heading .retro-heading-icon{object-fit:contain}#transfersPage .retro-page-body .transfer-actions .btn:disabled{color:#888}@media(max-width:600px){#transfersPage .library-toolbar>label{margin-left:0}}}
