@@ -1,0 +1,30 @@
+{
+  "generator": "built-in image_gen",
+  "transparent_background": true,
+  "prompts": [
+    {
+      "name": "library",
+      "prompt": "Use case: background-extraction. The input is a reference dashboard mockup. Extract and reproduce ONLY the two upright vintage green and brown-red hardcover books in the middle central cell as ONE isolated full-resolution photographic cutout with genuine transparent alpha. Faithfully preserve the selected object's shape, colors, viewing angle, proportions, warm vintage tactile materials and recognizable details from the reference. Crisp natural details like the original object photograph, not blurry or painterly. Remove the green background entirely including gaps. No text, labels, grid, frame, other objects, colored edge spill, halo, glow outside the silhouette, cast shadow plane or backdrop. Soft dimensional shading within the object is fine. Center the entire object group on a square canvas with about 12% transparent margin. Output only the selected object, no dashboard layout. "
+    },
+    {
+      "name": "ideas",
+      "prompt": "Use case: background-extraction. The input is a reference dashboard mockup. Extract and reproduce ONLY the three overlapping botanical and abstract cream paper reference prints with a silver paper clip in the middle right cell as ONE isolated full-resolution photographic cutout with genuine transparent alpha. Faithfully preserve the selected object's shape, colors, viewing angle, proportions, warm vintage tactile materials and recognizable details from the reference. Crisp natural details like the original object photograph, not blurry or painterly. Remove the green background entirely including gaps. No text, labels, grid, frame, other objects, colored edge spill, halo, glow outside the silhouette, cast shadow plane or backdrop. Soft dimensional shading within the object is fine. Center the entire object group on a square canvas with about 12% transparent margin. Output only the selected object, no dashboard layout. "
+    },
+    {
+      "name": "transfers",
+      "prompt": "Use case: background-extraction. The input is a reference dashboard mockup. Extract and reproduce ONLY the open orange envelope with cream paper sheets in the bottom middle cell as ONE isolated full-resolution photographic cutout with genuine transparent alpha. Faithfully preserve the selected object's shape, colors, viewing angle, proportions, warm vintage tactile materials and recognizable details from the reference. Crisp natural details like the original object photograph, not blurry or painterly. Remove the green background entirely including gaps. No text, labels, grid, frame, other objects, colored edge spill, halo, glow outside the silhouette, cast shadow plane or backdrop. Soft dimensional shading within the object is fine. Center the entire object group on a square canvas with about 12% transparent margin. Output only the selected object, no dashboard layout. "
+    },
+    {
+      "name": "hardware",
+      "prompt": "Use case: background-extraction. The input is a reference dashboard mockup. Extract and reproduce ONLY the brass hexagonal nut and red-brown bolt together in the bottom right cell as ONE isolated full-resolution photographic cutout with genuine transparent alpha. Faithfully preserve the selected object's shape, colors, viewing angle, proportions, warm vintage tactile materials and recognizable details from the reference. Crisp natural details like the original object photograph, not blurry or painterly. Remove the green background entirely including gaps. No text, labels, grid, frame, other objects, colored edge spill, halo, glow outside the silhouette, cast shadow plane or backdrop. Soft dimensional shading within the object is fine. Center the entire object group on a square canvas with about 12% transparent margin. Output only the selected object, no dashboard layout. "
+    },
+    {
+      "name": "signaltester",
+      "prompt": "Use case: background-extraction. The input is a reference dashboard mockup. Extract and reproduce ONLY the cream vintage portable oscilloscope with its carry handle and yellow waveform from the top right cell as ONE isolated full-resolution photographic cutout with genuine transparent alpha. Faithfully preserve the selected object's shape, colors, viewing angle, proportions, warm vintage tactile materials and recognizable details from the reference. Crisp natural details like the original object photograph, not blurry or painterly. Remove the green background entirely including gaps. No text, labels, grid, frame, other objects, colored edge spill, halo, glow outside the silhouette, cast shadow plane or backdrop. Soft dimensional shading within the object is fine. Center the entire object group on a square canvas with about 12% transparent margin. Output only the selected object, no dashboard layout. "
+    },
+    {
+      "name": "lamp",
+      "prompt": "Use case: background-extraction. The input is a reference dashboard mockup. Extract and reproduce ONLY ONLY the small glowing round opaline globe, ivory ceramic socket, small brass fitting from the top middle cell. Omit the long hanging cord entirely; the cord will be rendered separately in code as ONE isolated full-resolution photographic cutout with genuine transparent alpha. Faithfully preserve the selected object's shape, colors, viewing angle, proportions, warm vintage tactile materials and recognizable details from the reference. Crisp natural details like the original object photograph, not blurry or painterly. Remove the green background entirely including gaps. No text, labels, grid, frame, other objects, colored edge spill, halo, glow outside the silhouette, cast shadow plane or backdrop. Soft dimensional shading within the object is fine. Center the entire object group on a square canvas with about 12% transparent margin. Output only the selected object, no dashboard layout. Keep the globe softly illuminated inside its glass, the socket IVORY, the small fitting brass; do not include any cord."
+    }
+  ]
+}
