@@ -1,45 +1,44 @@
 import {PDFDocument,PDFPage,PDFString,rgb} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
-export type PdfItem={id:string;name:string;detail:string;group?:string;usage?:string;link:string;source?:string;image:string};
-export type PdfInput={items:PdfItem[];people:{id:string;name:string}[];quantities:Record<string,number>;filter:string;date:string};
+import {purchaseRows,type PurchaseInput} from './purchase-export';
+export type PdfInput=PurchaseInput;
 export async function createWorkbookPdf(input:PdfInput,fontBytes:Uint8Array){
  const doc=await PDFDocument.create();doc.registerFontkit(fontkit);
  const font=await doc.embedFont(fontBytes,{subset:false});
- doc.setTitle('Hardware Sheet - 비품 구매 목록');doc.setAuthor('Hardware Sheet');doc.setLanguage('ko-KR');
+ doc.setTitle('비품 구매 신청 목록');doc.setAuthor('Hardware Sheet');doc.setLanguage('ko-KR');
  const supported=new Set(font.getCharacterSet());
- const clean=(s:string)=>Array.from(String(s)).map(c=>c==='\n'||supported.has(c.codePointAt(0)!)?c:'?').join('');
- const ink=rgb(.16,.23,.20),green=rgb(.10,.39,.26),muted=rgb(.39,.47,.42),line=rgb(.84,.89,.86);
- const text=(page:PDFPage,s:string,x:number,y:number,size=10,color=ink)=>page.drawText(clean(s),{x,y,size,font,color});
+ const clean=(s:string)=>Array.from(String(s).replace(/\r\n?/g,'\n')).map(c=>c==='\n'||supported.has(c.codePointAt(0)!)?c:'?').join('');
+ const navy=rgb(30/255,58/255,138/255),blue=rgb(37/255,99/255,235/255),ink=rgb(.10,.10,.10),line=rgb(.8,.8,.8),pale=rgb(.94,.957,1),white=rgb(1,1,1);
+ const widths=[210,100,324,50],left=54,bottom=54,lineHeight=14;
+ const text=(p:PDFPage,s:string,x:number,y:number,size=10,color=ink)=>p.drawText(clean(s),{x,y,size,font,color});
  const wrap=(s:string,width:number,size=10)=>{const lines:string[]=[];for(const para of clean(s).split('\n')){let current='';for(const c of Array.from(para)){if(current&&font.widthOfTextAtSize(current+c,size)>width){lines.push(current);current=c}else current+=c}lines.push(current)}return lines};
- const link=(page:PDFPage,label:string,url:string,x:number,y:number)=>{if(!/^https?:\/\//i.test(url))return;text(page,label,x,y,10,green);const width=font.widthOfTextAtSize(clean(label),10);page.drawLine({start:{x,y:y-2},end:{x:x+width,y:y-2},thickness:.5,color:green});page.node.addAnnot(doc.context.register(doc.context.obj({Type:'Annot',Subtype:'Link',Rect:[x,y-3,x+width,y+12],Border:[0,0,0],A:{Type:'Action',S:'URI',URI:PDFString.of(url)}})))};
- let page:PDFPage;let y=0;
- const newPage=()=>{page=doc.addPage([595.28,841.89]);page.drawRectangle({x:0,y:779,width:595.28,height:63,color:green});text(page,'Hardware Sheet',36,808,19,rgb(1,1,1));text(page,'비품 구매 목록',36,789,10,rgb(.85,.94,.88));text(page,input.date,432,807,9,rgb(1,1,1));y=754;const filters=wrap(input.filter+' · 전체 신청자 기준',520,9);for(const l of filters){text(page,l,36,y,9,muted);y-=13}y-=8};
+ const box=(p:PDFPage,x:number,top:number,w:number,h:number,color=white)=>p.drawRectangle({x,y:top-h,width:w,height:h,color,borderColor:line,borderWidth:.5});
+ let page:PDFPage,y=0;
+ const heading=()=>{let x=left;for(const [i,label] of ['품명','링크','옵션','수량'].entries()){box(page,x,y,widths[i],28,navy);text(page,label,x+(widths[i]-font.widthOfTextAtSize(label,10))/2,y-18,10,white);x+=widths[i]}y-=28;};
+ const newPage=()=>{page=doc.addPage([792,612]);const title='비품 구매 신청 목록';text(page,title,(792-font.widthOfTextAtSize(title,22))/2,550,22,navy);
+  const metaWidths=[100,242,120,222],values=['프로젝트명',input.projectName||'','개인통관번호',input.customsNumber||''];const lines=values.map((v,i)=>wrap(v,metaWidths[i]-14));const h=Math.max(30,...lines.map(l=>l.length*14+12));let x=left;y=526;
+  for(let i=0;i<4;i++){box(page,x,y,metaWidths[i],h,i%2===0?navy:pale);lines[i].forEach((l,n)=>text(page,l,x+7,y-17-n*14,10,i%2===0?white:ink));x+=metaWidths[i]}
+  y-=h+18;heading();
+ };
  newPage();
- const total=input.items.reduce((s,i)=>s+input.people.reduce((n,p)=>n+(input.quantities[p.id+':'+i.id]||0),0),0);
- text(page!,`품목 ${input.items.length}종   |   신청자 ${input.people.length}명   |   신청 수량 ${total}개`,36,y,11);y-=27;
- if(!input.items.length)text(page!,'선택한 조건에 해당하는 품목이 없습니다.',36,y,11,muted);
- for(let index=0;index<input.items.length;index++){
-  const i=input.items[index];const qty=input.people.reduce((s,p)=>s+(input.quantities[p.id+':'+i.id]||0),0);
-  const names=input.people.filter(p=>(input.quantities[p.id+':'+i.id]||0)>0).map(p=>p.name+' '+input.quantities[p.id+':'+i.id]+'개').join(' / ')||'신청 내역 없음';
-  const body=[...wrap(i.detail||'옵션 없음',435,10),...wrap('신청: '+names,435,9)];
-  let offset=0;let first=true;
-  while(first||offset<body.length){
-   const titleLines=wrap(`${index+1}. ${i.name}${first?'':' (계속)'}`,420,12);
-   const extra=(titleLines.length-1)*16;
-   if(y<185+extra)newPage();
-   const capacity=Math.max(1,Math.floor((y-55-87-extra)/14));const chunk=body.slice(offset,offset+capacity);const h=Math.max(112+extra,87+extra+chunk.length*14);
-   page!.drawRectangle({x:36,y:y-h,width:523,height:h,color:rgb(.98,.99,.98),borderColor:line,borderWidth:.7});
-   titleLines.forEach((l,n)=>text(page!,l,48,y-20-n*16,12));text(page!,`${qty}개`,508,y-20,12,green);
-   text(page!,`${i.group||'분류 없음'} / ${i.usage||'개인'}`,48,y-37-extra,9,muted);
-   let bx=48;
-   if(first&&i.image){try{const bytes=Uint8Array.from(atob(i.image.split(',')[1]),c=>c.charCodeAt(0));const img=i.image.startsWith('data:image/jpeg')?await doc.embedJpg(bytes):await doc.embedPng(bytes);const dim=img.scaleToFit(55,55);page!.drawImage(img,{x:48+(55-dim.width)/2,y:y-103-extra+(55-dim.height)/2,width:dim.width,height:dim.height});bx=112}catch{/* Invalid legacy images leave the text and links available. */}}
-   // Text is measured to leave space for a photo, including on continuation pages.
-   let ty=y-55-extra;for(const l of chunk){text(page!,l,bx,ty,10);ty-=14}
-   const ly=y-h+13;if(i.link)link(page!,'링크',i.link,48,ly);
-   y-=h+12;offset+=chunk.length;first=false;
+ const rows=purchaseRows(input);
+ if(!rows.length){box(page!,left,y,684,36);text(page!,'선택한 조건에 해당하는 품목이 없습니다.',left+10,y-23);}
+ for(let index=0;index<rows.length;index++){
+  const row=rows[index],names=wrap(row.name,196),options=wrap(row.option,310);let offset=0;const length=Math.max(names.length,options.length);
+  while(offset<length){
+   const remaining=length-offset;const fullHeight=Math.max(28,remaining*lineHeight+12);
+   // Keep ordinary rows together; split only rows taller than a whole page.
+   if(y-bottom<28||(fullHeight>y-bottom&&fullHeight<=390))newPage();
+   const capacity=Math.max(1,Math.floor((y-bottom-12)/lineHeight));const take=Math.min(remaining,capacity),height=Math.max(28,take*lineHeight+12);let x=left;
+   widths.forEach(w=>{box(page!,x,y,w,height,index%2===0?rgb(.98,.98,.98):white);x+=w;});
+   names.slice(offset,offset+take).forEach((l,n)=>text(page!,l,left+7,y-17-n*lineHeight));
+   options.slice(offset,offset+take).forEach((l,n)=>text(page!,l,left+317,y-17-n*lineHeight));
+   if(offset===0){const quantity=String(row.quantity);text(page!,quantity,left+634+(50-font.widthOfTextAtSize(quantity,10))/2,y-17);
+    if(/^https?:\/\//i.test(row.link)){const label='링크',lx=left+210+(100-font.widthOfTextAtSize(label,10))/2,ly=y-17;text(page!,label,lx,ly,10,blue);const w=font.widthOfTextAtSize(label,10);page!.drawLine({start:{x:lx,y:ly-2},end:{x:lx+w,y:ly-2},thickness:.5,color:blue});page!.node.addAnnot(doc.context.register(doc.context.obj({Type:'Annot',Subtype:'Link',Rect:[lx,ly-3,lx+w,ly+12],Border:[0,0,0],A:{Type:'Action',S:'URI',URI:PDFString.of(row.link)}})));}
+   }
+   y-=height;offset+=take;if(offset<length)newPage();
   }
  }
- const pages=doc.getPages();pages.forEach((p,n)=>{text(p,'Hardware Sheet · 구매 수량은 다운로드 시점 기준입니다.',36,25,8,muted);text(p,`${n+1} / ${pages.length}`,515,25,8,muted)});
+ const pages=doc.getPages();pages.forEach((p,n)=>{text(p,input.date+' · 다운로드 시점의 전체 신청자 수량',left,29,8,rgb(.4,.4,.4));text(p,`${n+1} / ${pages.length}`,705,29,8,rgb(.4,.4,.4));});
  return doc.save();
 }
-
