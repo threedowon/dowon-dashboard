@@ -5,7 +5,7 @@ import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createRequire} from 'node:module';
-import {PDFDocument,PDFName,PDFArray} from 'pdf-lib';
+import {PDFDocument,PDFName,PDFArray,PageSizes} from 'pdf-lib';
 
 const temp=await mkdtemp(join(tmpdir(),'hardware-export-test-'));
 await build({entryPoints:['hardware/lib/purchase-export.ts','hardware/lib/export-pdf.ts'],outdir:temp,bundle:true,platform:'node',format:'cjs',outExtension:{'.js':'.cjs'},logLevel:'silent'});
@@ -25,10 +25,10 @@ test('CSV escapes quotes and neutralizes formulas including whitespace prefixes'
  const csv=createPurchaseCsv({...input,projectName:'=SUM(A1)',customsNumber:' @x',items:[{id:'a',name:'"quoted"',detail:'\t=1+1',link:'https://example.com/?q="'}]});
  assert.ok(csv.includes('"\'=SUM(A1)"'));assert.ok(csv.includes('"\' @x"'));assert.ok(csv.includes('"\'\t=1+1"'));assert.ok(csv.includes('""quoted""'));
 });
-test('PDF follows landscape template, preserves links, and handles overflowing rows',async()=>{
+test('PDF follows landscape A4 template, preserves links, and handles overflowing rows',async()=>{
  const items=Array.from({length:30},(_,i)=>({...input.items[0],id:'a'+i,name:'품목 '+i,detail:i===3?'긴 옵션 설명 '.repeat(600):'옵션'}));
  const doc=await PDFDocument.load(await createWorkbookPdf({...input,items},font));assert.ok(doc.getPageCount()>2);
- for(const page of doc.getPages()){assert.deepEqual(page.getSize(),{width:792,height:612});const annotations=page.node.lookup(PDFName.of('Annots'));if(annotations instanceof PDFArray)for(let i=0;i<annotations.size();i++){const rect=annotations.lookup(i).lookup(PDFName.of('Rect'));assert.ok(rect.lookup(1).asNumber()>=54);}}
+ for(const page of doc.getPages()){assert.deepEqual(page.getSize(),{width:PageSizes.A4[1],height:PageSizes.A4[0]});const annotations=page.node.lookup(PDFName.of('Annots'));if(annotations instanceof PDFArray)for(let i=0;i<annotations.size();i++){const rect=annotations.lookup(i).lookup(PDFName.of('Rect'));assert.ok(rect.lookup(1).asNumber()>=54);}}
  const simple=await PDFDocument.load(await createWorkbookPdf(input,font));assert.equal(simple.getPageCount(),1);assert.equal(simple.getPage(0).node.lookup(PDFName.of('Annots')).size(),1);
  const empty=await PDFDocument.load(await createWorkbookPdf({...input,items:[]},font));assert.equal(empty.getPageCount(),1);
 });
