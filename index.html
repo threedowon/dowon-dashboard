@@ -132,10 +132,10 @@ html[data-active-page="home"] .side{display:none}
 #homePage{padding-top:64px;padding-bottom:48px}
 @media(max-width:650px){#homePage{padding-top:28px;padding-bottom:28px}}
 </style>
-<link rel="stylesheet" href="assets/roadmap.css?v=20261119-project-regions">
+<link rel="stylesheet" href="assets/roadmap.css?v=20261122-inline-rename">
 <script src="assets/roadmap.js?v=20261119-project-regions"></script>
 <script src="assets/dependency-map.js?v=20261119-region-width-fix"></script>
-<script src="assets/dependency-editor.js?v=20261121-card-boards"></script>
+<script src="assets/dependency-editor.js?v=20261122-inline-rename"></script>
 <link rel="stylesheet" href="assets/ideas-board.css?v=20261118-inline">
 <script src="assets/ideas-board.js?v=20261121-card-boards"></script>
 <script src="assets/ideas-sync.js?v=20261118-cloud"></script>
@@ -248,7 +248,7 @@ html[data-active-page="home"] .side{display:none}
 <div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
 <div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">100%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
-<p class="small editable">카드를 더블클릭하거나 선택 후 Enter를 누르면 이미지와 메모를 정리할 수 있는 일정 보드가 열립니다.</p>
+<p class="small editable">카드 선택 후 F2로 이름 수정 · 더블클릭하거나 Enter를 누르면 이미지와 메모를 정리할 수 있는 일정 보드가 열립니다.</p>
 <div id="flowToolbar" class="sr-only"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools" hidden><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
 </div>
 <div id="roadmapBoard" class="roadmap-board" tabindex="0" aria-label="월별 로드맵. 가로로 스크롤하여 전체 일정을 확인하세요."></div>
@@ -259,7 +259,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="back-link milestone-back" href="#milestones">← 프로젝트 목록</a>
 <div class="top"><span class="small">PROJECT MANAGEMENT / MILESTONES</span><button class="btn editable" id="addDetailMilestone">＋ 일정 추가</button></div><div class="head"><div><h1 id="title" tabindex="-1"></h1><div id="desc" class="muted"></div></div><div class="tools editable"><button class="btn" id="editProject">프로젝트 수정</button></div></div>
 <div class="stats"><div class="stat"><span class="small">전체 진행률</span><b id="progress">0%</b><div class="bar"><i id="fill"></i></div></div><div class="stat"><span class="small">완료</span><b id="completed">0 / 0</b></div><div class="stat"><span class="small">마지막 업데이트</span><b style="font-size:16px" id="updated">—</b></div></div>
-<div class="tabs"><button class="tab active" data-tab="calendar">캘린더</button><button class="tab" data-tab="connections">연결 맵</button><button class="tab" data-tab="timeline">상세 일정</button><button class="tab" data-tab="history">업데이트 히스토리</button></div>
+<div class="tabs"><button class="tab" data-tab="calendar">캘린더</button><button class="tab active" data-tab="connections">연결 맵</button><button class="tab" data-tab="timeline">상세 일정</button><button class="tab" data-tab="history">업데이트 히스토리</button></div>
 
 <section id="connectionsView" aria-label="현재 프로젝트 연결 맵" hidden></section>
 <section id="timelineView"><div class="sectionhead"><h2>마일스톤 타임라인</h2><button class="btn editable" id="addMilestone">＋ 마일스톤</button></div><div id="milestones" class="items"></div></section>
@@ -313,7 +313,7 @@ document.addEventListener("keydown",e=>{
  const key=e.key.toLowerCase(),direction=key==="z"?(e.shiftKey?"redo":"undo"):key==="y"?"redo":null;
  if(!direction)return;e.preventDefault();restoreEdit(direction);
 });
-let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
+let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
 const pages={home:"Home",milestones:"Milestones",pdf:"PDF Library",ideas:"Ideas & References",wirenest:"WireNest",transfers:"File Transfer",signaltester:"Signal Tester",hardware:"Hardware Sheet"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
@@ -330,7 +330,7 @@ function route(focus=false){
  const page=cardOpen?"ideas":requested.startsWith("card/")?"milestones":isProject?"milestones":Object.hasOwn(pages,requested)?requested:(readonly?"milestones":"home");
  if(isProject&&!project)history.replaceState(null,"","#milestones");
  if(project){
-  if(detailId!==project.id){tab="calendar";month=new Date();selected=day();}
+  if(detailId!==project.id){tab="connections";month=new Date();selected=day();}
   state.selectedId=project.id;
  }
  if(detailId!==(project?.id||null))flowEditor?.cancel();
