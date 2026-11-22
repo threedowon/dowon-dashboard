@@ -1,0 +1,21 @@
+.hardware-frame {
+  display: block;
+  width: 100%;
+  height: max(680px, calc(100dvh - 240px));
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: #fff;
+}
+#hardwarePage .placeholder-heading { margin-bottom: 12px; }
+#hardwareHelp { margin-bottom: 16px; }
+@media (max-width: 650px) {
+  .hardware-frame { height: 80dvh; min-height: 560px; }
+}
+.hardware-projects { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:16px; }
+.hardware-projects strong { margin-right:8px; font-size:13px; }
+.hardware-projects .btn { max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hardware-project-dialog { width:min(440px,calc(100vw - 32px)); border:1px solid var(--rule); border-radius:8px; padding:24px; background:var(--paper,#f1e8d5); color:var(--ink,#473020); }
+.hardware-project-dialog::backdrop { background:#23180d66; }
+.hardware-project-dialog label { display:grid; gap:8px; margin:20px 0; }
+.hardware-project-dialog input { width:100%; box-sizing:border-box; padding:12px; border:1px solid var(--rule); background:#fff; color:#30271f; }
+.hardware-project-dialog form>div { display:flex; justify-content:flex-end; gap:8px; }

@@ -2,7 +2,7 @@
 <html lang="ko" data-active-page="home">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>작업 공간 — 홈</title>
+<title>Workspace — Home</title>
 <link rel="preload" href="assets/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
 <style id="workspaceFont">
 /*
@@ -145,52 +145,43 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/signal-tester.css?v=20261122-desktop-cloud">
 <script src="assets/signal-tester.js?v=20261121" defer></script>
 <script src="assets/signal-backups.js?v=20261122" defer></script>
+<link rel="stylesheet" href="assets/hardware-sheet.css?v=20261122">
+<script src="assets/hardware-sheet.js?v=20261122" defer></script>
+<link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
+<link rel="stylesheet" href="assets/object-catalog.css?v=20261122-picture-cards-restored-v3">
 </head>
 <body>
-<div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
+<div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
 <div class="small">WORKSPACE</div>
-<nav class="workspace-nav" aria-label="주 메뉴">
-<a class="workspace-link" href="#home" data-page="home"><span class="nav-symbol" aria-hidden="true">⌂</span>대시보드 홈</a>
-<a class="workspace-link" href="#milestones" data-page="milestones"><span class="nav-symbol" aria-hidden="true">☷</span>마일스톤</a>
-<a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF 자료실</a>
-<a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>아이디어·레퍼런스</a>
+<nav lang="en" class="workspace-nav" aria-label="Main navigation">
+<a class="workspace-link" href="#home" data-page="home"><span class="nav-symbol" aria-hidden="true">⌂</span>Home</a>
+<a class="workspace-link" href="#milestones" data-page="milestones"><span class="nav-symbol" aria-hidden="true">☷</span>Milestones</a>
+<a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF Library</a>
+<a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>Ideas &amp; References</a>
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
-<a class="workspace-link" href="#transfers" data-page="transfers">⇄ 파일 전달</a>
 <a class="workspace-link" href="#signaltester" data-page="signaltester">Signal Tester</a>
+<a class="workspace-link" href="#hardware" data-page="hardware">Hardware Sheet</a>
 </nav>
 
-<p class="small side-note">계획부터 영감까지,<br>나의 작업을 한곳에서.</p></aside>
-<main class="main"><div class="snapshot">공유용 읽기 전용 HTML입니다. 내보낸 시점의 데이터가 담겨 있어요.</div>
-<section id="homePage" data-screen="home" aria-labelledby="homeTitle">
-<h1 id="homeTitle" class="sr-only" tabindex="-1">작업 공간</h1>
+<p class="small side-note">Plans, ideas, and tools.<br>One place for my work.</p></aside>
+<main class="main"><div class="snapshot">Read-only shared snapshot. Data reflects the time of export.</div>
+<section lang="en" id="homePage" data-screen="home" aria-labelledby="homeTitle">
+<h1 id="homeTitle" class="sr-only" tabindex="-1">Workspace</h1>
 <div class="catalog-grid">
-<a class="catalog-card" href="#milestones" aria-labelledby="milestoneCardTitle">
-<div class="catalog-card-head"><div><h2 id="milestoneCardTitle">마일스톤</h2><span class="catalog-en">Milestones</span></div><span class="catalog-number">01</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M19 84V63h20V43h20V23h22v61Z"/><path d="M59 8h3v39h-3zM62 8h24l-6 8 6 8H62Z"/></svg></div>
-<div class="catalog-details"><p>프로젝트의 목표와 일정<br>타임라인 · 캘린더 · 업데이트 기록</p><div class="catalog-status live"><span id="homeMilestoneSummary">프로젝트 살펴보기</span></div></div><div class="catalog-link"><span>프로젝트 관리하기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#pdf" aria-labelledby="pdfCardTitle">
-<div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF 자료실</h2><span class="catalog-en">Document library</span></div><span class="catalog-number">02</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M19 25h47v61H19z"/><path class="cutout" d="M28 20h46v59H28z"/><path d="M32 13h33l16 17v44H32Z"/><path class="cutout" d="M64 13v19h17M42 44h28v3H42zm0 10h28v3H42zm0 10h19v3H42z"/></svg></div>
-<div class="catalog-details"><p>읽어야 할 문서와 참고 자료<br>태그로 정리하는 나만의 자료실</p><div class="catalog-status live"><span>PDF 업로드 · 태그별 모아보기</span></div></div><div class="catalog-link"><span>자료실 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#ideas" aria-labelledby="ideasCardTitle">
-<div class="catalog-card-head"><div><h2 id="ideasCardTitle">아이디어·레퍼런스</h2><span class="catalog-en">Ideas &amp; references</span></div><span class="catalog-number">03</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M43 9h14v25l18-18 10 10-18 18h25v14H67l18 18-10 10-18-18v25H43V68L25 86 15 76l18-18H8V44h25L15 26l10-10 18 18Z"/><circle class="cutout" cx="50" cy="51" r="10"/></svg></div>
-<div class="catalog-details"><p>마음에 남은 이미지와 링크<br>아이디어를 모으는 수집 공간</p><div class="catalog-status live"><span>프로젝트별 보드 · 이미지 붙여넣기 · 영상</span></div></div><div class="catalog-link"><span>수집 공간 둘러보기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#wirenest" aria-labelledby="wireNestCardTitle">
-<div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB Harness Studio</span></div><span class="catalog-number">04</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><rect x="10" y="19" width="30" height="42" rx="3"/><rect x="60" y="39" width="30" height="42" rx="3"/><path d="M35 29h18v30h12v6H47V35H35zm0 16h9v29h21v6H38V51h-3z"/><path class="cutout" d="M18 27h14v5H18zm0 12h14v5H18zm0 12h14v5H18zm50-4h14v5H68zm0 12h14v5H68zm0 12h14v5H68z"/></svg></div>
-<div class="catalog-details"><p>하우징·PCB 배치와 배선 계획<br>3D로 설계하는 나만의 하네스</p><div class="catalog-status live"><span>배선 작업 · .wnest 파일 백업</span></div></div><div class="catalog-link"><span id="wireNestCardAction">백업 보관함 열기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
-<a class="catalog-card" href="#signaltester" aria-labelledby="signalTesterCardTitle">
-<div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div><span class="catalog-number">05</span></div>
-<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M8 47h17l12-30 18 66 12-30h25v-7H62l-6 15-18-66-18 45H8Z" transform="translate(0 9)"/></svg></div>
-<div class="catalog-details"><p>이 PC에 연결된 센서와 장비<br>실시간 값 · 그래프 · 송수신 기록</p><div class="catalog-status live"><span>Serial · UDP · HTTP Signal</span></div></div><div class="catalog-link"><span>센서·신호 테스트하기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
-</a>
+<a class="catalog-card object-card" href="#milestones" aria-labelledby="milestoneCardTitle"><div class="catalog-symbol object-0" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/milestones.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">01</span><div class="catalog-card-head"><div><h2 id="milestoneCardTitle">Milestones</h2><span class="catalog-en">Milestones</span></div></div><div class="catalog-details"><p>Plan project goals and schedules.</p><div class="catalog-status"><span id="homeMilestoneSummary">Explore projects</span></div></div></a>
+<a class="catalog-card object-card" href="#pdf" aria-labelledby="pdfCardTitle"><div class="catalog-symbol object-1" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/library.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">02</span><div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF Library</h2><span class="catalog-en">Document library</span></div></div><div class="catalog-details"><p>Keep documents to read and revisit.</p><div class="catalog-status">Upload documents · Browse by tag</div></div></a>
+<a class="catalog-card object-card" href="#ideas" aria-labelledby="ideasCardTitle"><div class="catalog-symbol object-2" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/ideas.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">03</span><div class="catalog-card-head"><div><h2 id="ideasCardTitle">Ideas &amp; References</h2><span class="catalog-en">Ideas & references</span></div></div><div class="catalog-details"><p>Collect images, references, and ideas.</p><div class="catalog-status">Images · Links · Project boards</div></div></a>
+<a class="catalog-card object-card" href="#wirenest" aria-labelledby="wireNestCardTitle"><div class="catalog-symbol object-3" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/wirenest.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">04</span><div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB harness studio</span></div></div><div class="catalog-details"><p>Arrange components and design connections.</p><div class="catalog-status"><span id="wireNestCardAction">Open saved backups</span></div></div></a>
+<a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/transfers.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">File Transfer</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>Move files between workspaces.</p><div class="catalog-status">Upload · Download</div></div></a>
+<a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/hardware.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>Organize hardware requests and purchase quantities.</p></div></a>
+<a class="catalog-card object-card" href="#signaltester" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/signaltester.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>Live sensor readings · Charts · Communication logs</p></div></a>
 </div>
-
+</section>
+<section id="hardwarePage" data-screen="hardware" aria-labelledby="hardwareTitle" hidden>
+<div class="page-top"><span class="eyebrow">HARDWARE / PURCHASES</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
+<div class="placeholder-heading"><div><h1 id="hardwareTitle" tabindex="-1">Hardware Sheet</h1><p class="page-intro">이름을 추가하고 필요한 수량을 입력하세요. 팀원들과 같은 신청표를 사용합니다.</p></div><a class="btn primary" href="hardware/" target="_blank" rel="noopener noreferrer">새 탭에서 열기 ↗</a></div>
+<p class="small" id="hardwareHelp">화면이 표시되지 않거나 다운로드가 안 되면 새 탭에서 열어주세요.</p>
+<div id="hardwareMount"></div>
 </section>
 <section id="signaltesterPage" data-screen="signaltester" aria-labelledby="signaltesterTitle" hidden>
 <div class="page-top"><span class="eyebrow">SENSORS / SIGNALS</span><a class="back-link" href="#home">대시보드 홈</a></div>
@@ -323,7 +314,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스",wirenest:"WireNest",transfers:"파일 전달",signaltester:"Signal Tester"};
+const pages={home:"Home",milestones:"Milestones",pdf:"PDF Library",ideas:"Ideas & References",wirenest:"WireNest",transfers:"File Transfer",signaltester:"Signal Tester",hardware:"Hardware Sheet"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
@@ -351,7 +342,7 @@ function route(focus=false){
  document.documentElement.dataset.projectView=detailId?"detail":"overview";
  $("projectOverview").hidden=!!detailId;$("projectDetail").hidden=!detailId;
  $("milestonesPage").setAttribute("aria-labelledby",detailId?"title":"projectsTitle");
- document.title="작업 공간 — "+(cardOpen?cardProject.name+" / "+cardMilestone.title:project?project.name:pages[page]);
+ document.title="Workspace — "+(cardOpen?cardProject.name+" / "+cardMilestone.title:project?project.name:pages[page]);
  if(focus){const heading=page==="milestones"?$(detailId?"title":"projectsTitle"):document.querySelector('[data-screen="'+page+'"] h1');heading?.focus({preventScroll:true});window.scrollTo(0,0);}
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
@@ -429,7 +420,7 @@ function displayDate(d){return d?d.slice(0,10):"날짜 미정";}
 function render(){
 route();renderOverview();ideasBoard?.refreshProjects();
 const ongoing=state.projects.reduce((sum,p)=>sum+p.milestones.filter(m=>m.status==="doing").length,0);
-$("homeMilestoneSummary").textContent="프로젝트 "+state.projects.length+"개 · 진행 중인 마일스톤 "+ongoing+"개";
+$("homeMilestoneSummary").textContent=state.projects.length+" project"+(state.projects.length===1?"":"s")+" · "+ongoing+" ongoing milestone"+(ongoing===1?"":"s");
 const p=current();if(!p){$("title").textContent="프로젝트 없음";return;}state.selectedId=p.id;
 $("title").textContent=p.name;$("desc").textContent=p.description;let n=p.milestones.length,k=p.milestones.filter(m=>m.status==="done").length,rate=n?Math.round(100*k/n):0;
 $("progress").textContent=rate+"%";$("fill").style.width=rate+"%";$("completed").textContent=k+" / "+n;$("updated").textContent=displayDate(p.updatedAt);

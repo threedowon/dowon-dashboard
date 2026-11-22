@@ -1,0 +1,63 @@
+/* Poster-inspired screen theme. Diagram and print palettes remain semantic. */
+@media screen {
+  :root { --paper:#e5e4e1; --ink:#191919; --muted:#60605d; --rule:#a4a39f; --accent:#e63753; }
+  html, body { background:#000; color:var(--ink); }
+  html:not([data-active-page="home"]) .app { background:var(--paper); }
+  html[data-active-page="home"] .side { color:var(--paper); border-color:#444; }
+  html[data-active-page="home"] .workspace-link { color:#bdbdbd; }
+  html[data-active-page="home"] .workspace-link:hover, html[data-active-page="home"] .workspace-link[aria-current="page"] { color:#fff; }
+  .side { border-color:var(--ink); }
+  .brand { font-family:Georgia,'Times New Roman',serif; font-size:30px; font-weight:400; letter-spacing:-1.5px; }
+  .workspace-link { color:var(--muted); }
+  .workspace-link[aria-current="page"] { color:var(--ink); border-bottom:2px solid var(--accent); }
+  .small,.muted,.page-intro { color:var(--muted); }
+  #homePage { padding:28px 0; }
+  .catalog-grid { background:#000; border:0; gap:12px; padding:0; }
+  .catalog-card,.catalog-card:first-child,.catalog-card:last-child { background:var(--paper); border:0; padding:22px 20px 18px; min-height:460px; transition:background .18s; }
+  .catalog-card:hover { background:#f2f0ed; }
+  .catalog-card-head { position:relative; }
+  .catalog-card-head>div { display:flex; flex-direction:column; width:100%; }
+  .catalog-card h2 { font-size:14px; font-weight:550; margin:12px 0 0; letter-spacing:-.3px; }
+  .catalog-en { order:-1; padding-right:8px; font:clamp(30px,3.2vw,48px)/.93 Georgia,'Times New Roman',serif; letter-spacing:-.06em; color:var(--ink); }
+  .catalog-number { position:absolute; top:-13px; right:-9px; font-size:10px; }
+  .catalog-symbol { min-height:205px; padding:18px 0; }
+  .catalog-symbol svg { width:100%; height:195px; color:var(--accent); fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; overflow:visible; }
+  .catalog-details { font-size:13px; line-height:1.8; }
+  .catalog-details p { min-height:46px; }
+  .catalog-status { font-size:11px; color:var(--muted); }
+  .catalog-status:before { display:none; }
+  .catalog-link { border-top:1px solid var(--ink); padding-top:13px; margin-top:16px; font-size:13px; }
+  .catalog-arrow { color:var(--accent); }
+  .btn,input,textarea,select,dialog { color:var(--ink); border-color:#aaa9a4; border-radius:3px; }
+  .btn { background:transparent; }
+  .btn:hover { background:#d9d8d4; }
+  .btn.primary { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .btn.primary:hover { background:#3a3a38; }
+  .btn.danger { color:#b9233e; }
+  .tab { color:var(--muted); }
+  .tab.active { color:var(--ink); border-bottom-color:var(--accent); }
+  .project.active,.map-view-switch .active,.map-zoom [aria-pressed="true"] { background:#d6d5d1; color:var(--ink); }
+  .stat,.item,.log,.calendar,.daydetails,.empty,.pdf-card { background:#eeedea; border-color:#b5b4ae; border-radius:3px; color:var(--ink); }
+  .item p,.log p,.weekday { color:var(--muted); }
+  .bar { background:#d4d3cf; }.bar i { background:var(--accent); }
+  .day { background:#eeedea; border-color:#cccac5; color:var(--ink); }
+  .day.selected { outline-color:var(--accent); background:#f6e7e9; }
+  .day.today .num { background:var(--ink); }
+  .ideas-sync-strip,.flow-toolbar,.ideas-toolbar,.pdf-dropzone { background:#deddd9; border-color:#aaa9a4; color:var(--ink); }
+  .pdf-emblem,.project-sidebar,.project-backup { border-color:var(--rule); }
+  a:focus-visible,button:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+}
+@media screen and (max-width:1000px) {
+  .catalog-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .catalog-card:nth-child(n) { padding:25px; }
+  .catalog-en { font-size:44px; }
+}
+@media screen and (max-width:700px) {
+  .catalog-grid { grid-template-columns:1fr; border-width:6px; gap:6px; }
+  .catalog-card:nth-child(n) { display:flex; min-height:440px; padding:25px; gap:0; }
+  .catalog-symbol { align-self:stretch; min-height:200px; }
+  .catalog-symbol svg { width:100%; height:190px; }
+  .catalog-details { margin-top:auto; }.catalog-link { margin-top:16px; }
+  .workspace-nav { gap:6px 16px; }
+}
+@media(prefers-reduced-motion:reduce) { .catalog-card { transition:none; } }
