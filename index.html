@@ -152,7 +152,7 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/retro-home.css?v=20261122-taskbar-eight">
 <script src="assets/retro-desktop.js?v=20261122-retro-v1" defer></script>
 <link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-previews-v1">
-<link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-v1">
+<link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-map-tools-v2">
 <link rel="stylesheet" href="assets/retro-wirenest.css?v=20261122-v1">
 <link rel="stylesheet" href="assets/retro-signaltester.css?v=20261122-v1">
 </head>
@@ -256,9 +256,9 @@ html[data-active-page="home"] .side{display:none}
 <section id="roadmapView">
 <div class="sectionhead roadmap-heading"><div><div class="eyebrow">PROJECT ROADMAP</div><h2 id="roadmapTitle">한눈에 보는 프로젝트 일정</h2><p class="small" id="roadmapDescription">Select projects above to explore and share their roadmap.</p></div><span class="small" id="selectionSummary" role="status"></span></div>
 <div class="roadmap-controls">
-<div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button><button class="btn" data-map-view="timeline" aria-pressed="false">기간 로드맵</button></div>
+<div class="map-view-switch" role="group" aria-label="일정 보기"><button class="btn primary" data-map-view="connections" aria-pressed="true">연결 맵</button></div>
 <div class="roadmap-toolbar"><div class="roadmap-legend" id="timelineLegend" hidden></div><div class="tools"><button class="btn primary" id="share">↓ 현재 보기 HTML</button><button class="btn" id="exportPng">↓ PNG 이미지</button><button class="btn" id="printRoadmap">인쇄 / PDF</button></div></div>
-<div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite">100%</output><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
+<div class="map-zoom" role="group" aria-label="일정 화면 배율"><button class="btn" id="mapZoomOut" aria-label="축소">−</button><output id="mapZoomValue" aria-live="polite" class="sr-only">100%</output><label class="map-zoom-label" for="mapZoomLevel">Zoom:</label><select id="mapZoomLevel" aria-label="Connection map zoom"><option id="mapZoomCurrent" hidden></option><option value="0.1">10%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="1.6">160%</option></select><button class="btn" id="mapZoomIn" aria-label="확대">＋</button><button class="btn" id="mapFitWidth">너비 맞춤</button><button class="btn" id="mapFitAll">전체 보기</button><span class="small">맵 안에서 스크롤하여 이동할 수 있어요.</span></div>
 <p class="small editable">카드 더블클릭: 이름 수정 · 선택 후 Delete: 삭제 · 오른쪽 아래 확대 아이콘: 이미지·메모 보드 열기 · Ctrl+Z: 되돌리기</p>
 <div id="flowToolbar" class="sr-only"><p data-flow-status role="status" aria-live="polite">카드 본문을 세로 열로 끌어 배치하고, 네모 핸들을 빈 곳으로 끌어 연결된 카드를 만드세요.</p><div class="tools" hidden><button class="btn" id="mapUndo" title="Ctrl+Z" disabled>↶ 실행 취소</button><button class="btn" id="mapRedo" title="Ctrl+Shift+Z / Ctrl+Y" disabled>↷ 다시 실행</button><button class="btn" data-flow-action="left" disabled aria-label="왼쪽 열로 이동">← 열 이동</button><button class="btn" data-flow-action="right" disabled aria-label="오른쪽 열로 이동">열 이동 →</button><button class="btn" data-flow-action="edit" disabled>일정 수정</button><button class="btn" data-flow-action="detail" disabled>프로젝트 상세</button><button class="btn danger" data-flow-action="unlink" disabled>연결 해제</button><button class="btn" data-flow-action="cancel" hidden>연결 취소</button></div></div>
 </div>
@@ -270,10 +270,10 @@ html[data-active-page="home"] .side{display:none}
 <a class="back-link milestone-back" href="#milestones">Back to projects</a>
 <div class="top"><span class="small">PROJECT MANAGEMENT / MILESTONES</span><button class="btn editable" id="addDetailMilestone">＋ 일정 추가</button></div><div class="head"><div><h1 id="title" tabindex="-1"></h1><div id="desc" class="muted"></div></div><div class="tools editable"><button class="btn" id="editProject">프로젝트 수정</button></div></div>
 <div class="stats"><div class="stat"><span class="small">Progress</span><b id="progress">0%</b><div class="bar"><i id="fill"></i></div></div><div class="stat"><span class="small">Completed</span><b id="completed">0 / 0</b></div><div class="stat"><span class="small">Updated</span><b style="font-size:16px" id="updated">—</b></div></div>
-<div class="tabs"><button class="tab" data-tab="calendar">캘린더</button><button class="tab active" data-tab="connections">연결 맵</button><button class="tab" data-tab="timeline">상세 일정</button><button class="tab" data-tab="history">Update history</button></div>
+<div class="tabs"><button class="tab active" data-tab="connections">연결 맵</button><button class="tab" data-tab="calendar">캘린더</button></div>
 
 <section id="connectionsView" aria-label="현재 프로젝트 연결 맵" hidden></section>
-<section id="timelineView"><div class="sectionhead"><h2>Milestone timeline</h2><button class="btn editable" id="addMilestone">＋ 마일스톤</button></div><div id="milestones" class="items"></div></section>
+<section id="timelineView" hidden><div class="sectionhead"><h2>Milestone timeline</h2><button class="btn editable" id="addMilestone">＋ 마일스톤</button></div><div id="milestones" class="items"></div></section>
 <section id="calendarView" hidden><div class="calendar"><div class="calhead"><strong id="month"></strong><div role="group" aria-label="월 이동"><button class="btn" id="prevMonth" aria-label="이전 달">‹</button><button class="btn" id="today">오늘</button><button class="btn" id="nextMonth" aria-label="다음 달">›</button></div></div><div class="calgrid" id="calgrid"></div></div><div class="daydetails"><div class="sectionhead"><h2 id="dayTitle"></h2><button class="btn editable" id="addOnDate">＋ 이 날짜에 추가</button></div><div id="dayItems"></div></div></section>
 <section id="historyView" hidden><div class="sectionhead"><h2>Update history</h2><button class="btn editable" id="addNote">＋ 메모 추가</button></div><div id="history"></div></section>
 </div>
@@ -342,7 +342,7 @@ document.addEventListener("keydown",e=>{
  const key=e.key.toLowerCase(),direction=key==="z"?(e.shiftKey?"redo":"undo"):key==="y"?"redo":null;
  if(!direction)return;e.preventDefault();restoreEdit(direction);
 });
-let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
+let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
 const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
@@ -359,7 +359,7 @@ function route(focus=false){
  const page=cardOpen?"ideas":requested.startsWith("card/")?"milestones":isProject?"milestones":Object.hasOwn(pages,requested)?requested:(readonly?"milestones":"home");
  if(isProject&&!project)history.replaceState(null,"","#milestones");
  if(project){
-  if(detailId!==project.id){tab="calendar";month=new Date();selected=day();}
+  if(detailId!==project.id){tab="connections";month=new Date();selected=day();}
   state.selectedId=project.id;
  }
  if(detailId!==(project?.id||null))flowEditor?.cancel();
@@ -404,21 +404,25 @@ async function syncCardBoard(project,milestone){
 }
 function selectedProjects(){return Roadmap.selectedProjects(state.projects,state.roadmapIds);}
 function mapProjects(){return detailId?state.projects.filter(p=>p.id===detailId):selectedProjects();}
-function activeMapView(){return detailId?"connections":state.mapView||"connections";}
+function activeMapView(){return "connections";}
 let mapScale=1,mapFit=null,flowEditor=null,mapDrawing=null,ideasBoard=null;
 function applyMapZoom(){
  const board=$("roadmapBoard"),svg=board.querySelector("svg");
- document.querySelectorAll(".map-zoom button").forEach(b=>b.disabled=!svg);
- if(!svg){$("mapZoomValue").textContent="—";return;}
+ document.querySelectorAll("#mapZoomOut,#mapZoomIn,#mapFitWidth,#mapFitAll").forEach(b=>b.disabled=!svg);
+ $("mapZoomLevel").disabled=!svg;
+ if(!svg){$("mapZoomValue").textContent="—";$("mapZoomCurrent").hidden=false;$("mapZoomCurrent").value="";$("mapZoomCurrent").textContent="—";$("mapZoomLevel").value="";return;}
  const width=Number(svg.getAttribute("width")),height=Number(svg.getAttribute("height"));
  const availableWidth=board.clientWidth||900,availableHeight=Math.min(window.innerHeight*0.68,720)-4;
  if(mapFit)mapScale=Math.max(0.05,Math.min(0.85,(availableWidth-4)/width,mapFit==="all"?availableHeight/height:Infinity));
  svg.style.width=(width*mapScale)+"px";
  $("mapZoomValue").textContent=Math.round(mapScale*100)+"%";
+ const preset=[0.1,0.25,0.5,0.75,1,1.25,1.5,1.6].includes(mapScale);
+ $("mapZoomCurrent").hidden=preset;$("mapZoomCurrent").value=preset?"":String(mapScale);$("mapZoomCurrent").textContent=$("mapZoomValue").textContent;$("mapZoomLevel").value=String(mapScale);
  $("mapZoomOut").disabled=mapScale<=0.1;$("mapZoomIn").disabled=mapScale>=1.6;
  $("mapFitWidth").setAttribute("aria-pressed",String(mapFit==="width"));$("mapFitAll").setAttribute("aria-pressed",String(mapFit==="all"));
 }
 function zoomMap(delta){mapFit=null;mapScale=Math.max(0.1,Math.min(1.6,Math.round((mapScale+delta)*100)/100));applyMapZoom();}
+$("mapZoomLevel").onchange=e=>{const value=Number(e.target.value);if(Number.isFinite(value)&&value>=0.1&&value<=1.6){mapFit=null;mapScale=value;}applyMapZoom();};
 $("mapZoomOut").onclick=()=>zoomMap(-0.1);$("mapZoomIn").onclick=()=>zoomMap(0.1);
 $("mapFitWidth").onclick=()=>{mapFit="width";applyMapZoom();$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;};
 $("mapFitAll").onclick=()=>{mapFit="all";applyMapZoom();$("roadmapBoard").scrollTop=0;$("roadmapBoard").scrollLeft=0;};
@@ -623,5 +627,5 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261122-signal-v1" defer></script><script src="assets/retro-milestones.js?v=20261122-v1" defer></script>
+</script><script src="assets/retro-pages.js?v=20261122-map-tools-v2" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
 </body></html>

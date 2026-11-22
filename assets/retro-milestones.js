@@ -29,7 +29,7 @@
   new MutationObserver(refresh).observe(list,{childList:true});window.addEventListener('hashchange',refresh);
   const menu=page.querySelector('.retro-page-menu');
   const fileMenu=[...menu.querySelectorAll('details')].find(el=>el.querySelector('summary').textContent==='File').querySelector('.retro-menu-popup');
-  for(const id of ['connectGithub','cloudRestore','import','cloudBackup'])fileMenu.append($(id));
+  for(const id of ['connectGithub','cloudRestore','import','cloudBackup','share','printRoadmap'])fileMenu.append($(id));
   const editMenu=make('details'),editLabel=make('summary',null,'Edit'),editPopup=make('div','retro-menu-popup');
   editPopup.append($('selectAllProjects'),$('clearProjects'),$('deleteSelectedProjects'));editMenu.append(editLabel,editPopup);menu.children[0].after(editMenu);
   editMenu.addEventListener('toggle',()=>{if(editMenu.open)menu.querySelectorAll('details').forEach(el=>{if(el!==editMenu)el.open=false;});});
@@ -37,6 +37,10 @@
   const viewMenu=[...menu.querySelectorAll('details')].find(el=>el.querySelector('summary').textContent==='View').querySelector('.retro-menu-popup');
   const roadmapToggle=make('button',null,'Show project roadmap');roadmapToggle.type='button';roadmapToggle.setAttribute('aria-pressed','false');
   roadmapToggle.onclick=()=>{const shown=overview.classList.toggle('show-roadmap');roadmapToggle.setAttribute('aria-pressed',String(shown));roadmapToggle.textContent=shown?'Hide project roadmap':'Show project roadmap';viewMenu.parentElement.open=false;window.dispatchEvent(new Event('resize'));};viewMenu.prepend(roadmapToggle);
+  // Keep the map tools identical in the overview and project detail.
+  const mapTools=page.querySelector('.map-zoom');mapTools.append($('exportPng'));
+  const mapHelp=page.querySelector('.roadmap-controls>p');if(mapHelp)$('roadmapBoard').after(mapHelp);
+  for(const id of ['mapZoomOut','mapZoomIn','mapFitWidth'])viewMenu.append($(id));
   const detailToolbar=make('div','milestone-detail-toolbar');detailToolbar.append(detail.querySelector('.milestone-back'),$('editProject'),$('addDetailMilestone'));detail.prepend(detailToolbar);
   const summary=make('div','milestone-summary'),head=detail.querySelector('.head'),stats=detail.querySelector('.stats'),icon=make('img','milestone-project-icon');
   icon.src='assets/dashboard-objects/retro-v1/milestones.png';icon.alt='';head.before(summary);summary.append(icon,head,stats);

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const configs = {
-    milestones: ['Milestones','milestones',['newProject','cloudSave','backup'],'Select projects to explore their roadmap. Open a project for its calendar, connections and history.'],
+    milestones: ['Milestones','milestones',['newProject','cloudSave','backup'],'Select projects to explore their roadmap. Open a project for its calendar and connection map.'],
     pdf: ['PDF Library','library',['pdfAdd','pdfRefresh','pdfConnect'],'Upload PDFs, search by title or tag, and select documents to manage their tags.'],
     ideas: ['Reference','ideas',['ideasImage','ideasLink','ideasNote','ideasRefresh'],'Paste images or links into the board. Drag cards to arrange them. Ctrl+wheel zooms; Ctrl+Z undoes.'],
     wirenest: ['WireNest','wirenest',['wnUpload','wnRefresh','wnConnect'],'Open the editor in a separate tab. Upload saved .wnest files here to keep backups.'],
@@ -32,7 +32,7 @@
     Object.entries(placeholders).forEach(([id,value])=>{if($(id))$(id).placeholder=value;});
     const names={pdfTitle:'PDF Library',transfersTitle:'File Transfer',projectsTitle:'Projects',roadmapTitle:'Project roadmap'};
     Object.entries(names).forEach(([id,name])=>{if($(id)&&$(id).textContent!==name)$(id).textContent=name;});
-    document.querySelectorAll('[data-tab]').forEach(el=>{const text={calendar:'Calendar',connections:'Connections',timeline:'Timeline',history:'History'}[el.dataset.tab];if(text&&el.textContent!==text)el.textContent=text;});
+    document.querySelectorAll('[data-tab]').forEach(el=>{const text={calendar:'Calendar',connections:'Connection map'}[el.dataset.tab];if(text&&el.textContent!==text)el.textContent=text;});
     document.querySelectorAll('[data-map-view]').forEach(el=>{const text=el.dataset.mapView==='connections'?'Connection map':'Timeline';if(el.textContent!==text)el.textContent=text;});
   }
   Object.entries(configs).forEach(([key,config])=>{
