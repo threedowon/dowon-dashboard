@@ -142,6 +142,8 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/milestone-sync.js?v=20261118-autosave"></script>
 <link rel="stylesheet" href="library.css?v=20261118-bulk">
 <link rel="stylesheet" href="assets/workspace-layout.css?v=20261121-four-cards">
+<link rel="stylesheet" href="assets/hardware-sheet.css?v=20261122">
+<script src="assets/hardware-sheet.js?v=20261122" defer></script>
 <link rel="stylesheet" href="assets/signal-tester.css?v=20261121-exe">
 <script src="assets/signal-tester.js?v=20261121" defer></script>
 </head>
@@ -156,6 +158,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
 <a class="workspace-link" href="#transfers" data-page="transfers">⇄ 파일 전달</a>
 <a class="workspace-link" href="#signaltester" data-page="signaltester">Signal Tester</a>
+<a class="workspace-link" href="#hardware" data-page="hardware">Hardware Sheet</a>
 </nav>
 
 <p class="small side-note">계획부터 영감까지,<br>나의 작업을 한곳에서.</p></aside>
@@ -188,8 +191,18 @@ html[data-active-page="home"] .side{display:none}
 <div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M8 47h17l12-30 18 66 12-30h25v-7H62l-6 15-18-66-18 45H8Z" transform="translate(0 9)"/></svg></div>
 <div class="catalog-details"><p>이 PC에 연결된 센서와 장비<br>실시간 값 · 그래프 · 송수신 기록</p><div class="catalog-status live"><span>Serial · UDP · HTTP Signal</span></div></div><div class="catalog-link"><span>센서·신호 테스트하기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
 </a>
+<a class="catalog-card" href="#hardware" aria-labelledby="hardwareCardTitle">
+<div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div><span class="catalog-number">06</span></div>
+<div class="catalog-symbol" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M12 16h76v68H12z"/><path class="cutout" d="M20 24h60v12H20zm0 20h16v12H20zm24 0h16v12H44zm24 0h12v12H68zM20 64h16v12H20zm24 0h16v12H44zm24 0h12v12H68z"/></svg></div>
+<div class="catalog-details"><p>팀원별 필요한 공구와 부품 신청<br>품목별 수량 합계 · 구매 링크 · PDF</p><div class="catalog-status live"><span>공용·개인 품목을 함께 관리</span></div></div><div class="catalog-link"><span>구매 신청표 열기</span><span class="catalog-arrow" aria-hidden="true">↗</span></div>
+</a>
 </div>
-
+</section>
+<section id="hardwarePage" data-screen="hardware" aria-labelledby="hardwareTitle" hidden>
+<div class="page-top"><span class="eyebrow">HARDWARE / PURCHASES</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
+<div class="placeholder-heading"><div><h1 id="hardwareTitle" tabindex="-1">Hardware Sheet</h1><p class="page-intro">이름을 추가하고 필요한 수량을 입력하세요. 팀원들과 같은 신청표를 사용합니다.</p></div><a class="btn primary" href="hardware/" target="_blank" rel="noopener noreferrer">새 탭에서 열기 ↗</a></div>
+<p class="small" id="hardwareHelp">화면이 표시되지 않거나 다운로드가 안 되면 새 탭에서 열어주세요.</p>
+<div id="hardwareMount"></div>
 </section>
 <section id="signaltesterPage" data-screen="signaltester" aria-labelledby="signaltesterTitle" hidden>
 <div class="page-top"><span class="eyebrow">SENSORS / SIGNALS</span><a class="back-link" href="#home">대시보드 홈</a></div>
@@ -321,7 +334,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스",wirenest:"WireNest",transfers:"파일 전달",signaltester:"Signal Tester"};
+const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스",wirenest:"WireNest",transfers:"파일 전달",signaltester:"Signal Tester",hardware:"Hardware Sheet"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");

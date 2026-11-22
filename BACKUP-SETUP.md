@@ -66,3 +66,39 @@ Live completion requires /health configured=true, GitHub login, backup, restore,
 Use an unchanged backup or preserve an independent original JSON for live testing; never replace real data with test fixtures.
 
 WireNest direct editing: backup cards offer Open in WireNest without a local download. A nonce-bound postMessage handshake to the selected WireNest window transfers only project JSON, never authentication cookies or tokens. Keep the dashboard tab open. Save from WireNest explicitly creates a new private backup through the existing authenticated API; original snapshots remain unchanged. The receiver checks exact origin and opener/source identity. Existing file download/upload workflows remain available; limits remain 25 MiB.
+
+## Hardware Sheet (native dashboard module)
+
+`#hardware` and `/hardware/` run the React workbook from this repository. The
+same-origin frame isolates its spreadsheet styles from the dashboard; there is
+no embedded ChatGPT Site and no runtime frontend dependency on it. Source lives
+in `hardware/src` and `hardware/lib`. Run `npm ci && npm run build:hardware` after
+changes and commit `hardware/dist` with the source because Pages serves main/root.
+The bundled PDF font is covered by `assets/fonts/Pretendard-LICENSE.txt`.
+
+Deploy the Worker (`npm run deploy`, or the existing Cloudflare Workers Build)
+before publishing the frontend. `/api/hardware-sheet` supports anonymous team
+GET and POST, preserving the original public collaboration model. POST requires
+the dashboard Origin; other dashboard APIs still require the owner session.
+The workbook uses `TRANSFERS` R2 binding but permanent `hardware/` keys, outside
+all `transfers/` and multipart cleanup prefixes. Any bucket lifecycle expiration
+must stay scoped to `transfers/`, never the whole bucket or `hardware/`.
+
+On its first GET, the Worker imports the original public workbook from the fixed
+legacy URL, validates it, and writes `hardware/migration-original.json` once,
+then initializes `hardware/sheet.json` only if absent. Existing destination data
+is never overwritten by migration. Failed migration returns an error, never an
+empty successful workbook. Saves compare the workbook version and use R2 ETag
+conditional writes so concurrent saves cannot silently overwrite each other.
+The original migration snapshot is retained independently of subsequent edits.
+
+After deployment, GET https://api.3dowon.com/api/hardware-sheet to initialize and
+compare all data with the original sheet before sharing the new dashboard URL.
+No names, quantities, or item data are committed to this public repository.
+After cutover, use https://dashboard.3dowon.com/hardware/ for team sharing. The
+old Site remains an independent copy and edits there do not synchronize back.
+
+Local preview: `python -m http.server 8766 --bind 127.0.0.1` plus
+`npx wrangler dev --local --port 8787 --var DASHBOARD_ORIGIN:http://127.0.0.1:8766`.
+Local R2 is isolated from production. First local load copies the source for QA;
+local edits do not change the original Site or production workbook.
