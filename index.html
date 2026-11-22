@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>홈 | 대시보드</title>
-<link id="pageIcon" rel="icon" type="image/svg+xml" href="assets/tab-icons/home.svg">
+<link id="pageIcon" rel="icon" type="image/svg+xml" href="assets/tab-icons/home.svg?v=2">
 <link rel="preload" href="assets/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
 <style id="workspaceFont">
 /*
@@ -349,7 +349,7 @@ function route(focus=false){
  $("projectOverview").hidden=!!detailId;$("projectDetail").hidden=!detailId;
  $("milestonesPage").setAttribute("aria-labelledby",detailId?"title":"projectsTitle");
  document.title=(cardOpen?cardMilestone.title+" · "+cardProject.name:project?project.name+" · "+pages.milestones:pages[page])+" | 대시보드";
- $("pageIcon").href="assets/tab-icons/"+(cardOpen?"card":page)+".svg";
+ $("pageIcon").href="assets/tab-icons/"+(cardOpen?"card":page)+".svg?v=2";
  if(focus){const heading=page==="milestones"?$(detailId?"title":"projectsTitle"):document.querySelector('[data-screen="'+page+'"] h1');heading?.focus({preventScroll:true});window.scrollTo(0,0);}
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
