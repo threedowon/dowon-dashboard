@@ -7,6 +7,7 @@
   const size=n=>n<1024*1024?Math.max(1,Math.round(n/1024))+' KB':(n/1024/1024).toFixed(1)+' MB';
   const date=value=>new Date(value).toLocaleString('sv-SE',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
   let documents=[],jobs=[],ready=false,busy=false,selectedId=null,sortKey='filename',ascending=true;
+  const selectedIds=new Set();
   let previewKey=null,previewRequest=null;const previewCache=new Map();
   function message(text,error=false){$('wnStatus').textContent=text;$('wnStatus').classList.toggle('library-error',error);}
   function controls(){
@@ -14,7 +15,7 @@
     $('wnRefresh').disabled=busy||readonly||local;
     $('wnConnect').disabled=busy||readonly||local;
     $('wnConnect').hidden=ready||readonly||local;
-    if($('wnDeleteBackup'))$('wnDeleteBackup').disabled=busy||readonly||!documents.some(d=>d.id===selectedId);
+    if($('wnDeleteBackup'))$('wnDeleteBackup').disabled=busy||readonly||!documents.some(d=>selectedIds.has(d.id));
   }
   async function request(path,options={}){
     const response=await fetch(base+'/api/wirenest'+path,{credentials:'include',...options});
@@ -26,11 +27,13 @@
     const shown=documents.filter(d=>d.filename.toLocaleLowerCase().includes(query)).sort((a,b)=>{
       const order=sortKey==='size'?a.size-b.size:sortKey==='createdAt'?new Date(a.createdAt)-new Date(b.createdAt):a.filename.localeCompare(b.filename,undefined,{numeric:true});return ascending?order:-order;
     });
-    if(!shown.some(d=>d.id===selectedId))selectedId=shown[0]?.id||null;
-    $('wnCount').textContent=ready?(query?shown.length+' / '+documents.length:documents.length)+' backups.':'';
+    const visibleIds=new Set(shown.map(d=>d.id));
+    for(const id of selectedIds)if(!visibleIds.has(id))selectedIds.delete(id);
+    if(!selectedIds.has(selectedId))selectedId=[...selectedIds].at(-1)||null;
+    $('wnCount').textContent=ready?(query?shown.length+' / '+documents.length:documents.length)+' backups'+(selectedIds.size?' / '+selectedIds.size+' selected':'')+'.':'';
     const disabled=busy?' disabled':'';
     $('wnList').innerHTML=jobs.map(job=>'<article class="wn-job'+(job.error?' is-error':'')+'"><div><h2>'+esc(job.file.name)+'</h2><p class="small">'+esc(job.error||'Uploading backup…')+'</p></div>'+(job.error?'<div class="tools"><button class="btn" data-retry="'+job.id+'"'+disabled+'>Retry</button><button class="btn" data-dismiss="'+job.id+'"'+disabled+'>Dismiss</button></div>':'<progress aria-label="Uploading backup"></progress>')+'</article>').join('')+
-      shown.map(d=>'<div role="row" class="wn-backup-row '+(d.id===selectedId?'is-selected':'')+'"><div role="cell"><button class="wn-name" data-preview="'+esc(d.id)+'" aria-pressed="'+(d.id===selectedId)+'" title="Preview '+esc(d.filename)+'"'+disabled+'><span>'+esc(d.filename)+'</span></button></div><div role="cell" class="wn-date">'+esc(date(d.createdAt))+'</div><div role="cell">'+esc(size(d.size))+'</div><div role="cell" class="wn-actions"><button class="btn" data-open="'+esc(d.id)+'"'+disabled+'>Open</button><button class="btn" data-download="'+esc(d.id)+'"'+disabled+'>Download</button></div></div>').join('');
+      shown.map(d=>'<div role="row" data-select="'+esc(d.id)+'" class="wn-backup-row '+(selectedIds.has(d.id)?'is-selected':'')+'"><div role="cell"><button class="wn-name" data-preview="'+esc(d.id)+'" aria-pressed="'+selectedIds.has(d.id)+'" title="Click to select; Ctrl+click to add or remove: '+esc(d.filename)+'"'+disabled+'><span>'+esc(d.filename)+'</span></button></div><div role="cell" class="wn-date">'+esc(date(d.createdAt))+'</div><div role="cell">'+esc(size(d.size))+'</div><div role="cell" class="wn-actions"><button class="btn" data-open="'+esc(d.id)+'"'+disabled+'>Open</button><button class="btn" data-download="'+esc(d.id)+'"'+disabled+'>Download</button></div></div>').join('');
     if(!jobs.length&&!shown.length)$('wnList').innerHTML='<div class="empty">'+(readonly?'공유 문서에는 비공개 백업이 포함되지 않습니다.':!ready?'GitHub 연결 후 업로드한 백업을 볼 수 있습니다.':documents.length?'검색한 이름의 백업이 없습니다.':'아직 업로드한 백업이 없습니다.<br>새 작업을 시작하거나 저장해 둔 .wnest 파일을 올려주세요.')+'</div>';
     controls();showPreview(shown.find(d=>d.id===selectedId));
   }
@@ -127,7 +130,7 @@
     ascending=sortKey===key?!ascending:true;sortKey=key;
     for(const [button,k,label] of [['wnSortName','filename','Name'],['wnSortSaved','createdAt','Saved'],['wnSortSize','size','Size']])$(button).textContent=label+(k===key?(ascending?' ▲':' ▼'):'');render();
   };
-  if($('wnDeleteBackup'))$('wnDeleteBackup').onclick=()=>performAction({dataset:{delete:selectedId}});
+  if($('wnDeleteBackup'))$('wnDeleteBackup').onclick=deleteSelected;
   $('wnConnect').onclick=()=>{sessionStorage.setItem('dowon:open-wirenest','1');location.href=base+'/auth/login';};
   $('wirenestPage').addEventListener('dragover',event=>{if(Array.from(event.dataTransfer?.types||[]).includes('Files'))event.preventDefault();});
   $('wirenestPage').addEventListener('drop',event=>{
@@ -136,27 +139,46 @@
     if(!ready||busy){message(busy?'업로드가 끝난 뒤 다시 놓아주세요.':'GitHub 연결 후 파일을 올려주세요.',true);return;}
     addFiles(event.dataTransfer.files);
   });
-  $('wnList').onclick=event=>performAction(event.target.closest('button'));
+  $('wnList').onclick=event=>{
+    const button=event.target.closest('button');
+    if(button&&!button.dataset.preview)return performAction(button);
+    const id=button?.dataset.preview||event.target.closest('[data-select]')?.dataset.select;
+    if(!id||busy||readonly||!documents.some(d=>d.id===id))return;
+    if(event.ctrlKey||event.metaKey){if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);}
+    else{selectedIds.clear();selectedIds.add(id);}
+    selectedId=selectedIds.has(id)?id:[...selectedIds].at(-1)||null;
+    render();
+    const buttons=$('wnList').querySelectorAll?.('[data-preview]');
+    if(buttons)for(const el of buttons)if(el.dataset.preview===id)el.focus();
+  };
+  async function deleteSelected(){
+    if(busy||readonly)return;
+    const selected=documents.filter(d=>selectedIds.has(d.id));
+    if(!selected.length)return;
+    const description=selected.length===1?'“'+selected[0].filename+'” ('+date(selected[0].createdAt)+')':selected.length+' selected backups';
+    if(!confirm('Delete '+description+'?'))return;
+    busy=true;render();message('Deleting selected backups…');let removed=0;
+    try{
+      for(const doc of selected){
+        await request('/'+doc.id+'/delete',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({revision:doc.revision})});
+        documents=documents.filter(d=>d.id!==doc.id);selectedIds.delete(doc.id);removed++;
+      }
+      message(removed+' backup'+(removed===1?'':'s')+' deleted.');
+    }catch(error){message(removed+' deleted. Remaining backups are still selected. '+error.message,true);}
+    finally{busy=false;render();}
+  }
   async function performAction(button){
     if(busy||readonly)return;
     if(!button)return;
-    if(button.dataset.preview){selectedId=button.dataset.preview;render();const buttons=$('wnList').querySelectorAll?.('[data-preview]');if(buttons)for(const el of buttons)if(el.dataset.preview===selectedId)el.focus();return;}
     if(button.dataset.dismiss){jobs=jobs.filter(j=>j.id!==button.dataset.dismiss);render();return;}
     if(button.dataset.retry){const job=jobs.find(j=>j.id===button.dataset.retry);if(job)await upload([job]);return;}
-    const doc=documents.find(d=>d.id===(button.dataset.open||button.dataset.download||button.dataset.delete));if(!doc)return;
+    const doc=documents.find(d=>d.id===(button.dataset.open||button.dataset.download));if(!doc)return;
     if(button.dataset.open){openBackup(doc);return;}
-    const deleting=!!button.dataset.delete;
-    if(deleting&&!confirm('“'+doc.filename+'” ('+date(doc.createdAt)+') 백업을 삭제할까요?'))return;
-    busy=true;render();message(deleting?'백업 삭제 중…':'백업 다운로드 준비 중…');
+    busy=true;render();message('백업 다운로드 준비 중…');
     try{
-      if(deleting){
-        await request('/'+doc.id+'/delete',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({revision:doc.revision})});
-        documents=documents.filter(d=>d.id!==doc.id);message('백업을 삭제했습니다.');
-      }else{
         const blob=await(await request('/'+doc.id+'/file')).blob(),url=URL.createObjectURL(blob),link=document.createElement('a');
         link.href=url;link.download=doc.filename;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
         message('백업 다운로드를 요청했습니다. 새 작업 창의 파일 → 열기에서 내려받은 파일을 선택하세요.');
-      }
     }catch(error){message(error.message,true);}
     finally{busy=false;render();}
   }

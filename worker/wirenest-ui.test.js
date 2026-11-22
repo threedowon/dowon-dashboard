@@ -5,19 +5,20 @@ import vm from 'node:vm';
 const source=readFileSync(new URL('../assets/wirenest.js',import.meta.url),'utf8');
 function app({readonly=false,hostname='dashboard.3dowon.com'}={}){
  const listeners=new Map(),sent=[],popup={closed:false,postMessage:(data,origin)=>sent.push({data,origin})};
- const elements=new Map(),uploads=[],stored=[];let failName=null,requests=0,id=0;
+ const elements=new Map(),uploads=[],stored=[],deleted=[],confirmations=[];let failName=null,requests=0,id=0,allowDelete=true,failDelete=null;
  const el=id=>{if(!elements.has(id))elements.set(id,{value:'',innerHTML:'',textContent:'',classList:{toggle(){}},addEventListener(name,fn){this[name]=fn;}});return elements.get(id);};
- const context={document:{documentElement:{dataset:{readonly:String(readonly)}},getElementById:el},window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name),open:()=>popup},location:{hash:'#wirenest',hostname},sessionStorage:{getItem:()=>null},crypto:{randomUUID:()=>String(++id)},FormData,URL,console,File,TextEncoder,setInterval:()=>1,clearInterval(){},
+ const context={document:{documentElement:{dataset:{readonly:String(readonly)}},getElementById:el},window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name),open:()=>popup},location:{hash:'#wirenest',hostname},sessionStorage:{getItem:()=>null},crypto:{randomUUID:()=>String(++id)},confirm:text=>{confirmations.push(text);return allowDelete;},FormData,URL,console,File,TextEncoder,setInterval:()=>1,clearInterval(){},
  fetch:async(url,options)=>{
   requests++;assert.equal(options.credentials,'include');assert.match(url,/\/api\/wirenest/);
   if(url.endsWith('/file'))return Response.json({app:'wirenest',v:2,name:'test',boards:{},nodes:{},wires:{}});
+  if(url.endsWith('/delete')){const key=url.split('/').at(-2);if(key===failDelete)return Response.json({error:'Delete failed'},{status:500});deleted.push(key);const at=stored.findIndex(d=>d.id===key);if(at>=0)stored.splice(at,1);return Response.json({ok:true});}
   if(options.method!=='POST')return Response.json({documents:stored});
   const name=options.body.get('file').name;uploads.push(name);
   if(name===failName)return Response.json({error:'업로드 실패'},{status:500});
   const document={id:'doc-'+uploads.length,filename:name,size:100,createdAt:'2026-11-18T03:00:00Z'};stored.push(document);return Response.json({document});
  }};
  vm.runInNewContext(source,context);
- return {el,uploads,sent,popup,send:event=>listeners.get('message')?.(event),open:id=>el('wnList').onclick({target:{closest:()=>({dataset:{open:id}})}}),get requests(){return requests;},fail:name=>{failName=name;},
+ return {el,uploads,sent,popup,deleted,confirmations,allowDelete:value=>allowDelete=value,failDelete:value=>failDelete=value,select:(id,keys={})=>el('wnList').onclick({...keys,target:{closest:selector=>selector==='button'?{dataset:{preview:id}}:null}}),selectRow:id=>el('wnList').onclick({target:{closest:selector=>selector==='button'?null:{dataset:{select:id}}}}),send:event=>listeners.get('message')?.(event),open:id=>el('wnList').onclick({target:{closest:()=>({dataset:{open:id}})}}),get requests(){return requests;},fail:name=>{failName=name;},
   drop:files=>el('wirenestPage').drop({dataTransfer:{types:['Files'],files},preventDefault(){}}),
   retry:id=>el('wnList').onclick({target:{closest:()=>({dataset:{retry:id}})}})};
 }
@@ -60,4 +61,25 @@ test('direct open sends only to the selected editor and authenticated save appen
  await a.send(save);assert.equal(a.uploads.length,2);assert.equal(a.sent.at(-1).data.type,'save-result');
  await a.send(save);assert.equal(a.uploads.length,2,'duplicate request must not create a duplicate backup');
  assert.match(a.el('wnList').innerHTML,/data-open=/);
+});
+
+const selected=a=>[...a.el('wnList').innerHTML.matchAll(/data-preview="([^"]+)" aria-pressed="true"/g)].map(m=>m[1]).sort();
+async function withBackups(){const a=app();await settle();a.drop([file('a.wnest'),file('b.wnest'),file('c.wnest')]);await settle();return a;}
+test('Ctrl and Command clicks toggle independent backups; plain and row clicks select only one',async()=>{
+ const a=await withBackups();a.select('doc-1');a.select('doc-3',{ctrlKey:true});assert.deepEqual(selected(a),['doc-1','doc-3']);assert.match(a.el('wnCount').textContent,/2 selected/);
+ a.select('doc-1',{ctrlKey:true});assert.deepEqual(selected(a),['doc-3']);a.select('doc-2',{metaKey:true});assert.deepEqual(selected(a),['doc-2','doc-3']);
+ a.selectRow('doc-1');assert.deepEqual(selected(a),['doc-1']);a.select('doc-1',{ctrlKey:true});assert.deepEqual(selected(a),[]);assert.equal(a.el('wnDeleteBackup').disabled,true);
+});
+test('sorting preserves selections, search removes hidden selections, actions do not select files',async()=>{
+ const a=await withBackups();a.select('doc-1');a.select('doc-2',{ctrlKey:true});a.el('wnSortName').onclick();assert.deepEqual(selected(a),['doc-1','doc-2']);
+ await a.open('doc-3');await settle();assert.deepEqual(selected(a),['doc-1','doc-2']);
+ a.el('wnSearch').value='a.';a.el('wnSearch').oninput();assert.deepEqual(selected(a),['doc-1']);a.el('wnSearch').value='';a.el('wnSearch').oninput();assert.deepEqual(selected(a),['doc-1']);
+});
+test('deleting multiple selected backups confirms once and cancellation deletes nothing',async()=>{
+ const a=await withBackups();a.select('doc-1');a.select('doc-3',{ctrlKey:true});a.allowDelete(false);await a.el('wnDeleteBackup').onclick();assert.deepEqual(a.deleted,[]);assert.deepEqual(selected(a),['doc-1','doc-3']);
+ a.allowDelete(true);await a.el('wnDeleteBackup').onclick();assert.equal(a.confirmations.length,2);assert.match(a.confirmations[1],/2 selected backups/);assert.deepEqual(a.deleted.sort(),['doc-1','doc-3']);assert.deepEqual(selected(a),[]);assert.match(a.el('wnList').innerHTML,/data-preview="doc-2"/);
+});
+test('partial delete failure keeps unremoved backups selected for retry',async()=>{
+ const a=await withBackups();a.select('doc-1');a.select('doc-2',{ctrlKey:true});a.select('doc-3',{ctrlKey:true});a.failDelete('doc-2');await a.el('wnDeleteBackup').onclick();assert.deepEqual(a.deleted,['doc-3']);assert.deepEqual(selected(a),['doc-1','doc-2']);assert.match(a.el('wnStatus').textContent,/1 deleted/);
+ a.failDelete(null);await a.el('wnDeleteBackup').onclick();assert.deepEqual(a.deleted.sort(),['doc-1','doc-2','doc-3']);assert.deepEqual(selected(a),[]);
 });
