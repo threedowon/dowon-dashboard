@@ -201,13 +201,15 @@ def apply_update(manifest):
     file = Path(manifest).resolve()
     job = json.loads(file.read_text(encoding='utf-8'))
     target = Path(job['target']).resolve()
+    staged, backup = Path(job['staged']).resolve(), Path(job['backup']).resolve()
     root = update_root(target).resolve()
     if (file.parent.parent != root or file.name != 'job.json' or target.suffix.lower() != '.exe'
-            or Path(job['staged']).parent != target.parent or Path(job['backup']).parent != target.parent
-            or Path(job['staged']).name != '.signal-update-'+file.parent.name+'.exe'
-            or Path(job['backup']).name != '.signal-previous-'+file.parent.name+'.exe'
+            or staged.parent != target.parent or backup.parent != target.parent
+            or staged.name != '.signal-update-'+file.parent.name+'.exe'
+            or backup.name != '.signal-previous-'+file.parent.name+'.exe'
             or not re.fullmatch(r'\d+\.\d+\.\d+', job['version'])):
         raise ValueError('Invalid update job')
+    job.update(target=str(target), staged=str(staged), backup=str(backup))
     result_file = root/'result.json'
     job['cancel'] = str(file.parent/'cancel.json')
     swapped, process = False, None
