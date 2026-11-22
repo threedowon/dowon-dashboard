@@ -85,7 +85,7 @@ html[data-active-page="home"] .app{padding:14px 10px 22px}
 .retro-titlebar h1{font-size:21px}.retro-tool{padding:5px 8px}
 .retro-taskbar{gap:4px;padding-inline:4px}.retro-start{font-size:16px;padding:5px;flex-direction:column;gap:4px;min-width:48px}.retro-start img{width:24px;height:24px}
 .retro-taskbar nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,1fr);gap:3px;overflow:visible}
-.retro-task{font-size:14px;white-space:normal;text-align:center;padding:3px 2px;gap:2px;flex-direction:column;line-height:1.1;min-height:0}.retro-task img{width:17px;height:17px}.retro-task:last-child{grid-column:span 2;flex-direction:row;gap:4px}.retro-clock{display:none}
+.retro-task{font-size:14px;white-space:normal;text-align:center;padding:3px 2px;gap:2px;flex-direction:column;line-height:1.1;min-height:0}.retro-task img{width:17px;height:17px}.retro-clock{display:none}
 }
-@media screen and (max-width:360px){:root{--retro-bar-height:186px}.retro-taskbar nav{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,1fr)}.retro-task:last-child{grid-column:span 3}}
+@media screen and (max-width:360px){:root{--retro-bar-height:186px}.retro-taskbar nav{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,1fr)}.retro-task:last-child{grid-column:span 2}}
 @media print{.retro-taskbar,.retro-start-menu{display:none}}

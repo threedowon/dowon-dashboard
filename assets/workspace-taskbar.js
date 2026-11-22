@@ -8,7 +8,7 @@
   const items = [
     ['home','Home','computer'], ['milestones','Milestones','milestones'],
     ['pdf','PDF Library','library'], ['ideas','Reference','ideas'],
-    ['wirenest','WireNest','wirenest'], ['signaltester','Signal Tester','signaltester'],
+    ['wirenest','WireNest','wirenest'], ['transfers','File Transfer','transfers'], ['signaltester','Signal Tester','signaltester'],
     ['hardware','Hardware Sheet','hardware']
   ];
   const image = name => {
@@ -25,7 +25,7 @@
     a.append(image(icon),text); return a;
   };
   const css=document.createElement('link'); css.rel='stylesheet';
-  css.href=new URL('assets/workspace-taskbar.css?v=20261122-all-pages-v2',base).href;
+  css.href=new URL('assets/workspace-taskbar.css?v=20261122-taskbar-eight',base).href;
   document.head.append(css);
   document.documentElement.dataset.workspaceTool=page;
   document.body.classList.add('workspace-taskbar-host');
@@ -37,7 +37,7 @@
   nav.append(...items.map(item=>link(item,true)));
   const clock=document.createElement('time'); clock.className='retro-clock';clock.setAttribute('aria-label','Current time');
   const menu=document.createElement('nav');menu.id='workspaceStartMenu';menu.className='retro-start-menu';menu.lang='en';menu.hidden=true;menu.setAttribute('aria-label','Start menu');
-  menu.append(...[...items,['transfers','File Transfer','transfers']].map(item=>link(item,false)));
+  menu.append(...items.map(item=>link(item,false)));
   const close=()=>{menu.hidden=true;start.setAttribute('aria-expanded','false');};
   start.addEventListener('click',()=>{menu.hidden=!menu.hidden;start.setAttribute('aria-expanded',String(!menu.hidden));});
   document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!start.contains(e.target))close();});
