@@ -153,6 +153,7 @@ html[data-active-page="home"] .side{display:none}
 <script src="assets/retro-desktop.js?v=20261122-retro-v1" defer></script>
 <link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-previews-v1">
 <link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-v1">
+<link rel="stylesheet" href="assets/retro-wirenest.css?v=20261122-v1">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -220,14 +221,15 @@ html[data-active-page="home"] .side{display:none}
 <button class="btn" id="transferRetry" hidden>이어서 재시도</button><p class="small" id="transferStatus" role="status" aria-live="polite"></p><div id="transferList" class="transfer-list"></div><p class="transfer-footnote"><span aria-hidden="true">i</span>Temporary transfer / Files expire automatically</p>
 </section>
 <section id="wirenestPage" data-screen="wirenest" aria-labelledby="wirenestTitle" hidden>
-<div class="page-top"><span class="eyebrow">WIRENEST / BACKUPS</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
-<div class="placeholder-heading library-heading"><div><h1 id="wirenestTitle" tabindex="-1">WireNest</h1><p class="page-intro">Back up and manage your saved WireNest project files.</p></div><div class="tools"><button class="btn editable" id="wnConnect">GitHub 연결</button><a class="btn primary" href="https://threedowon.github.io/WireNest/" target="_blank" rel="noopener noreferrer">Open WireNest ↗</a></div></div>
-<button class="pdf-dropzone editable" id="wnUpload" type="button" disabled><strong>Drop .wnest files here to back up</strong><span>Or choose files · Up to 25 MB each</span><span>Upload a file saved from WireNest. Every upload creates a separate backup.</span></button>
+<div class="placeholder-heading library-heading"><div><h1 id="wirenestTitle" tabindex="-1">WireNest</h1><p class="page-intro">Back up and manage your WireNest project files.</p></div><div class="tools"><a class="btn" href="https://threedowon.github.io/WireNest/" target="_blank" rel="noopener noreferrer">Open WireNest ↗</a><button class="btn" id="wnRefresh">Sync</button></div></div>
+<div class="wn-drop-frame editable"><button id="wnUpload" type="button" disabled><span class="wn-drop-icon" aria-hidden="true"></span><span class="wn-drop-copy"><strong>Drop .wnest files here to back up</strong><span>Upload saved files from WireNest.</span><small>Up to 25 MB per file · Each upload creates a new backup</small></span><span class="wn-browse">Browse…</span></button></div>
 <input id="wnFiles" type="file" accept=".wnest" multiple hidden>
-<div class="library-toolbar"><label>Search backups<input id="wnSearch" type="search" placeholder="파일 이름으로 검색"></label><button class="btn" id="wnRefresh">새로고침</button></div>
-<p class="small" id="wnStatus" role="status" aria-live="polite"></p><p class="small" id="wnCount"></p><div id="wnList" class="library-grid"></div>
-<p class="small library-note">Only uploaded files appear here. Edits in WireNest are not backed up automatically.<br><strong>WireNest로 열기</strong>로 다운로드 없이 이어서 작업하세요. 편집 후 <strong>대시보드에 백업</strong>을 누르면 새 백업이 저장됩니다. 연결 중에는 이 탭을 유지하세요.</p>
+<div class="library-toolbar"><label>Search backups:<input id="wnSearch" type="search" placeholder="Search backups" aria-label="Search backups"></label><button class="btn editable" id="wnConnect">Connect GitHub</button></div>
+<div class="wn-workspace"><div class="wn-table-wrap"><div class="wn-table" role="table" aria-label="WireNest backups"><div class="wn-table-header" role="row"><div role="columnheader"><button id="wnSortName" class="wn-sort">Name ▲</button></div><div role="columnheader"><button id="wnSortSaved" class="wn-sort">Saved</button></div><div role="columnheader"><button id="wnSortSize" class="wn-sort">Size</button></div><div role="columnheader">Actions</div></div><div id="wnList" role="rowgroup"></div></div></div><aside class="wn-preview" aria-labelledby="wnPreviewTitle"><h2 id="wnPreviewTitle">Preview</h2><div id="wnPreview" aria-live="polite">Select a backup to preview its wiring.</div><p id="wnPreviewInfo"></p></aside></div>
+<button id="wnDeleteBackup" type="button" hidden disabled>Delete selected backup</button>
+<p class="small" id="wnStatus" role="status" aria-live="polite"></p><div class="wn-warning"><span>Edits in WireNest are not backed up automatically.</span><p id="wnCount"></p></div>
 </section>
+
 <section id="pdfPage" data-screen="pdf" aria-labelledby="pdfTitle" hidden>
 <div class="page-top"><span class="eyebrow">DOCUMENT LIBRARY</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
 <div class="placeholder-heading library-heading"><div><span class="availability">PRIVATE COLLECTION</span><h1 id="pdfTitle" tabindex="-1">PDF 자료실</h1><p class="page-intro">Keep documents together. Upload, tag and revisit them from any device.</p></div><div class="tools editable"><button class="btn" id="pdfConnect">GitHub 연결</button><button class="btn primary" id="pdfAdd" disabled>＋ PDF 올리기</button></div></div>
@@ -305,7 +307,8 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfBulkTagModal" aria-labelledby="pdfBulkTagTitle"><h2 id="pdfBulkTagTitle">선택한 PDF에 태그 추가</h2><p id="pdfBulkTagNames" class="pdf-bulk-names"></p><form id="pdfBulkTagForm" class="formgrid"><label>추가할 태그<input id="pdfBulkTagInput" required placeholder="예: 설계, 참고자료" maxlength="820"></label><p class="small">쉼표로 구분해주세요. 기존 태그는 유지하고, 중복 태그는 한 번만 추가합니다.</p><p id="pdfBulkTagStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" type="button" id="pdfBulkTagCancel">취소</button><button class="btn primary" id="pdfBulkTagConfirm">태그 추가</button></div></form></dialog>
 <dialog id="pdfDeleteModal" aria-labelledby="pdfDeleteTitle"><h2 id="pdfDeleteTitle">PDF를 삭제할까요?</h2><p id="pdfDeleteName" style="overflow-wrap:anywhere"></p><p class="small">자료실 목록과 PDF 파일이 함께 삭제됩니다.<br>이전 파일은 비공개 GitHub 변경 기록에 남습니다.</p><p id="pdfDeleteStatus" role="status" aria-live="polite"></p><div class="tools"><button class="btn" id="pdfDeleteCancel">취소</button><button class="btn danger" id="pdfDeleteConfirm">PDF 삭제</button></div></dialog>
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
-<script src="assets/wirenest.js?v=20261122-retro-pages-v1" defer></script>
+<script src="assets/wirenest-preview.js?v=20261122-v1" defer></script>
+<script src="assets/wirenest.js?v=20261122-explorer-v1" defer></script>
 <script src="assets/transfers.js?v=20261122-transfer-table-v1" defer></script>
 <script src="library.js?v=20261122-pdf-previews-v1" defer></script>
 <script type="module" src="assets/pdf-thumbnails.mjs?v=20261122-v1"></script>
@@ -624,5 +627,5 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261122-pdf-explorer-v1" defer></script><script src="assets/retro-milestones.js?v=20261122-v1" defer></script>
+</script><script src="assets/retro-pages.js?v=20261122-wirenest-v1" defer></script><script src="assets/retro-milestones.js?v=20261122-v1" defer></script>
 </body></html>

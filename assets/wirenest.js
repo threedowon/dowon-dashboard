@@ -5,13 +5,16 @@
   const local=['localhost','127.0.0.1'].includes(location.hostname);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const size=n=>n<1024*1024?Math.max(1,Math.round(n/1024))+' KB':(n/1024/1024).toFixed(1)+' MB';
-  const date=value=>new Date(value).toLocaleString('ko-KR',{dateStyle:'medium',timeStyle:'short'});
-  let documents=[],jobs=[],ready=false,busy=false;
+  const date=value=>new Date(value).toLocaleString('sv-SE',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  let documents=[],jobs=[],ready=false,busy=false,selectedId=null,sortKey='filename',ascending=true;
+  let previewKey=null,previewRequest=null;const previewCache=new Map();
   function message(text,error=false){$('wnStatus').textContent=text;$('wnStatus').classList.toggle('library-error',error);}
   function controls(){
     $('wnUpload').disabled=busy||!ready||readonly;
     $('wnRefresh').disabled=busy||readonly||local;
     $('wnConnect').disabled=busy||readonly||local;
+    $('wnConnect').hidden=ready||readonly||local;
+    if($('wnDeleteBackup'))$('wnDeleteBackup').disabled=busy||readonly||!documents.some(d=>d.id===selectedId);
   }
   async function request(path,options={}){
     const response=await fetch(base+'/api/wirenest'+path,{credentials:'include',...options});
@@ -20,13 +23,34 @@
   }
   function render(){
     const query=$('wnSearch').value.trim().toLocaleLowerCase();
-    const shown=documents.filter(d=>d.filename.toLocaleLowerCase().includes(query));
-    $('wnCount').textContent=ready?'저장된 백업 '+shown.length+'개':'';
+    const shown=documents.filter(d=>d.filename.toLocaleLowerCase().includes(query)).sort((a,b)=>{
+      const order=sortKey==='size'?a.size-b.size:sortKey==='createdAt'?new Date(a.createdAt)-new Date(b.createdAt):a.filename.localeCompare(b.filename,undefined,{numeric:true});return ascending?order:-order;
+    });
+    if(!shown.some(d=>d.id===selectedId))selectedId=shown[0]?.id||null;
+    $('wnCount').textContent=ready?(query?shown.length+' / '+documents.length:documents.length)+' backups.':'';
     const disabled=busy?' disabled':'';
-    $('wnList').innerHTML=jobs.map(job=>'<article class="pdf-card pdf-upload-card'+(job.error?' is-error':'')+'"><div class="pdf-emblem">'+(job.error?'업로드 실패':'업로드 중…')+'</div><h2>'+esc(job.file.name)+'</h2><p class="small">'+esc(job.error||'비공개 저장소에 백업하고 있습니다.')+'</p>'+(job.error?'<div class="tools"><button class="btn" data-retry="'+job.id+'"'+disabled+'>Retry</button><button class="btn" data-dismiss="'+job.id+'"'+disabled+'>Dismiss</button></div>':'<progress aria-label="업로드 중"></progress>')+'</article>').join('')+
-      shown.map(d=>'<article class="pdf-card"><div class="pdf-emblem">WNEST / '+esc(size(d.size))+'</div><h2>'+esc(d.filename)+'</h2><p class="small">'+esc(date(d.createdAt))+' 업로드</p><div class="tools"><button class="btn primary" data-open="'+esc(d.id)+'"'+disabled+'>Open WireNest ↗</button><button class="btn" data-download="'+esc(d.id)+'"'+disabled+'>Download</button><button class="btn danger editable" data-delete="'+esc(d.id)+'"'+disabled+'>Delete</button></div></article>').join('');
+    $('wnList').innerHTML=jobs.map(job=>'<article class="wn-job'+(job.error?' is-error':'')+'"><div><h2>'+esc(job.file.name)+'</h2><p class="small">'+esc(job.error||'Uploading backup…')+'</p></div>'+(job.error?'<div class="tools"><button class="btn" data-retry="'+job.id+'"'+disabled+'>Retry</button><button class="btn" data-dismiss="'+job.id+'"'+disabled+'>Dismiss</button></div>':'<progress aria-label="Uploading backup"></progress>')+'</article>').join('')+
+      shown.map(d=>'<div role="row" class="wn-backup-row '+(d.id===selectedId?'is-selected':'')+'"><div role="cell"><button class="wn-name" data-preview="'+esc(d.id)+'" aria-pressed="'+(d.id===selectedId)+'" title="Preview '+esc(d.filename)+'"'+disabled+'><span>'+esc(d.filename)+'</span></button></div><div role="cell" class="wn-date">'+esc(date(d.createdAt))+'</div><div role="cell">'+esc(size(d.size))+'</div><div role="cell" class="wn-actions"><button class="btn" data-open="'+esc(d.id)+'"'+disabled+'>Open</button><button class="btn" data-download="'+esc(d.id)+'"'+disabled+'>Download</button></div></div>').join('');
     if(!jobs.length&&!shown.length)$('wnList').innerHTML='<div class="empty">'+(readonly?'공유 문서에는 비공개 백업이 포함되지 않습니다.':!ready?'GitHub 연결 후 업로드한 백업을 볼 수 있습니다.':documents.length?'검색한 이름의 백업이 없습니다.':'아직 업로드한 백업이 없습니다.<br>새 작업을 시작하거나 저장해 둔 .wnest 파일을 올려주세요.')+'</div>';
-    controls();
+    controls();showPreview(shown.find(d=>d.id===selectedId));
+  }
+  async function showPreview(doc){
+    if(!globalThis.WireNestPreview||!$('wnPreview'))return;
+    const key=doc?JSON.stringify([doc.id,doc.revision||doc.createdAt]):null;
+    if(key===previewKey)return;previewKey=key;previewRequest?.abort();
+    $('wnPreviewTitle').textContent=doc?'Preview: '+doc.filename:'Preview';$('wnPreviewInfo').textContent='';
+    if(!doc||readonly||!ready){$('wnPreview').textContent='Select a backup to preview its wiring.';return;}
+    $('wnPreview').textContent='Loading preview…';const controller=new AbortController();previewRequest=controller;
+    try{
+      let result=previewCache.get(key);
+      if(!result){const response=await request('/'+encodeURIComponent(doc.id)+'/file',{signal:controller.signal}),blob=await response.blob();
+        if(blob.size>limit)throw Error('Open this large project in WireNest to view.');
+        const project=JSON.parse(await blob.text());result=globalThis.WireNestPreview.svg(project);
+        previewCache.set(key,result);if(previewCache.size>10)previewCache.delete(previewCache.keys().next().value);
+      }
+      if(controller.signal.aborted||previewKey!==key)return;
+      $('wnPreview').innerHTML=result.markup||'<span>No geometry to preview.</span>';$('wnPreviewInfo').textContent=result.summary;
+    }catch(error){if(controller.signal.aborted||previewKey!==key)return;$('wnPreview').textContent='Preview unavailable. You can still open or download this backup.';}
   }
   async function load(){
     if(busy||readonly||local)return;
@@ -98,7 +122,12 @@
   $('wnUpload').onclick=()=>$('wnFiles').click();
   $('wnFiles').onchange=()=>{addFiles($('wnFiles').files);$('wnFiles').value='';};
   $('wnSearch').oninput=render;
-  $('wnRefresh').onclick=load;
+  $('wnRefresh').onclick=()=>{previewKey=null;previewCache.clear();load();};
+  for(const [id,key] of [['wnSortName','filename'],['wnSortSaved','createdAt'],['wnSortSize','size']])if($(id))$(id).onclick=()=>{
+    ascending=sortKey===key?!ascending:true;sortKey=key;
+    for(const [button,k,label] of [['wnSortName','filename','Name'],['wnSortSaved','createdAt','Saved'],['wnSortSize','size','Size']])$(button).textContent=label+(k===key?(ascending?' ▲':' ▼'):'');render();
+  };
+  if($('wnDeleteBackup'))$('wnDeleteBackup').onclick=()=>performAction({dataset:{delete:selectedId}});
   $('wnConnect').onclick=()=>{sessionStorage.setItem('dowon:open-wirenest','1');location.href=base+'/auth/login';};
   $('wirenestPage').addEventListener('dragover',event=>{if(Array.from(event.dataTransfer?.types||[]).includes('Files'))event.preventDefault();});
   $('wirenestPage').addEventListener('drop',event=>{
@@ -107,9 +136,11 @@
     if(!ready||busy){message(busy?'업로드가 끝난 뒤 다시 놓아주세요.':'GitHub 연결 후 파일을 올려주세요.',true);return;}
     addFiles(event.dataTransfer.files);
   });
-  $('wnList').onclick=async event=>{
+  $('wnList').onclick=event=>performAction(event.target.closest('button'));
+  async function performAction(button){
     if(busy||readonly)return;
-    const button=event.target.closest('button');if(!button)return;
+    if(!button)return;
+    if(button.dataset.preview){selectedId=button.dataset.preview;render();const buttons=$('wnList').querySelectorAll?.('[data-preview]');if(buttons)for(const el of buttons)if(el.dataset.preview===selectedId)el.focus();return;}
     if(button.dataset.dismiss){jobs=jobs.filter(j=>j.id!==button.dataset.dismiss);render();return;}
     if(button.dataset.retry){const job=jobs.find(j=>j.id===button.dataset.retry);if(job)await upload([job]);return;}
     const doc=documents.find(d=>d.id===(button.dataset.open||button.dataset.download||button.dataset.delete));if(!doc)return;
@@ -128,7 +159,7 @@
       }
     }catch(error){message(error.message,true);}
     finally{busy=false;render();}
-  };
+  }
   window.addEventListener('hashchange',()=>{if(location.hash==='#wirenest'&&!ready)load();});
   if(!readonly&&sessionStorage.getItem('dowon:open-wirenest')){sessionStorage.removeItem('dowon:open-wirenest');location.hash='wirenest';}
   render();
