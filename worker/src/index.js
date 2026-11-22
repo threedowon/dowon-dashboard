@@ -2,6 +2,7 @@
 import {library} from './library.js';
 import {ideas} from './ideas.js';
 import {transfers, cleanupTransfers} from './transfers.js';
+import {hardware} from './hardware.js';
 const repo="threedowon/dowon-dashboard-data",file="projects.json";
 const j=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{"content-type":"application/json","cache-control":"no-store",...h}});
 const ck=r=>Object.fromEntries((r.headers.get("cookie")||"").split(";").map(x=>x.trim().split("=")).filter(x=>x.length>1).map(([k,...v])=>[k,decodeURIComponent(v.join("="))]));
@@ -20,6 +21,11 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil(cleanupTransfers(en
  try{
  const cookies=ck(req);
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
+ // Public team workbook, deliberately separate from owner-only dashboard APIs.
+ if(u.pathname==='/api/hardware-sheet'){
+   if(req.method!=='GET'&&origin!==site)return j({error:'Origin denied'},403,cors);
+   return hardware(req,env,cors);
+ }
  if(u.pathname==="/health")return j({ok:true,configured:!!(env.GITHUB_CLIENT_ID&&env.GITHUB_CLIENT_SECRET&&env.SESSION_KEY)});
  if(u.pathname==="/auth/login"){
  if(!env.GITHUB_CLIENT_ID||!env.GITHUB_CLIENT_SECRET||!env.SESSION_KEY)return j({error:"Secrets missing"},503);
