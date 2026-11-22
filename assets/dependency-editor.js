@@ -12,7 +12,7 @@ globalThis.EditHistory = {
 };
 /* Direct manipulation for the SVG map; exported diagrams contain no editor controls. */
 globalThis.DependencyEditor = {
-  attach({ board, toolbar, getProjects, getModel, isActive, commit, edit, navigate, createId, openBoard }) {
+  attach({ board, toolbar, getProjects, getModel, isActive, commit, edit, navigate, createId, openBoard, remove }) {
     let selected=null,edge=null,pending=null,drag=null,renaming=null,suppressClickUntil=0;
     const status=toolbar.querySelector('[data-flow-status]');
     const control=name=>toolbar.querySelector(`[data-flow-action="${name}"]`);
@@ -37,7 +37,7 @@ globalThis.DependencyEditor = {
       control('left').disabled=!item||item.column===0;
       control('right').disabled=!item||item.column>=getModel().columns.length-1;
       control('cancel').hidden=!pending;
-      for(const select of board.querySelectorAll('[data-flow-status-select]'))select.disabled=!isActive();
+      for(const select of board.querySelectorAll('[data-flow-status-select],[data-open-board]'))select.disabled=!isActive();
     }
     function selectedEdge(){return getModel()?.edges?.find(item=>item.from.id===edge?.from&&item.to.id===edge?.to);}
     function drawEdgeControls(preview){
@@ -83,7 +83,7 @@ globalThis.DependencyEditor = {
       else if(selected)tell(`${lookup(selected)?.milestone.title||'일정'} · 네모 핸들을 빈 곳으로 끌면 연결된 새 카드가 생깁니다.`);
       else tell('카드 위·아래 테두리를 끌어 날짜를 조절하고, 카드 안에서 상태를 선택하세요.');
     }
-    function selectNode(id){selected=id;edge=null;decorate();focusNode(id);tell(`${lookup(id)?.milestone.title||'일정'} · F2: 이름 수정 · 네모 핸들: 새 카드 만들기 / 기존 카드에 놓기: 연결`);}
+    function selectNode(id){selected=id;edge=null;decorate();focusNode(id);tell(`${lookup(id)?.milestone.title||'일정'} · 더블클릭: 이름 수정 · Delete: 삭제 · 네모 핸들: 새 카드 만들기 / 기존 카드에 놓기: 연결`);}
     function focusNode(id){[...board.querySelectorAll('.flow-node')].find(node=>node.dataset.m===id)?.focus({preventScroll:true});}
     function finishRename(save,restoreFocus=true){
       if(!renaming)return;
@@ -235,7 +235,7 @@ globalThis.DependencyEditor = {
     }
     function activate(target){
       if(!isActive())return;
-      if(target.closest('[data-flow-status-select],[data-resize],[data-edge-handle],.flow-add-column,.flow-rename'))return;
+      if(target.closest('[data-flow-status-select],[data-resize],[data-edge-handle],.flow-add-column,.flow-rename,[data-open-board]'))return;
       const port=target.closest('[data-port-node]'),node=target.closest('[data-m]'),line=target.closest('[data-edge-from]');
       if(port){if(pending&&pending.id!==port.dataset.portNode)finish(port.dataset.portNode,port.dataset.side);else start(portInfo(port));}
       else if(node){if(pending)finish(node.dataset.m);else selectNode(node.dataset.m);}
@@ -272,7 +272,7 @@ globalThis.DependencyEditor = {
     }
     board.addEventListener('pointerdown',e=>{
       if(!isActive()||e.button!==0)return;
-      if(e.target.closest('[data-flow-status-select],.flow-add-column,.flow-rename'))return;
+      if(e.target.closest('[data-flow-status-select],.flow-add-column,.flow-rename,[data-open-board]'))return;
       const edgeHandle=e.target.closest('[data-edge-handle]');
       if(edgeHandle){
         const item=selectedEdge();if(!item)return;
@@ -326,14 +326,21 @@ globalThis.DependencyEditor = {
     });
     board.addEventListener('pointercancel',cancel);
     board.addEventListener('lostpointercapture',()=>{if(drag)cancel();});
-    board.addEventListener('click',e=>{if(!isActive()||Date.now()<suppressClickUntil)return;activate(e.target);});
+    board.addEventListener('click',e=>{
+      if(!isActive())return;
+      const button=e.target.closest('[data-open-board]');
+      if(button){const target=lookup(button.dataset.openBoard);if(target&&openBoard){e.preventDefault();cancel();openBoard(target);}return;}
+      if(Date.now()<suppressClickUntil)return;activate(e.target);
+    });
+    board.addEventListener('dblclick',e=>{
+      const hit=document.elementFromPoint?.(e.clientX,e.clientY)||e.target;
+      if(!isActive()||!board.contains(hit)||hit.closest('button,input,textarea,select,[data-port-node],[data-resize],[data-edge-handle]'))return;
+      const node=hit.closest('.flow-node');if(!node)return;
+      e.preventDefault();e.stopPropagation();startRename(node.dataset.m);
+    });
     board.addEventListener('keydown',e=>{
       if(!isActive())return;
-      if(e.target.closest('input,textarea,select,[contenteditable="true"],.flow-add-column')||e.isComposing)return;
-      if(e.key==='F2'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
-        const id=e.target.closest('.flow-node')?.dataset.m||selected;
-        if(id){e.preventDefault();e.stopPropagation();startRename(id);}return;
-      }
+      if(e.target.closest('input,textarea,select,[contenteditable="true"],.flow-add-column,[data-open-board]')||e.isComposing)return;
       if(e.key==='Escape'){e.preventDefault();cancel();return;}
       const edgeHandle=e.target.closest('[data-edge-handle]');
       if(edgeHandle&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
@@ -350,9 +357,14 @@ globalThis.DependencyEditor = {
         const date=handle.dataset.resize==='start'?(Roadmap.date(m.start)??Roadmap.date(m.due)):Roadmap.date(m.due);
         resizeCard(handle.dataset.resizeNode,handle.dataset.resize,new Date(date+(e.key==='ArrowUp'?-1:1)*(e.shiftKey?7:1)*86400000).toISOString().slice(0,10));return;
       }
-      if(e.key==='Enter'&&e.target.closest('.flow-node')&&openBoard){e.preventDefault();const target=lookup(e.target.closest('.flow-node').dataset.m);if(target)openBoard(target);return;}
+      if(e.key==='Enter'&&e.target.closest('.flow-node')){e.preventDefault();startRename(e.target.closest('.flow-node').dataset.m);return;}
       if(e.altKey&&selected&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();const item=getModel()?.items?.find(m=>m.id===selected);if(item)moveCard(selected,item.column+(e.key==='ArrowLeft'?-1:1));return;}
       if((e.key==='Delete'||e.key==='Backspace')&&edge){e.preventDefault();removeEdge();return;}
+      if(e.key==='Delete'&&selected&&remove&&!e.repeat){
+        e.preventDefault();e.stopPropagation();const id=selected;
+        selected=null;edge=null;pending=null;drag=null;clearPreview();
+        if(remove(id))tell('카드를 삭제했어요. Ctrl+Z로 되돌릴 수 있습니다.');return;
+      }
       if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-m],[data-port-node],[data-edge-from]')){e.preventDefault();activate(e.target);}
     });
     board.addEventListener('change',e=>{
