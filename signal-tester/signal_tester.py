@@ -302,7 +302,7 @@ def perform_send(store, body, target_snapshot=None):
 DASHBOARD_ORIGIN = 'https://dashboard.3dowon.com'
 
 
-def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False):
+def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False, cloud=None, desktop=False):
     token = secrets.token_urlsafe(32)
     sensors = SensorEngine(store.emit, lambda body: perform_send(store, body, body.get('_target')))
     sensors.configure(store.snapshot())
@@ -365,6 +365,20 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             if not self.allowed(self.path.startswith('/api/')):
                 return self.reply(403, {'error': 'Open this tester from its local launch address.'})
             route = urlsplit(self.path)
+            if route.path == '/cloud/callback' and cloud:
+                query = parse_qs(route.query)
+                try:
+                    cloud.finish_login(query.get('code', [''])[0], query.get('state', [''])[0])
+                    return self.reply(200, '<!doctype html><meta charset="utf-8"><title>Signal Tester 연결 완료</title><h1>연결 완료</h1><p>Signal Tester로 돌아가세요. 이 탭은 닫아도 됩니다.</p>'.encode(), 'text/html; charset=utf-8')
+                except (OSError, ValueError):
+                    return self.reply(400, {'error': '로그인을 완료하지 못했습니다. Signal Tester에서 다시 연결하세요.'})
+            if route.path == '/api/cloud/status':
+                return self.reply(200, {'desktop': desktop, 'cloud': cloud.status() if cloud else None})
+            if route.path == '/api/cloud/backups' and cloud:
+                try:
+                    return self.reply(200, cloud.backups())
+                except (OSError, ValueError) as error:
+                    return self.reply(400, {'error': str(error)})
             if route.path == '/api/state':
                 with store.lock:
                     data = {'workspace': store.snapshot(), 'events': list(store.events), 'warning': store.warning,
@@ -379,7 +393,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 data = store.activity(after)
                 data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(parse_qs(route.query).get('monitor', [None])[0]))
                 return self.reply(200, data)
-            assets = {'/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            assets = {'/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if self.path not in assets:
                 return self.reply(404, {'error': 'Not found.'})
             name, mime = assets[self.path]
@@ -405,6 +419,35 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                     raise ValueError('Expected a JSON object.')
                 if stopping.is_set():
                     return self.reply(503, {'error': 'Tester is restarting. Use the newly opened page.'})
+                if self.path == '/api/exit' and desktop:
+                    with operation_lock:
+                        stopping.set()
+                        sensors.arm(False)
+                    self.reply(200, {'ok': True})
+                    threading.Thread(target=self.server.shutdown, daemon=True).start()
+                    return
+                if self.path.startswith('/api/cloud/') and cloud:
+                    action = self.path.rsplit('/', 1)[1]
+                    if action == 'connect':
+                        return self.reply(200, cloud.connect(self.server.server_port, body.get('name', '')))
+                    if action == 'disconnect':
+                        return self.reply(200, cloud.disconnect())
+                    if action == 'sync':
+                        return self.reply(200, cloud.sync(force=body.get('force') is True))
+                    if action == 'restore':
+                        data = validate_workspace(cloud.download(body.get('id')))
+                        with operation_lock, store.lock:
+                            if not isinstance(body.get('revision'), str) or body['revision'] != store.revision:
+                                raise WorkspaceConflict('설정이 변경되었습니다. 최신 화면에서 다시 불러오세요.')
+                            recovery = store.file.with_name(store.file.stem+'.before-restore-'+uid()+'.json')
+                            recovery.parent.mkdir(parents=True, exist_ok=True)
+                            recovery.write_text(json.dumps(store.snapshot(), ensure_ascii=False, indent=2), encoding='utf-8')
+                            saved = store.save(data, expected_revision=body['revision'])
+                            sensors.arm(False)
+                            hub.reconcile([])
+                            sensors.configure(saved)
+                            return self.reply(200, {'workspace': saved, 'revision': store.revision, 'recovery': str(recovery),
+                                'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
                 if self.path == '/api/shutdown':
                     if not instance_id or body.get('instance') != instance_id:
                         return self.reply(403, {'error': 'Only this Tester launcher can request a restart.'})
@@ -494,6 +537,8 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             sensors.arm(False)
             hub.close()
             sensors.close()
+            if cloud:
+                cloud.close()
 
     server = TesterServer(('127.0.0.1', port), Handler)
     # Wait for in-flight requests before releasing the instance to the next launcher.
@@ -506,7 +551,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
     return server
 
 
-def main(argv=None):
+def main(argv=None, native=False):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path)
     parser.add_argument('--dashboard', action='store_true', help='Allow the Dowon dashboard to connect with a per-run pairing code.')
@@ -534,16 +579,28 @@ def main(argv=None):
             data['signals'].append({'id': uid(), 'name': key, 'key': key, 'value': None}); store.save(data)
     if args.scene:
         store.import_scene(json.loads(args.scene.read_text(encoding='utf-8-sig')))
-    server = create_server(store, args.ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard)
+    cloud = None
+    if native:
+        from tester_cloud import CloudSync
+        if not store.file.exists():
+            store.save(store.snapshot())
+        cloud = CloudSync(store)
+    server = create_server(store, args.ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native)
     url = f'http://127.0.0.1:{server.server_port}/'
     try:
         publish_instance(server)
+        if cloud:
+            cloud.start()
         print(f'Signal Tester: {url}\nWorkspace: {store.file}\nKeep this window open. Ctrl+C stops the tester.', flush=True)
         if args.dashboard:
             print(f'\nDashboard pairing code (paste into Signal Tester):\n{server.server_port}:{server.token}\n', flush=True)
-        if not args.no_browser:
-            webbrowser.open(DASHBOARD_ORIGIN+'/#signaltester' if args.dashboard else url)
-        server.serve_forever(poll_interval=.2)
+        if native and not args.no_browser and not args.dashboard:
+            from tester_window import run_window
+            run_window(server, url)
+        else:
+            if not args.no_browser:
+                webbrowser.open(DASHBOARD_ORIGIN+'/#signaltester' if args.dashboard else url)
+            server.serve_forever(poll_interval=.2)
     except KeyboardInterrupt:
         pass
     finally:

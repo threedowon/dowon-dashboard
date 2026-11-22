@@ -16,3 +16,5 @@
 #signalFrameHost iframe{display:block;width:100%;height:85vh;min-height:720px;border:1px solid var(--rule,#d9dfd9);background:#fff}
 #signaltesterPage [hidden]{display:none!important}
 @media(max-width:850px){#signaltesterPage .signal-setup{grid-template-columns:1fr;padding:18px;gap:24px}}
+
+#signaltesterPage .signal-cloud{margin:24px 0;padding:24px;border:1px solid var(--rule,#d9dfd9);background:#fff}#signaltesterPage .signal-cloud h2{margin-right:auto}#signaltesterPage .signal-backup-item{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--rule,#d9dfd9)}#signaltesterPage .signal-backup-item p{margin:6px 0;color:var(--muted)}
