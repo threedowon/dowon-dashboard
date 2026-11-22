@@ -2,7 +2,7 @@
 <html lang="ko" data-active-page="home">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>작업 공간 — 홈</title>
+<title>Workspace — Home</title>
 <link rel="preload" href="assets/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
 <style id="workspaceFont">
 /*
@@ -147,33 +147,33 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/signal-tester.css?v=20261121-exe">
 <script src="assets/signal-tester.js?v=20261121" defer></script>
 <link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
-<link rel="stylesheet" href="assets/object-catalog.css?v=20261122-flatlay">
+<link rel="stylesheet" href="assets/object-catalog.css?v=20261122-picture-cards-paper-v2">
 </head>
 <body>
-<div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="작업 공간 홈">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
+<div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
 <div class="small">WORKSPACE</div>
-<nav class="workspace-nav" aria-label="주 메뉴">
-<a class="workspace-link" href="#home" data-page="home"><span class="nav-symbol" aria-hidden="true">⌂</span>대시보드 홈</a>
-<a class="workspace-link" href="#milestones" data-page="milestones"><span class="nav-symbol" aria-hidden="true">☷</span>마일스톤</a>
-<a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF 자료실</a>
-<a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>아이디어·레퍼런스</a>
+<nav lang="en" class="workspace-nav" aria-label="Main navigation">
+<a class="workspace-link" href="#home" data-page="home"><span class="nav-symbol" aria-hidden="true">⌂</span>Home</a>
+<a class="workspace-link" href="#milestones" data-page="milestones"><span class="nav-symbol" aria-hidden="true">☷</span>Milestones</a>
+<a class="workspace-link" href="#pdf" data-page="pdf"><span class="nav-symbol" aria-hidden="true">▤</span>PDF Library</a>
+<a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>Ideas &amp; References</a>
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
 <a class="workspace-link" href="#signaltester" data-page="signaltester">Signal Tester</a>
 <a class="workspace-link" href="#hardware" data-page="hardware">Hardware Sheet</a>
 </nav>
 
-<p class="small side-note">계획부터 영감까지,<br>나의 작업을 한곳에서.</p></aside>
-<main class="main"><div class="snapshot">공유용 읽기 전용 HTML입니다. 내보낸 시점의 데이터가 담겨 있어요.</div>
-<section id="homePage" data-screen="home" aria-labelledby="homeTitle">
-<h1 id="homeTitle" class="sr-only" tabindex="-1">작업 공간</h1>
+<p class="small side-note">Plans, ideas, and tools.<br>One place for my work.</p></aside>
+<main class="main"><div class="snapshot">Read-only shared snapshot. Data reflects the time of export.</div>
+<section lang="en" id="homePage" data-screen="home" aria-labelledby="homeTitle">
+<h1 id="homeTitle" class="sr-only" tabindex="-1">Workspace</h1>
 <div class="catalog-grid">
-<a class="catalog-card object-card" href="#milestones" aria-labelledby="milestoneCardTitle"><div class="catalog-symbol object-0" aria-hidden="true"><img src="assets/dashboard-objects/milestones.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">01</span><div class="catalog-card-head"><div><h2 id="milestoneCardTitle">마일스톤</h2><span class="catalog-en">Milestones</span></div></div><div class="catalog-details"><p>프로젝트의 목표와 일정을 차곡차곡.</p><div class="catalog-status"><span id="homeMilestoneSummary">프로젝트 살펴보기</span></div></div></a>
-<a class="catalog-card object-card" href="#pdf" aria-labelledby="pdfCardTitle"><div class="catalog-symbol object-1" aria-hidden="true"><img src="assets/dashboard-objects/library.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">02</span><div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF 자료실</h2><span class="catalog-en">Document library</span></div></div><div class="catalog-details"><p>읽고 싶은 문서와 오래 두고 볼 자료.</p><div class="catalog-status">문서 업로드 · 태그별 모아보기</div></div></a>
-<a class="catalog-card object-card" href="#ideas" aria-labelledby="ideasCardTitle"><div class="catalog-symbol object-2" aria-hidden="true"><img src="assets/dashboard-objects/ideas.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">03</span><div class="catalog-card-head"><div><h2 id="ideasCardTitle">아이디어·레퍼런스</h2><span class="catalog-en">Ideas & references</span></div></div><div class="catalog-details"><p>눈길이 머문 이미지와 작은 아이디어.</p><div class="catalog-status">이미지 · 링크 · 프로젝트별 보드</div></div></a>
-<a class="catalog-card object-card" href="#wirenest" aria-labelledby="wireNestCardTitle"><div class="catalog-symbol object-3" aria-hidden="true"><img src="assets/dashboard-objects/wirenest.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">04</span><div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB harness studio</span></div></div><div class="catalog-details"><p>부품을 배치하고 연결을 설계하는 곳.</p><div class="catalog-status"><span id="wireNestCardAction">백업 보관함 열기</span></div></div></a>
-<a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/transfers.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">파일 전달</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>다른 작업 공간으로 옮겨 둘 파일들.</p><div class="catalog-status">파일 올리기 · 내려받기</div></div></a>
-<a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/study.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>필요한 하드웨어와 구매 수량을 모으는 곳.</p></div></a>
-<a class="catalog-card object-card" href="#signaltester" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/signaltester.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>실시간 센서값 · 그래프 · 송수신 기록</p></div></a>
+<a class="catalog-card object-card" href="#milestones" aria-labelledby="milestoneCardTitle"><div class="catalog-symbol object-0" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/milestones.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">01</span><div class="catalog-card-head"><div><h2 id="milestoneCardTitle">Milestones</h2><span class="catalog-en">Milestones</span></div></div><div class="catalog-details"><p>Plan project goals and schedules.</p><div class="catalog-status"><span id="homeMilestoneSummary">Explore projects</span></div></div></a>
+<a class="catalog-card object-card" href="#pdf" aria-labelledby="pdfCardTitle"><div class="catalog-symbol object-1" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/library.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">02</span><div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF Library</h2><span class="catalog-en">Document library</span></div></div><div class="catalog-details"><p>Keep documents to read and revisit.</p><div class="catalog-status">Upload documents · Browse by tag</div></div></a>
+<a class="catalog-card object-card" href="#ideas" aria-labelledby="ideasCardTitle"><div class="catalog-symbol object-2" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/ideas.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">03</span><div class="catalog-card-head"><div><h2 id="ideasCardTitle">Ideas &amp; References</h2><span class="catalog-en">Ideas & references</span></div></div><div class="catalog-details"><p>Collect images, references, and ideas.</p><div class="catalog-status">Images · Links · Project boards</div></div></a>
+<a class="catalog-card object-card" href="#wirenest" aria-labelledby="wireNestCardTitle"><div class="catalog-symbol object-3" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/wirenest.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">04</span><div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB harness studio</span></div></div><div class="catalog-details"><p>Arrange components and design connections.</p><div class="catalog-status"><span id="wireNestCardAction">Open saved backups</span></div></div></a>
+<a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/transfers.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">File Transfer</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>Move files between workspaces.</p><div class="catalog-status">Upload · Download</div></div></a>
+<a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/hardware.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>Organize hardware requests and purchase quantities.</p></div></a>
+<a class="catalog-card object-card" href="#signaltester" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/flashcards-v1/signaltester.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>Live sensor readings · Charts · Communication logs</p></div></a>
 </div>
 </section>
 <section id="hardwarePage" data-screen="hardware" aria-labelledby="hardwareTitle" hidden>
@@ -312,7 +312,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="calendar",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"마일스톤",pdf:"PDF 자료실",ideas:"아이디어·레퍼런스",wirenest:"WireNest",transfers:"파일 전달",signaltester:"Signal Tester",hardware:"Hardware Sheet"};
+const pages={home:"Home",milestones:"Milestones",pdf:"PDF Library",ideas:"Ideas & References",wirenest:"WireNest",transfers:"File Transfer",signaltester:"Signal Tester",hardware:"Hardware Sheet"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
@@ -340,7 +340,7 @@ function route(focus=false){
  document.documentElement.dataset.projectView=detailId?"detail":"overview";
  $("projectOverview").hidden=!!detailId;$("projectDetail").hidden=!detailId;
  $("milestonesPage").setAttribute("aria-labelledby",detailId?"title":"projectsTitle");
- document.title="작업 공간 — "+(cardOpen?cardProject.name+" / "+cardMilestone.title:project?project.name:pages[page]);
+ document.title="Workspace — "+(cardOpen?cardProject.name+" / "+cardMilestone.title:project?project.name:pages[page]);
  if(focus){const heading=page==="milestones"?$(detailId?"title":"projectsTitle"):document.querySelector('[data-screen="'+page+'"] h1');heading?.focus({preventScroll:true});window.scrollTo(0,0);}
 }
 window.addEventListener("hashchange",()=>{render();persist();route(true);});
@@ -418,7 +418,7 @@ function displayDate(d){return d?d.slice(0,10):"날짜 미정";}
 function render(){
 route();renderOverview();ideasBoard?.refreshProjects();
 const ongoing=state.projects.reduce((sum,p)=>sum+p.milestones.filter(m=>m.status==="doing").length,0);
-$("homeMilestoneSummary").textContent="프로젝트 "+state.projects.length+"개 · 진행 중인 마일스톤 "+ongoing+"개";
+$("homeMilestoneSummary").textContent=state.projects.length+" project"+(state.projects.length===1?"":"s")+" · "+ongoing+" ongoing milestone"+(ongoing===1?"":"s");
 const p=current();if(!p){$("title").textContent="프로젝트 없음";return;}state.selectedId=p.id;
 $("title").textContent=p.name;$("desc").textContent=p.description;let n=p.milestones.length,k=p.milestones.filter(m=>m.status==="done").length,rate=n?Math.round(100*k/n):0;
 $("progress").textContent=rate+"%";$("fill").style.width=rate+"%";$("completed").textContent=k+" / "+n;$("updated").textContent=displayDate(p.updatedAt);
