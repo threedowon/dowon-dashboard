@@ -5,31 +5,31 @@ html,body{background:var(--paper);color:var(--ink)}
 html[data-active-page="home"]{--paper:#465238;--ink:#fff0d0;--muted:#e3d8bc;--rule:#e9dfc2;--accent:#fff0d0;background:var(--paper)}
 html[data-active-page="home"] body{background:var(--paper)}
 html[data-active-page="home"] body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:url("flashcard-grain.svg?v=3") repeat;opacity:.06}
-html[data-active-page="home"] .app{position:relative;max-width:1180px;padding:0 32px}
+html[data-active-page="home"] .app{position:relative;max-width:1040px;padding:0 24px}
 html[data-active-page="home"] .side{display:none}
-#homePage{--roof-height:clamp(72px,12vw,146px);padding:26px 0 36px}
+#homePage{--roof-height:clamp(64px,10vw,116px);padding:20px 0 28px}
 #homePage .house-roof{display:block;width:100%;height:var(--roof-height);overflow:visible;color:var(--rule)}
 #homePage .house-roof path{fill:none;stroke:currentColor;stroke-width:1.5;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-#homePage .catalog-grid{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:clamp(230px,27vw,310px) repeat(2,clamp(270px,32vw,360px));gap:0;padding:0;margin:0;max-width:none;border:1.5px solid var(--rule);background:transparent}
+#homePage .catalog-grid{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:clamp(200px,23vw,250px) repeat(2,clamp(220px,26vw,280px));gap:0;padding:0;margin:0;max-width:none;border:1.5px solid var(--rule);background:transparent}
 #homePage .catalog-grid>*{min-width:0;border-right:1.5px solid var(--rule);border-bottom:1.5px solid var(--rule)}
 #homePage .catalog-grid>:nth-child(3n){border-right:0}
 #homePage .catalog-grid>:nth-last-child(-n+3){border-bottom:0}
-#homePage .house-intro{display:flex;flex-direction:column;justify-content:center;padding:22px}
-#homePage .house-wordmark{color:var(--ink);font:750 clamp(30px,4.4vw,56px)/1.05 "Pretendard Variable",sans-serif;letter-spacing:-.055em;text-decoration:none}
-#homePage .house-intro p{margin:12px 0 0;color:var(--muted);font-size:clamp(14px,1.65vw,20px);line-height:1.4;letter-spacing:-.02em}
+#homePage .house-intro{display:flex;flex-direction:column;justify-content:center;padding:18px}
+#homePage .house-wordmark{color:var(--ink);font:750 clamp(28px,4vw,46px)/1.05 "Pretendard Variable",sans-serif;letter-spacing:-.055em;text-decoration:none}
+#homePage .house-intro p{margin:10px 0 0;color:var(--muted);font-size:clamp(14px,1.5vw,17px);line-height:1.4;letter-spacing:-.02em}
 #homePage .house-lamp{position:relative;container-type:inline-size}
-#homePage .house-lamp::before{content:"";position:absolute;z-index:1;left:calc(50% - 2px);top:calc(-1 * var(--roof-height));bottom:calc(74% - min(8.8cqw,31.6px));width:4px;background:repeating-linear-gradient(120deg,#aa9268 0 2px,#d2bc92 2px 4px,#b9a379 4px 6px);border-radius:2px}
-#homePage .house-lamp img{position:absolute;z-index:2;top:26%;left:50%;width:64%;max-width:230px;height:auto;object-fit:contain;transform:translateX(-50%)}
+#homePage .house-lamp::before{content:"";position:absolute;z-index:1;left:calc(50% - 2px);top:calc(-1 * var(--roof-height));bottom:calc(80% - min(8.8cqw,24.75px));width:4px;background:repeating-linear-gradient(120deg,#aa9268 0 2px,#d2bc92 2px 4px,#b9a379 4px 6px);border-radius:2px}
+#homePage .house-lamp img{position:absolute;z-index:2;top:20%;left:50%;width:64%;max-width:180px;height:auto;object-fit:contain;transform:translateX(-50%)}
 #homePage .catalog-card:nth-child(n){position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;grid-column:auto;grid-row:auto;min-width:0;min-height:0;height:auto;padding:0;gap:0;color:var(--ink);background:transparent;border-top:0;border-left:0;border-radius:0;box-shadow:none;text-decoration:none;transform:none;transition:background-color 180ms ease}
 #homePage .catalog-card::before,#homePage .catalog-card::after{display:none}
-#homePage .catalog-symbol{position:relative;display:flex;align-items:center;justify-content:center;flex:1;width:100%;max-width:none;height:0;min-height:0;aspect-ratio:auto;padding:24px 24px 10px;margin:0;overflow:visible;background:transparent;border:0;border-radius:0;mix-blend-mode:normal;filter:none;transform:none}
+#homePage .catalog-symbol{position:relative;display:flex;align-items:center;justify-content:center;flex:1;width:100%;max-width:none;height:0;min-height:0;aspect-ratio:auto;padding:16px 18px 4px;margin:0;overflow:visible;background:transparent;border:0;border-radius:0;mix-blend-mode:normal;filter:none;transform:none}
 #homePage .catalog-symbol::after{display:none}
 #homePage .catalog-symbol img{display:block;width:78%;height:90%;min-height:0;object-fit:contain;transition:transform 180ms ease}
 #homePage .catalog-card[href="#wirenest"] .catalog-symbol img{width:94%}
 #homePage .catalog-card[href="#signaltester"] .catalog-symbol img{width:88%}
-#homePage .catalog-card-head{position:relative;display:block;flex:0 0 auto;min-height:54px;padding:10px 14px 16px;margin:0;border:0}
+#homePage .catalog-card-head{position:relative;display:block;flex:0 0 auto;min-height:44px;padding:8px 12px 12px;margin:0;border:0}
 #homePage .catalog-card-head>div{display:block;width:auto}
-#homePage .catalog-card h2{display:flex;align-items:center;gap:10px;margin:0;padding:0;color:var(--ink);background:none;box-shadow:none;font-family:"Pretendard Variable",sans-serif;font-size:clamp(18px,2vw,25px);font-weight:420;text-shadow:none;letter-spacing:-.035em;line-height:1.25;overflow-wrap:normal}
+#homePage .catalog-card h2{display:flex;align-items:center;gap:8px;margin:0;padding:0;color:var(--ink);background:none;box-shadow:none;font-family:"Pretendard Variable",sans-serif;font-size:clamp(18px,1.8vw,22px);font-weight:420;text-shadow:none;letter-spacing:-.035em;line-height:1.25;overflow-wrap:normal}
 #homePage .catalog-card h2::before{content:"";position:static;display:block;flex:0 0 .7em;width:.7em;height:.7em;border-radius:50%;background:currentColor}
 #homePage .object-label{display:none}
 #homePage .catalog-en,#homePage .catalog-details{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0}
@@ -39,16 +39,16 @@ html[data-active-page="home"] .side{display:none}
 @media screen and (max-width:700px){
 html[data-active-page="home"] .app{padding-inline:18px}
 #homePage{padding-top:20px}
-#homePage .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:200px;grid-auto-rows:250px}
+#homePage .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:170px;grid-auto-rows:210px}
 #homePage .catalog-grid>:nth-child(n){border-right:1.5px solid var(--rule);border-bottom:1.5px solid var(--rule)}
 #homePage .catalog-grid>:nth-child(2n),#homePage .catalog-grid>:last-child{border-right:0}
 #homePage .catalog-grid>:last-child{grid-column:1/-1;border-bottom:0}
 #homePage .house-intro{padding:16px}
 #homePage .house-wordmark{font-size:clamp(24px,5.7vw,38px)}
 #homePage .house-intro p{font-size:14px}
-#homePage .catalog-card-head{padding:10px 10px 14px;min-height:58px}
+#homePage .catalog-card-head{padding:7px 10px 10px;min-height:54px}
 #homePage .catalog-card h2{font-size:18px;gap:7px}
-#homePage .catalog-symbol{padding:20px 12px 6px}
+#homePage .catalog-symbol{padding:12px 10px 4px}
 #homePage .catalog-symbol img{width:92%}
 #homePage .catalog-grid>:last-child .catalog-symbol img{width:170px}
 #homePage .house-lamp::before{top:calc(-.74 * var(--roof-height))}

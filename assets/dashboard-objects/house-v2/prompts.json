@@ -1,0 +1,22 @@
+{
+  "generator": "built-in image_gen",
+  "transparent_background": true,
+  "prompts": [
+    {
+      "name": "library",
+      "prompt": "Use case: precise-object-edit. Edit the attached dashboard object cutout. Preserve natural proportions, overall object placement and clear everyday-object silhouette. Direction: understated vintage stationery/workshop catalog photography with tactile worn materials and soft neutral lighting. Remove ornate or festive styling, not a Christmas image. Genuine transparent background including gaps, no background plane, no glow or colored edge spill. Square canvas with complete objects centered and about 12% transparent margin. No text, logos or watermark. Keep two upright old hardcover books in the same pose, but replace the red and green leather covers and ALL decorative gold ornamentation with plain faded dusty-blue book cloth on one and warm oatmeal linen book cloth on the other. Simple unembossed spines, gently frayed edges, aged ivory pages. No gilt, ornamental patterns, flowers, ribbon or leather."
+    },
+    {
+      "name": "ideas",
+      "prompt": "Use case: precise-object-edit. Edit the attached dashboard object cutout. Preserve natural proportions, overall object placement and clear everyday-object silhouette. Direction: understated vintage stationery/workshop catalog photography with tactile worn materials and soft neutral lighting. Remove ornate or festive styling, not a Christmas image. Genuine transparent background including gaps, no background plane, no glow or colored edge spill. Square canvas with complete objects centered and about 12% transparent margin. No text, logos or watermark. Keep a fan of three overlapping off-white reference cards and a simple silver paper clip. Replace floral print and orange/red sunset with a minimal charcoal pencil drawing of a chair, a faded blue abstract architectural study, and a muted ochre paper color sample. Looks like a designer's collected working references with slightly worn paper. No botanical ornament, gift-card aesthetic or decorative pattern."
+    },
+    {
+      "name": "transfers",
+      "prompt": "Use case: precise-object-edit. Edit the attached dashboard object cutout. Preserve natural proportions, overall object placement and clear everyday-object silhouette. Direction: understated vintage stationery/workshop catalog photography with tactile worn materials and soft neutral lighting. Remove ornate or festive styling, not a Christmas image. Genuine transparent background including gaps, no background plane, no glow or colored edge spill. Square canvas with complete objects centered and about 12% transparent margin. No text, logos or watermark. Keep one open envelope and three ivory papers peeking out in this exact simple recognizable arrangement. Replace the orange patterned paper with plain matte light-brown kraft paper with fine paper fibers and subtle worn folds. Remove every decorative print or flower-like pattern. Everyday office envelope, not a greeting card. No seal, ribbon or string."
+    },
+    {
+      "name": "hardware",
+      "prompt": "Use case: precise-object-edit. Edit the attached dashboard object cutout. Preserve natural proportions, overall object placement and clear everyday-object silhouette. Direction: understated vintage stationery/workshop catalog photography with tactile worn materials and soft neutral lighting. Remove ornate or festive styling, not a Christmas image. Genuine transparent background including gaps, no background plane, no glow or colored edge spill. Square canvas with complete objects centered and about 12% transparent margin. No text, logos or watermark. Keep one hex-head threaded bolt diagonally beside one hex nut in the same pose. Replace the orange-red paint and golden brass with natural weathered zinc-plated steel, matte pewter grey with a slight cool bluish tint. Subtle real scratches, understated workbench hardware, no golden polish, no paint, no shine or jewel-like gloss."
+    }
+  ]
+}
