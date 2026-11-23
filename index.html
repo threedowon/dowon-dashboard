@@ -155,7 +155,7 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-map-tools-v2">
 <link rel="stylesheet" href="assets/retro-wirenest.css?v=20261122-v1">
 <link rel="stylesheet" href="assets/retro-signaltester.css?v=20261122-v1">
-<link rel="stylesheet" href="assets/arduino-sketchbook.css">
+<link rel="stylesheet" href="assets/arduino-sketchbook.css?v=20261124-editor">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -202,25 +202,18 @@ html[data-active-page="home"] .side{display:none}
 <div id="hardwareMount"></div>
 </section>
 <section id="arduinoPage" data-screen="arduino" aria-labelledby="arduinoTitle" hidden>
-<div class="placeholder-heading"><div><h1 id="arduinoTitle" tabindex="-1">Arduino Sketchbook</h1><p class="page-intro">Reusable sketches &amp; sensor code</p></div></div>
-<p>아두이노 코드를 배선 안내와 함께 모아두는 곳입니다. ESP32용 Arduino 스케치와 ESP32-S3용 PlatformIO 프로젝트를 모았습니다.</p>
-<div class="sketchbook-grid">
-<article class="sketchbook-card" data-sketch="fsr-single"><span class="small">ESP32-S3 / Arduino</span><h2>FSR · Single sensor (GPIO4)</h2><p>GPIO4에서 10ms마다 측정하고, 필터링한 값과 원본 값을 100ms마다 JSON으로 전송합니다. Serial 115200 · 필터 계수 0.2</p><div class="tools"><a class="btn primary" href="signal-tester/devices/fsr-single/fsr-single.ino" download="fsr-single.ino">Download code</a></div><p class="small">Arduino IDE의 ESP32 스케치에 전체 코드를 붙여넣으세요.</p><div class="sketch-code-panel">
-<div class="sketch-code-toolbar"><label for="fsrSingleFile">파일 <select id="fsrSingleFile" data-sketch-file><option value="fsr-single.ino">fsr-single.ino</option></select></label><div class="tools"><button class="btn primary" type="button" data-sketch-copy disabled>코드 복사</button><button class="btn" type="button" data-sketch-select disabled>전체 선택</button><button class="btn" type="button" data-sketch-retry hidden>다시 불러오기</button></div></div>
-<textarea class="sketch-code" data-sketch-code aria-label="FSR 단일 센서 코드" readonly spellcheck="false" wrap="off" placeholder="코드를 불러오는 중…"></textarea>
-<p class="sketch-copy-status small" data-sketch-status role="status" aria-live="polite"></p>
-</div></article>
-<article class="sketchbook-card" data-sketch="fsr"><span class="small">ESP32-S3 / Arduino</span><h2>FSR · 4-channel</h2><p>FSR 센서 4개의 압력 변화와 감지 상태를 읽는 코드입니다.</p><div class="tools"><a class="btn primary" href="signal-tester/devices/fsr/src/main.cpp" download="fsr-main.cpp">Download code</a><a class="btn" href="signal-tester/devices/fsr/README.md" target="_blank" rel="noopener">Wiring &amp; guide</a><a class="btn" href="signal-tester/devices/fsr/platformio.ini" download="platformio.ini">Project settings</a></div><div class="sketch-code-panel">
-<div class="sketch-code-toolbar"><label for="fsrFile">파일 <select id="fsrFile" data-sketch-file><option value="src/main.cpp">src/main.cpp</option><option value="platformio.ini">platformio.ini</option></select></label><div class="tools"><button class="btn primary" type="button" data-sketch-copy disabled>코드 복사</button><button class="btn" type="button" data-sketch-select disabled>전체 선택</button><button class="btn" type="button" data-sketch-retry hidden>다시 불러오기</button></div></div>
-<textarea class="sketch-code" data-sketch-code aria-label="FSR 코드" readonly spellcheck="false" wrap="off" placeholder="코드를 불러오는 중…"></textarea>
-<p class="sketch-copy-status small" data-sketch-status role="status" aria-live="polite"></p>
-</div></article>
-<article class="sketchbook-card" data-sketch="sen0610"><span class="small">ESP32-S3 / Arduino</span><h2>SEN0610 · Distance sensor</h2><p>I2C 거리 센서의 측정값과 연결 상태를 읽는 코드입니다.</p><div class="tools"><a class="btn primary" href="signal-tester/devices/sen0610/src/main.cpp" download="sen0610-main.cpp">Download code</a><a class="btn" href="signal-tester/devices/sen0610/README.md" target="_blank" rel="noopener">Wiring &amp; guide</a><a class="btn" href="signal-tester/devices/sen0610/platformio.ini" download="platformio.ini">Project settings</a></div><div class="sketch-code-panel">
-<div class="sketch-code-toolbar"><label for="sen0610File">파일 <select id="sen0610File" data-sketch-file><option value="src/main.cpp">src/main.cpp</option><option value="platformio.ini">platformio.ini</option></select></label><div class="tools"><button class="btn primary" type="button" data-sketch-copy disabled>코드 복사</button><button class="btn" type="button" data-sketch-select disabled>전체 선택</button><button class="btn" type="button" data-sketch-retry hidden>다시 불러오기</button></div></div>
-<textarea class="sketch-code" data-sketch-code aria-label="SEN0610 코드" readonly spellcheck="false" wrap="off" placeholder="코드를 불러오는 중…"></textarea>
-<p class="sketch-copy-status small" data-sketch-status role="status" aria-live="polite"></p>
-</div></article>
-</div><p class="small">PlatformIO 프로젝트의 src/main.cpp에 코드를 넣고, 해당 platformio.ini 설정과 배선 안내를 함께 확인하세요.</p></section>
+<div class="placeholder-heading"><div><h1 id="arduinoTitle" tabindex="-1">Arduino Sketchbook</h1><p class="page-intro">코드를 모으고, 수정하고, 바로 복사하세요.</p></div><div class="tools"><button type="button" class="btn primary" id="sketchNew">새 코드 추가</button><button type="button" class="btn" id="sketchRefresh">새로고침</button><button type="button" class="btn" id="sketchLogin" hidden>GitHub 연결</button><button type="button" class="btn" id="sketchRestore" hidden>작성 중인 코드 복구</button></div></div>
+<p id="sketchStatus" role="status" aria-live="polite">저장한 코드는 GitHub 계정으로 연결한 기기에서 다시 열 수 있습니다.</p>
+<div class="sketchbook-grid" id="sketchList"></div>
+<dialog id="sketchEditor" aria-labelledby="sketchEditorTitle"><form id="sketchForm"><h2 id="sketchEditorTitle">코드 추가</h2>
+<div class="sketch-editor-fields"><label>제목<input id="sketchTitle" required maxlength="120" placeholder="예: FSR 단일 센서"></label><label>보드<input id="sketchBoard" maxlength="120" placeholder="예: ESP32-S3"></label><label class="sketch-wide">설명<textarea id="sketchDescription" maxlength="2000" rows="2"></textarea></label></div>
+<div class="sketch-code-toolbar"><label>편집할 파일<select id="sketchFileSelect"></select></label><div class="tools"><button type="button" class="btn" id="sketchFileAdd">파일 추가</button><button type="button" class="btn" id="sketchFileRemove">파일 제거</button></div></div>
+<label class="sketch-filename">파일명<input id="sketchFilename" required maxlength="160" placeholder="sketch.ino"></label>
+<label for="sketchSource">코드</label><textarea id="sketchSource" class="sketch-code" required spellcheck="false" wrap="off"></textarea>
+<p id="sketchEditorStatus" role="status" aria-live="polite">저장을 누르면 비공개 코드 모음집에 반영됩니다.</p>
+<div class="tools"><button class="btn primary" id="sketchSave" type="submit">저장</button><button class="btn" id="sketchCancel" type="button">취소</button><button class="btn" id="sketchEditorLogin" type="button" hidden>GitHub 연결</button></div>
+</form></dialog>
+</section>
 <section id="signaltesterPage" data-screen="signaltester" aria-labelledby="signaltesterTitle" hidden>
 <div class="placeholder-heading signal-heading"><div><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" class="signal-heading-icon"><div><h1 id="signaltesterTitle" tabindex="-1">Signal Tester</h1><p class="page-intro">Connect devices. Explore your signals.</p></div></div><a class="btn" href="signal-tester/README.md" target="_blank" rel="noopener">User guide ↗</a></div>
 <div class="signal-setup">
@@ -653,5 +646,5 @@ if(!readonly&&globalThis.MilestoneCloud){
 }
 })();
 </script><script src="assets/retro-pages.js?v=20261124-arduino" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
-<script src="assets/arduino-sketchbook.js" defer></script>
+<script src="assets/arduino-sketchbook.js?v=20261124-editor" defer></script>
 </body></html>

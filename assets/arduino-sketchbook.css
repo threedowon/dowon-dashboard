@@ -13,3 +13,11 @@
 .sketch-code:focus-visible{outline:2px solid #008b8b;outline-offset:2px}
 .sketchbook-card .sketch-copy-status{min-height:1.7em;margin:8px 0 0}
 @media(max-width:700px){.sketchbook-card{padding:16px}.sketch-code{height:320px;padding:10px}}
+
+#sketchEditor{box-sizing:border-box;width:min(1000px,96vw);max-height:92vh;overflow:auto;padding:24px;border:3px solid #808080;background:#efede4;color:#111}
+#sketchEditor::backdrop{background:#0007}
+.sketch-editor-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.sketch-editor-fields label,.sketch-filename{display:grid;gap:6px}.sketch-wide{grid-column:1/-1}
+#sketchEditor input,#sketchDescription{box-sizing:border-box;width:100%;padding:8px;font:inherit;background:white;color:#111}
+.sketch-filename{margin-bottom:12px}#sketchEditor .sketch-code{height:40vh}#sketchEditor .tools{gap:8px}
+@media(max-width:700px){#sketchEditor{padding:16px}.sketch-editor-fields{grid-template-columns:1fr}}
