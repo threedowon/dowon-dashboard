@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="tester-token" content="__TESTER_TOKEN__"><title>Signal Tester · 송수신 디버깅</title><link rel="icon" href="data:,"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="debug.css"><script src="debug.js" defer></script></head>
+<body class="debug-page">
+  <header class="debug-header"><div><div class="eyebrow">SIGNAL TESTER</div><h1>송수신 디버깅</h1><p>센서 → Tester 수신 · Tester → Player 전송 결과</p></div><div class="debug-actions"><button id="debugPause" class="button">화면 일시정지</button><button id="debugExport" class="button" disabled>현재 목록 저장</button></div></header>
+  <div id="debugConnection" class="debug-connection" role="status">프로그램에 연결 중…</div>
+  <section id="debugWatched" class="debug-watched" aria-label="person과 person_far 최근 전송 결과"></section>
+  <p id="debugCounts" class="debug-counts"></p>
+  <details class="debug-sensors"><summary>센서 현재값과 자동 규칙 상태</summary><div id="debugSensors"></div></details>
+  <section class="debug-filters" aria-label="기록 필터"><div class="debug-key-filters" role="group" aria-label="Signal 키"><button class="button" data-debug-key="" aria-pressed="true">전체</button><button class="button" data-debug-key="person" aria-pressed="false">person</button><button class="button" data-debug-key="person_far" aria-pressed="false">person_far</button></div><label><span class="sr-only">기록 종류</span><select id="debugKind"><option value="all">모든 송수신</option><option value="http">Player 전송 결과</option><option value="received">센서 수신 RX</option><option value="unconfirmed">수신 미확인</option><option value="blocked">Tester 쿨다운 차단</option><option value="error">통신·파싱 오류</option></select></label><label><span class="sr-only">기록 검색</span><input id="debugSearch" type="search" placeholder="키·연결·수신 원문 검색"></label></section>
+  <div class="debug-layout"><section class="debug-log" aria-label="송수신 기록"><div class="debug-log-heading"><strong>최근 기록</strong><span id="debugVisibleCount"></span></div><div id="debugEvents"></div></section><aside class="debug-detail" aria-label="선택한 기록"><h2>기록 상세</h2><div id="debugDetail"><p>왼쪽 기록을 선택하면 전송 값, 수신 원문과 Player 응답을 확인할 수 있습니다.</p></div></aside></div>
+  <footer>관찰 전용 창입니다. 닫아도 본 프로그램의 통신은 계속됩니다. 기록은 이번 실행에만 보관하며 최근 송수신 200건과 HTTP 결과 200건을 유지합니다. RX는 원본 바이트 조각으로, 한 줄 또는 한 메시지와 다를 수 있습니다. HTTP 수신 확인은 Player의 응답 기준이며 다른 프로그램이 Player로 보낸 신호는 포함하지 않습니다.</footer>
+</body></html>

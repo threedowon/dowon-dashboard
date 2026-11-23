@@ -12,6 +12,30 @@ class Event:
 
 
 class WindowTests(unittest.TestCase):
+    def test_debug_window_is_reused_can_reopen_and_closes_with_engine(self):
+        stopped=threading.Event();windows=[];api=None
+        server=SimpleNamespace(sensors=SimpleNamespace(arm=lambda _:None),
+            serve_forever=lambda **kw:stopped.wait(3),shutdown=stopped.set)
+        def create(title,url,**options):
+            nonlocal api
+            events=SimpleNamespace(closing=Event(),closed=Event(),loaded=Event())
+            window=SimpleNamespace(events=events,destroyed=False,shows=0)
+            def destroy():window.destroyed=True;events.closing.fire();events.closed.fire()
+            def show():window.shows+=1
+            window.destroy=destroy;window.show=show;window.restore=lambda:None
+            if 'js_api' in options:api=options['js_api']
+            else:self.assertEqual(url,'http://127.0.0.1:1234/debug.html')
+            windows.append(window);return window
+        def start(watch,**options):
+            self.assertTrue(api.open_debug());self.assertEqual(len(windows),2)
+            api.open_debug();self.assertEqual(len(windows),2);self.assertEqual(windows[1].shows,1)
+            windows[1].destroy();self.assertFalse(stopped.is_set())
+            api.open_debug();self.assertEqual(len(windows),3)
+            server.shutdown();watch()
+            self.assertTrue(windows[0].destroyed);self.assertTrue(windows[2].destroyed)
+            self.assertFalse(api.open_debug())
+        run_window(server,'http://127.0.0.1:1234/',SimpleNamespace(settings={},create_window=create,start=start))
+
     def test_native_close_and_in_app_exit_both_stop_the_engine(self):
         for mode in ('native-close','api-exit'):
             with self.subTest(mode=mode):

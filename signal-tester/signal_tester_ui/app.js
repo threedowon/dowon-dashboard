@@ -171,7 +171,7 @@ async function sendOnce(payload,repeatOwner=null){
   if(sending||saving||ioBusy||(repeating&&repeating!==repeatOwner)){toast('A test is already running.');return null;}
   if(!payload.targetId)throw Error('Add a target first.');sending=true;updateControls();
   try{
-    const event=await api(payload.io?'io/send':'send',payload);mergeEvents([event]);renderEvents();
+    const event=await api(payload.io?'io/send':'send',payload.io?payload:{...payload,origin:payload.origin||(repeatOwner?'Repeat test':'Manual')});mergeEvents([event]);renderEvents();
     if(!repeatOwner)toast(`${event.key||event.target.name} · ${event.label}`,!sentOK(event));
     return event;
   }finally{sending=false;updateControls();}

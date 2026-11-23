@@ -22,6 +22,7 @@ from tester_transports import TransportHub, validate_profile
 from tester_sensors import SensorEngine, validate_monitors, shortcut
 from tester_launcher import publish_instance, clear_instance
 from tester_presets import add_sensor_preset
+from tester_debug import DebugLog
 
 BASE = Path(__file__).resolve().parent
 KEY = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,119}$")
@@ -168,6 +169,7 @@ class Store:
         self.events = deque(maxlen=500)
         self.sequence = 0
         self.generation = 0
+        self.debug = DebugLog()
 
     def emit(self, event):
         with self.lock:
@@ -179,6 +181,7 @@ class Store:
             event.setdefault('ok', event.get('received', False))
             event.setdefault('severity', 'error' if not event['ok'] else 'warning' if event['protocol']=='http' and event.get('status') not in ('transitioned', 'queued') else 'info')
             self.events.appendleft(event)
+            self.debug.record(event)
             return deepcopy(event)
 
     def activity(self, after=0):
@@ -389,6 +392,13 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                             'cursor': store.sequence, 'generation': store.generation, 'revision': store.revision}
                 data.update(connections=hub.snapshot(data['workspace']['targets']), serial=hub.port_state(), sensors=sensors.snapshot())
                 return self.reply(200, data)
+            if route.path == '/api/debug':
+                with store.lock:
+                    data = {**store.debug.snapshot(), 'generation': store.generation,
+                            'targets': deepcopy(store.data['targets']), 'sensors': deepcopy(store.data.get('sensors', []))}
+                data['runtime'] = sensors.snapshot(selected='__debug_no_graph__')
+                data['connections'] = hub.snapshot(data['targets'])
+                return self.reply(200, data)
             if route.path == '/api/live':
                 try:
                     after = max(0, int(parse_qs(route.query).get('after', ['0'])[0]))
@@ -397,12 +407,12 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 data = store.activity(after)
                 data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(parse_qs(route.query).get('monitor', [None])[0]))
                 return self.reply(200, data)
-            assets = {'/code-guide.js': ('code-guide.js', 'text/javascript; charset=utf-8'), '/code-guide.json': ('code-guide.json', 'application/json; charset=utf-8'), '/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            assets = {'/debug.html': ('debug.html', 'text/html; charset=utf-8'), '/debug.js': ('debug.js', 'text/javascript; charset=utf-8'), '/debug.css': ('debug.css', 'text/css; charset=utf-8'), '/debug-open.js': ('debug-open.js', 'text/javascript; charset=utf-8'), '/code-guide.js': ('code-guide.js', 'text/javascript; charset=utf-8'), '/code-guide.json': ('code-guide.json', 'application/json; charset=utf-8'), '/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if self.path not in assets:
                 return self.reply(404, {'error': 'Not found.'})
             name, mime = assets[self.path]
             data = (BASE/'signal_tester_ui'/name).read_bytes()
-            if name == 'index.html':
+            if name in ('index.html', 'debug.html'):
                 data = data.replace(b'__TESTER_TOKEN__', token.encode('ascii'))
             self.reply(200, data, mime)
 
@@ -524,6 +534,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 if self.path == '/api/clear':
                     with store.lock:
                         store.events.clear()
+                        store.debug.clear()
                         store.generation += 1
                         cleared = {'ok': True, 'generation': store.generation, 'cursor': store.sequence}
                     return self.reply(200, cleared)
