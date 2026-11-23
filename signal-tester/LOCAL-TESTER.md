@@ -1,5 +1,7 @@
 # Signal Tester 사용법
 
+보드에서 센서 데이터를 보내는 코드를 작성하려면 [Arduino와 ESP32 센서 코드 작성 가이드](devices/CODE-GUIDE.md)를 참고하세요.
+
 Player의 HTTP Signal과 **Serial·UDP 송수신을 한 화면에서 확인**하는 테스트 도구입니다. 센서값 실시간 그래프, 조건에 따른 자동 Signal 전송, 키보드 테스트를 지원합니다. 연결 설정·Signal 키·키보드 바인딩·센서 규칙을 저장해 다음 테스트 때 그대로 사용할 수 있습니다. UI의 설정과 통신은 센서가 연결된 PC의 Python 프로그램이 처리합니다.
 
 ## SEN0610 / FSR을 여기서 함께 보기

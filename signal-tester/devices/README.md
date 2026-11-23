@@ -1,5 +1,7 @@
 # 센서 펌웨어
 
+처음 센서 코드를 작성한다면 [Arduino와 ESP32 센서 코드 작성 가이드](CODE-GUIDE.md)를 참고하세요. 복사해서 시험할 수 있는 숫자·JSON 전송 코드와 Signal Tester의 센서/자동 규칙 설정을 함께 설명합니다.
+
 화면 실행은 상위 폴더의 `Start-Signal-Tester.cmd` 하나를 사용합니다. 센서 대시보드에서 등록한 센서를 확인하세요. 새 모니터는 Add sensor로 추가합니다.
 
 | 연결할 센서 | PlatformIO에서 열 폴더 | 배선/사용법 |

@@ -45,6 +45,7 @@ Serial·UDP 송수신, 숫자/JSON 센서 그래프, HTTP Signal, 자동 규칙�
 - HTTP API는 `127.0.0.1`에만 바인딩하며 매 실행 새 토큰을 생성합니다. 자동으로 열린 로컬 화면에는 토큰이 제공되므로 직접 입력하지 않습니다. 외부 웹사이트의 API 접근은 기본으로 허용하지 않습니다.
 - OSC는 원본 UDP 바이트를 Text/HEX로 확인할 수 있지만 주소·인자 디코딩이나 OSC 전송 폼은 아직 없습니다.
 - 전체 기능과 센서 펌웨어 안내: [사용 설명서](LOCAL-TESTER.md), [devices](devices/README.md).
+- Arduino·ESP32에서 데이터를 보내는 코드와 화면 설정 예제: [센서 코드 작성 가이드](devices/CODE-GUIDE.md). 프로그램의 **Guide → 센서 코드 작성 가이드**에서도 인터넷 없이 읽고 코드를 복사할 수 있습니다. FSR·SEN0610 배선 안내와 전체 소스도 포함합니다.
 
 ## 선택: 대시보드 안에 표시
 
@@ -59,6 +60,8 @@ Python 3.10 이상과 `pyserial`이 필요합니다. Windows에서는 `Start-Sig
 전용 창은 Windows의 Microsoft Edge WebView2 Runtime을 사용합니다. 미설치 PC에서는 [Microsoft WebView2](https://developer.microsoft.com/microsoft-edge/webview2/consumer/)를 설치하세요. 진단 로그는 `%LOCALAPPDATA%/SignalTester/logs`에 보관됩니다.
 
 Windows EXE 빌드: `python signal-tester/build_windows.py`. 격리된 `.build-venv`에 고정 버전의 PyInstaller와 pyserial을 설치하고 UI·센서 프리셋과 함께 `signal-tester/dist/SignalTester.exe` 하나로 묶습니다. 배포할 때는 이 EXE만 복사합니다.
+
+내장 문서는 `build_guide.py`가 Markdown 원문에서 생성합니다. 문서 수정 후 빌드용 환경의 Python으로 `signal-tester/build_guide.py`를 실행하고 생성된 `signal_tester_ui/code-guide.json`도 커밋하세요. EXE 빌드 시에도 자동 갱신되며, 사용자의 PC에는 문서 렌더링 라이브러리가 필요 없습니다.
 
 검증:
 
