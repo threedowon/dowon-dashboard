@@ -22,7 +22,7 @@ class LauncherTests(unittest.TestCase):
         self.base = Path(self.temp.name)/'isolated tester'
         self.base.mkdir()
         for filename in ('signal_tester.py', 'tester_launcher.py', 'tester_transports.py',
-                         'tester_sensors.py', 'tester_presets.py', 'Start-Signal-Tester.cmd'):
+                         'tester_sensors.py', 'tester_presets.py', 'tester_debug.py', 'Start-Signal-Tester.cmd'):
             shutil.copy2(launcher.BASE/filename, self.base/filename)
         shutil.copytree(launcher.BASE/'signal_tester_ui', self.base/'signal_tester_ui')
         shutil.copytree(launcher.BASE/'presets', self.base/'presets')

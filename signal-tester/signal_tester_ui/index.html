@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="tester-token" content="__TESTER_TOKEN__">
   <title>Signal Tester</title><link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script><script src="updates.js" defer></script><script src="code-guide.js" defer></script>
+  <link rel="stylesheet" href="style.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script><script src="updates.js" defer></script><script src="code-guide.js" defer></script><script src="debug-open.js" defer></script>
 <script src="https://dashboard.3dowon.com/assets/workspace-taskbar.js?v=20261122-taskbar-eight" data-page="signaltester" defer></script>
 </head>
 <body>
@@ -14,6 +14,7 @@
     <div id="targets" class="targets"></div>
     <button id="addTarget" class="add-target" disabled><span data-icon="plus"></span>Add connection</button>
     <button id="sensorHub" class="scan-ports"><span data-icon="wave"></span>센서 대시보드</button>
+    <button id="openDebug" class="scan-ports">↗ 송수신 디버깅</button>
     <button id="scanPorts" class="scan-ports"><span data-icon="plug"></span><span class="scan-label">COM ports</span><span id="portCount">Scanning…</span></button>
     <div class="sidebar-bottom">
       <div class="saved-indicator"><span class="dot"></span><span id="saveState">Loading workspace…</span></div>
