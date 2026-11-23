@@ -73,9 +73,14 @@ class PackagedTests(unittest.TestCase):
             html = response.read().decode()
         self.assertIn(previous['token'], html)
         self.assertNotIn('__TESTER_TOKEN__', html)
-        for asset in ('app.js', 'io.js', 'keyboard.js', 'sensors.js', 'style.css'):
+        for asset in ('app.js', 'io.js', 'keyboard.js', 'sensors.js', 'style.css', 'code-guide.js'):
             with self.opener.open(base_url+'/'+asset, timeout=3) as response:
                 self.assertGreater(len(response.read()), 100)
+        with self.opener.open(base_url+'/code-guide.json', timeout=3) as response:
+            guide = json.load(response)['pages']
+        self.assertIn('Serial.println(value)', guide['code']['html'])
+        self.assertIn('void setup()', guide['fsr-source']['html'])
+        self.assertIn('GPIO9', guide['sen0610']['html'])
         with self.assertRaises(urllib.error.HTTPError) as error:
             self.call(previous, token='wrong')
         self.assertEqual(error.exception.code, 403)

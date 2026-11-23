@@ -14,6 +14,7 @@ def main():
     venv.EnvBuilder(with_pip=True).create(environment)
     python = environment / 'Scripts' / 'python.exe'
     subprocess.run([str(python), '-m', 'pip', 'install', '-r', str(ROOT / 'requirements-build.txt')], check=True)
+    subprocess.run([str(python), str(ROOT / 'build_guide.py')], check=True)
     subprocess.run([str(python), '-m', 'PyInstaller', '--clean', '--noconfirm',
                     '--workpath', str(ROOT / '.build-work'), str(ROOT / 'SignalTester.spec')], cwd=ROOT, check=True)
     print(f'Ready: {ROOT / "dist" / "SignalTester.exe"}')

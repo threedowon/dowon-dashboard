@@ -397,7 +397,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 data = store.activity(after)
                 data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(parse_qs(route.query).get('monitor', [None])[0]))
                 return self.reply(200, data)
-            assets = {'/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            assets = {'/code-guide.js': ('code-guide.js', 'text/javascript; charset=utf-8'), '/code-guide.json': ('code-guide.json', 'application/json; charset=utf-8'), '/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if self.path not in assets:
                 return self.reply(404, {'error': 'Not found.'})
             name, mime = assets[self.path]

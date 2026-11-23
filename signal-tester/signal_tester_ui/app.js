@@ -362,7 +362,7 @@ function lockStartupControls(){
   if(startupControls)return;
   startupControls=new Map();
   for(const control of document.querySelectorAll('button,input,select,textarea')){
-    if(control.id==='helpButton'||control.id==='retryWorkspace'||control.closest('#helpDialog')||control.classList.contains('close-dialog'))continue;
+    if(control.id==='helpButton'||control.id==='retryWorkspace'||control.closest('#helpDialog, #codeGuideDialog')||control.classList.contains('close-dialog'))continue;
     startupControls.set(control,control.disabled);control.disabled=true;
   }
 }

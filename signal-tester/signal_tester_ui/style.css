@@ -379,6 +379,39 @@ body.resizing-activity,body.resizing-activity *{cursor:col-resize!important;user
 .key-option:hover{background:var(--brand-soft);border-color:#a9cf8f}
 
 /* Dialogs */
+.code-guide-entry{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:16px;margin-bottom:16px;background:var(--brand-soft);border-radius:10px}
+.code-guide-entry p{font-size:12px;color:var(--ink-2);margin-top:5px}
+#codeGuideDialog{width:1120px;height:88vh;overflow:hidden;padding:22px}
+#codeGuideDialog[open]{display:flex;flex-direction:column}
+.code-guide-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.code-guide-toolbar select{max-width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.code-guide-toolbar .muted{font-size:11px}
+#codeGuideStatus{font-size:13px;color:var(--brand);flex-shrink:0;min-height:22px}
+.code-guide-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:22px;min-height:0;flex:1}
+#codeGuideContents{overflow:auto;border-right:1px solid var(--line);padding-right:12px}
+#codeGuideContents button{display:block;width:100%;padding:10px 8px;text-align:left;border:0;border-radius:6px;background:transparent;font-size:12px;line-height:1.5}
+#codeGuideContents button:hover{background:var(--brand-soft)}
+#codeGuideArticle{overflow:auto;padding:0 14px 24px 3px;line-height:1.75;overflow-wrap:anywhere}
+#codeGuideArticle h1{font-size:25px;line-height:1.4;margin:0 0 18px}
+#codeGuideArticle h2{font-size:19px;line-height:1.5;margin:30px 0 14px;border-top:1px solid var(--line);padding-top:18px}
+#codeGuideArticle h3{font-size:16px;margin:22px 0 12px}
+#codeGuideArticle p,#codeGuideArticle ul,#codeGuideArticle ol{margin:12px 0;line-height:1.8}
+#codeGuideArticle li{margin:8px 0}
+#codeGuideArticle a{color:var(--brand);text-underline-offset:3px}
+#codeGuideArticle a[target="_blank"]::after{content:' ↗';font-size:11px}
+#codeGuideArticle code{font-size:12px;background:var(--surface-3);padding:2px 4px;border-radius:4px}
+#codeGuideArticle pre{overflow:auto;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);line-height:1.65;white-space:pre}
+#codeGuideArticle pre code{padding:0;background:none;font-size:12px}
+#codeGuideArticle table{width:100%;border-collapse:collapse;font-size:12px;margin:16px 0;table-layout:fixed}
+#codeGuideArticle th,#codeGuideArticle td{border:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}
+#codeGuideArticle th{background:var(--surface-3)}
+#codeGuideArticle .code-copy{display:block;margin:16px 0 -6px auto;font-size:12px}
+@media(max-width:760px){
+  #codeGuideDialog{padding:14px;height:92vh;max-height:92vh}
+  .code-guide-layout{grid-template-columns:minmax(0,1fr);gap:8px}
+  #codeGuideContents{max-height:100px;border-right:0;border-bottom:1px solid var(--line)}
+  #codeGuideArticle{padding-right:5px}
+}
 .sensor-overview-heading{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:12px}
 .sensor-overview-heading select{max-width:100%;min-width:170px}
 .sensor-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px}
