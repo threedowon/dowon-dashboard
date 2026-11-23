@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const configs = {
+    arduino: ['Arduino Sketchbook','arduino',[],'Browse sensor code, download source files and project settings, and open wiring guides.'],
     milestones: ['Milestones','milestones',['newProject','cloudSave','backup'],'Select projects to explore their roadmap. Open a project for its calendar and connection map.'],
     pdf: ['PDF Library','library',['pdfAdd','pdfRefresh','pdfConnect'],'Upload PDFs, search by title or tag, and select documents to manage their tags.'],
     ideas: ['Reference','ideas',['ideasImage','ideasLink','ideasNote','ideasRefresh'],'Paste images or links into the board. Drag cards to arrange them. Ctrl+wheel zooms; Ctrl+Z undoes.'],
@@ -39,7 +40,7 @@
     const section=document.querySelector('[data-screen="'+key+'"]');if(!section)return;
     section.classList.add('retro-page');
     const body=make('div','retro-page-body');while(section.firstChild)body.append(section.firstChild);
-    const header=make('header','retro-titlebar'),icon=make('img');icon.src='assets/dashboard-objects/retro-v1/'+config[1]+'.png';icon.alt='';
+    const header=make('header','retro-titlebar'),icon=make('img');icon.src='assets/dashboard-objects/retro-v1/'+config[1]+(key==='arduino'?'.svg':'.png');icon.alt='';
     const title=make('h2','retro-page-caption',config[0]);const controls=make('div','retro-controls');
     for(const [label,glyph,fn] of [['Minimize','−',home],['Maximize','□',()=>{const max=section.classList.toggle('is-maximized');controls.querySelector('[data-maximize]').setAttribute('aria-pressed',String(max));window.dispatchEvent(new Event('resize'));}],['Close','×',home]]){
       const b=make('button','retro-control',glyph);b.type='button';b.setAttribute('aria-label',label+' '+config[0]);if(label==='Maximize'){b.dataset.maximize='';b.setAttribute('aria-pressed','false');}b.onclick=fn;controls.append(b);

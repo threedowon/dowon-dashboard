@@ -149,12 +149,13 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/hardware-sheet.css?v=20261122">
 <script src="assets/hardware-sheet.js?v=20261122-retro-pages-v1" defer></script>
 <link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
-<link rel="stylesheet" href="assets/retro-home.css?v=20261122-taskbar-eight">
+<link rel="stylesheet" href="assets/retro-home.css?v=20261124-taskbar-nine">
 <script src="assets/retro-desktop.js?v=20261122-github-computer-v1" defer></script>
 <link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-previews-v1">
 <link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-map-tools-v2">
 <link rel="stylesheet" href="assets/retro-wirenest.css?v=20261122-v1">
 <link rel="stylesheet" href="assets/retro-signaltester.css?v=20261122-v1">
+<link rel="stylesheet" href="assets/arduino-sketchbook.css">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -166,6 +167,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>Reference</a>
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
 <a class="workspace-link" href="#signaltester" data-page="signaltester">Signal Tester</a>
+<a class="workspace-link" href="#arduino" data-page="arduino">Arduino Sketchbook</a>
 <a class="workspace-link" href="#hardware" data-page="hardware">Hardware Sheet</a>
 </nav>
 
@@ -185,8 +187,9 @@ html[data-active-page="home"] .side{display:none}
 <a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">File Transfer</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>Move files between workspaces.</p><div class="catalog-status">Upload · Download</div></div></a>
 <a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>Organize hardware requests and purchase quantities.</p></div></a>
 <a class="catalog-card object-card" href="http://127.0.0.1:6699/" target="_blank" rel="noopener noreferrer" title="Open the running web tester on this PC" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>Live sensor readings · Charts · Communication logs</p></div></a>
+<a class="catalog-card object-card" href="#arduino" aria-labelledby="arduinoCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">08</span><div class="catalog-card-head"><div><h2 id="arduinoCardTitle">Arduino Sketchbook</h2><span class="catalog-en">Reusable sketches &amp; sensor code</span></div></div><div class="catalog-details"><p>Browse Arduino code, wiring guides and project settings.</p></div></a>
 <div class="retro-welcome"><span aria-hidden="true">⚙</span><p>A place for things<br>in progress.</p></div></div>
-<footer class="retro-status"><span id="retroHomeStatus" role="status">7 tools ready</span></footer></div>
+<footer class="retro-status"><span id="retroHomeStatus" role="status">8 tools ready</span></footer></div>
 <aside class="retro-desktop-side" aria-label="Desktop accessories">
 <button type="button" id="retroComputer" class="retro-desktop-icon" data-retro-action="restore"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>My Computer</span></button>
 <section class="retro-window retro-note" id="retroNote" aria-labelledby="retroNoteTitle"><header class="retro-titlebar"><h2 id="retroNoteTitle">Quick Note</h2><button type="button" class="retro-control" data-retro-action="close-note" aria-label="Close Quick Note">×</button></header><textarea id="retroNoteText" aria-label="Quick Note — saved on this device" spellcheck="false" maxlength="4000">Make something today.</textarea></section>
@@ -198,6 +201,26 @@ html[data-active-page="home"] .side{display:none}
 <p class="small" id="hardwareHelp">화면이 표시되지 않거나 다운로드가 안 되면 새 탭에서 열어주세요.</p>
 <div id="hardwareMount"></div>
 </section>
+<section id="arduinoPage" data-screen="arduino" aria-labelledby="arduinoTitle" hidden>
+<div class="placeholder-heading"><div><h1 id="arduinoTitle" tabindex="-1">Arduino Sketchbook</h1><p class="page-intro">Reusable sketches &amp; sensor code</p></div></div>
+<p>아두이노 코드를 배선 안내와 함께 모아두는 곳입니다. ESP32용 Arduino 스케치와 ESP32-S3용 PlatformIO 프로젝트를 모았습니다.</p>
+<div class="sketchbook-grid">
+<article class="sketchbook-card" data-sketch="fsr-single"><span class="small">ESP32-S3 / Arduino</span><h2>FSR · Single sensor (GPIO4)</h2><p>GPIO4에서 10ms마다 측정하고, 필터링한 값과 원본 값을 100ms마다 JSON으로 전송합니다. Serial 115200 · 필터 계수 0.2</p><div class="tools"><a class="btn primary" href="signal-tester/devices/fsr-single/fsr-single.ino" download="fsr-single.ino">Download code</a></div><p class="small">Arduino IDE의 ESP32 스케치에 전체 코드를 붙여넣으세요.</p><div class="sketch-code-panel">
+<div class="sketch-code-toolbar"><label for="fsrSingleFile">파일 <select id="fsrSingleFile" data-sketch-file><option value="fsr-single.ino">fsr-single.ino</option></select></label><div class="tools"><button class="btn primary" type="button" data-sketch-copy disabled>코드 복사</button><button class="btn" type="button" data-sketch-select disabled>전체 선택</button><button class="btn" type="button" data-sketch-retry hidden>다시 불러오기</button></div></div>
+<textarea class="sketch-code" data-sketch-code aria-label="FSR 단일 센서 코드" readonly spellcheck="false" wrap="off" placeholder="코드를 불러오는 중…"></textarea>
+<p class="sketch-copy-status small" data-sketch-status role="status" aria-live="polite"></p>
+</div></article>
+<article class="sketchbook-card" data-sketch="fsr"><span class="small">ESP32-S3 / Arduino</span><h2>FSR · 4-channel</h2><p>FSR 센서 4개의 압력 변화와 감지 상태를 읽는 코드입니다.</p><div class="tools"><a class="btn primary" href="signal-tester/devices/fsr/src/main.cpp" download="fsr-main.cpp">Download code</a><a class="btn" href="signal-tester/devices/fsr/README.md" target="_blank" rel="noopener">Wiring &amp; guide</a><a class="btn" href="signal-tester/devices/fsr/platformio.ini" download="platformio.ini">Project settings</a></div><div class="sketch-code-panel">
+<div class="sketch-code-toolbar"><label for="fsrFile">파일 <select id="fsrFile" data-sketch-file><option value="src/main.cpp">src/main.cpp</option><option value="platformio.ini">platformio.ini</option></select></label><div class="tools"><button class="btn primary" type="button" data-sketch-copy disabled>코드 복사</button><button class="btn" type="button" data-sketch-select disabled>전체 선택</button><button class="btn" type="button" data-sketch-retry hidden>다시 불러오기</button></div></div>
+<textarea class="sketch-code" data-sketch-code aria-label="FSR 코드" readonly spellcheck="false" wrap="off" placeholder="코드를 불러오는 중…"></textarea>
+<p class="sketch-copy-status small" data-sketch-status role="status" aria-live="polite"></p>
+</div></article>
+<article class="sketchbook-card" data-sketch="sen0610"><span class="small">ESP32-S3 / Arduino</span><h2>SEN0610 · Distance sensor</h2><p>I2C 거리 센서의 측정값과 연결 상태를 읽는 코드입니다.</p><div class="tools"><a class="btn primary" href="signal-tester/devices/sen0610/src/main.cpp" download="sen0610-main.cpp">Download code</a><a class="btn" href="signal-tester/devices/sen0610/README.md" target="_blank" rel="noopener">Wiring &amp; guide</a><a class="btn" href="signal-tester/devices/sen0610/platformio.ini" download="platformio.ini">Project settings</a></div><div class="sketch-code-panel">
+<div class="sketch-code-toolbar"><label for="sen0610File">파일 <select id="sen0610File" data-sketch-file><option value="src/main.cpp">src/main.cpp</option><option value="platformio.ini">platformio.ini</option></select></label><div class="tools"><button class="btn primary" type="button" data-sketch-copy disabled>코드 복사</button><button class="btn" type="button" data-sketch-select disabled>전체 선택</button><button class="btn" type="button" data-sketch-retry hidden>다시 불러오기</button></div></div>
+<textarea class="sketch-code" data-sketch-code aria-label="SEN0610 코드" readonly spellcheck="false" wrap="off" placeholder="코드를 불러오는 중…"></textarea>
+<p class="sketch-copy-status small" data-sketch-status role="status" aria-live="polite"></p>
+</div></article>
+</div><p class="small">PlatformIO 프로젝트의 src/main.cpp에 코드를 넣고, 해당 platformio.ini 설정과 배선 안내를 함께 확인하세요.</p></section>
 <section id="signaltesterPage" data-screen="signaltester" aria-labelledby="signaltesterTitle" hidden>
 <div class="placeholder-heading signal-heading"><div><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" class="signal-heading-icon"><div><h1 id="signaltesterTitle" tabindex="-1">Signal Tester</h1><p class="page-intro">Connect devices. Explore your signals.</p></div></div><a class="btn" href="signal-tester/README.md" target="_blank" rel="noopener">User guide ↗</a></div>
 <div class="signal-setup">
@@ -286,6 +309,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="retro-task" href="#wirenest" data-page="wirenest"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"><span>WireNest</span></a>
 <a class="retro-task" href="#transfers" data-page="transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a>
 <a class="retro-task" href="#signaltester" data-page="signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
+<a class="retro-task" href="#arduino" data-page="arduino"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"><span>Arduino Sketchbook</span></a>
 <a class="retro-task" href="#hardware" data-page="hardware"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"><span>Hardware Sheet</span></a></nav><time id="retroClock" class="retro-clock" aria-label="Current time"></time></div>
 <nav class="retro-start-menu" lang="en" id="retroStartMenu" aria-label="Start menu" hidden><a href="#home"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>Home</span></a>
 <a href="#milestones"><img src="assets/dashboard-objects/retro-v1/milestones.png" alt="" decoding="async"><span>Milestones</span></a>
@@ -293,6 +317,7 @@ html[data-active-page="home"] .side{display:none}
 <a href="#ideas"><img src="assets/dashboard-objects/retro-v1/ideas.png" alt="" decoding="async"><span>Reference</span></a>
 <a href="#wirenest"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"><span>WireNest</span></a>
 <a href="#signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
+<a href="#arduino"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"><span>Arduino Sketchbook</span></a>
 <a href="#hardware"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"><span>Hardware Sheet</span></a>
 <a href="#transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a><button type="button" data-retro-action="note">Quick Note</button></nav>
 <dialog id="modal"><h2 id="modalTitle"></h2><form id="form"><div class="formgrid" id="fields"></div><div class="footer"><button type="button" class="btn danger" id="remove">삭제</button><div><button type="button" class="btn" id="cancel">취소</button> <button class="btn primary" type="submit">저장</button></div></div></form></dialog>
@@ -344,7 +369,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매"};
+const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매",arduino:"Arduino Sketchbook"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
@@ -627,5 +652,6 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261122-map-tools-v2" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
+</script><script src="assets/retro-pages.js?v=20261124-arduino" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
+<script src="assets/arduino-sketchbook.js" defer></script>
 </body></html>

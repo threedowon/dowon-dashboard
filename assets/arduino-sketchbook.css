@@ -1,0 +1,15 @@
+.retro-welcome{grid-column:auto}
+.sketchbook-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px;margin:24px 0}
+.sketchbook-card{padding:24px;background:#faf8ef;border:2px solid;border-color:#fff #808080 #808080 #fff;box-shadow:1px 1px 0 #000}
+.sketchbook-card h2{margin:10px 0;font-size:24px}.sketchbook-card p{line-height:1.7}.sketchbook-card .tools{flex-wrap:wrap;gap:8px;margin-top:20px}
+.sketchbook-grid{grid-template-columns:minmax(0,1fr)}
+.sketchbook-card{min-width:0}
+.sketch-code-panel{margin-top:22px}
+.sketch-code-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.sketch-code-toolbar label{display:flex;align-items:center;gap:10px}
+.sketch-code-toolbar select{font:inherit;max-width:100%;padding:6px;background:#fff;color:#111}
+.sketch-code-toolbar .tools{margin:0}
+.sketch-code{display:block;box-sizing:border-box;width:100%;height:380px;min-height:180px;resize:vertical;overflow:auto;border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;background:#fffef9;color:#172c32;padding:16px;font:14px/1.6 Consolas,'Courier New',monospace;tab-size:2;white-space:pre}
+.sketch-code:focus-visible{outline:2px solid #008b8b;outline-offset:2px}
+.sketchbook-card .sketch-copy-status{min-height:1.7em;margin:8px 0 0}
+@media(max-width:700px){.sketchbook-card{padding:16px}.sketch-code{height:320px;padding:10px}}

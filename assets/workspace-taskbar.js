@@ -9,11 +9,11 @@
     ['home','Home','computer'], ['milestones','Milestones','milestones'],
     ['pdf','PDF Library','library'], ['ideas','Reference','ideas'],
     ['wirenest','WireNest','wirenest'], ['transfers','File Transfer','transfers'], ['signaltester','Signal Tester','signaltester'],
-    ['hardware','Hardware Sheet','hardware']
+    ['hardware','Hardware Sheet','hardware'], ['arduino','Arduino Sketchbook','arduino']
   ];
   const image = name => {
     const img = document.createElement('img');
-    img.src = new URL(`assets/dashboard-objects/retro-v1/${name}.png`,base).href;
+    img.src = new URL(`assets/dashboard-objects/retro-v1/${name}.${name==='arduino'?'svg':'png'}`,base).href;
     img.alt = ''; img.decoding = 'async'; return img;
   };
   const link = ([key,label,icon], task) => {
@@ -25,7 +25,7 @@
     a.append(image(icon),text); return a;
   };
   const css=document.createElement('link'); css.rel='stylesheet';
-  css.href=new URL('assets/workspace-taskbar.css?v=20261122-taskbar-eight',base).href;
+  css.href=new URL('assets/workspace-taskbar.css?v=20261124-taskbar-nine',base).href;
   document.head.append(css);
   document.documentElement.dataset.workspaceTool=page;
   document.body.classList.add('workspace-taskbar-host');
