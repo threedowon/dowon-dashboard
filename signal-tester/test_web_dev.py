@@ -28,7 +28,12 @@ class WebDevTests(unittest.TestCase):
             def run():
                 try:tester.main(['--web-dev'])
                 except Exception as error:errors.append(error);opened.set()
-            with patch('signal_tester.webbrowser.open',browser),patch.object(CloudSync,'start'),patch.object(CloudSync,'close'),patch('tester_window.run_window') as native,patch('tester_update.Updater') as updater:
+            create_server = tester.create_server
+            requested_ports = []
+            def isolated_server(store, port, **kwargs):
+                requested_ports.append(port)
+                return create_server(store, 0, **kwargs)
+            with patch('signal_tester.create_server',isolated_server),patch('signal_tester.webbrowser.open',browser),patch.object(CloudSync,'start'),patch.object(CloudSync,'close'),patch('tester_window.run_window') as native,patch('tester_update.Updater') as updater:
                 thread=threading.Thread(target=run);thread.start();self.assertTrue(opened.wait(5));self.assertFalse(errors)
                 def call(route,body=None):
                     with urllib.request.urlopen(url[0],timeout=3) as response:
@@ -44,6 +49,7 @@ class WebDevTests(unittest.TestCase):
                     self.assertFalse(call('update/status')['enabled'])
                     self.assertEqual(call('debug')['counts']['received'],0)
                     native.assert_not_called();updater.assert_not_called()
+                    self.assertEqual(requested_ports, [6699])
                 finally:call('exit',{});thread.join(5)
                 self.assertFalse(thread.is_alive());self.assertFalse(errors)
             self.assertEqual(json.loads(config.read_text(encoding='utf-8')),saved)

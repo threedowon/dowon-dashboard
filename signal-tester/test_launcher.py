@@ -55,7 +55,7 @@ class LauncherTests(unittest.TestCase):
             self.temp.cleanup()
 
     def start(self, managed=True, cmd=False):
-        args = ['--no-browser', '--config', str(self.config)]
+        args = ['--no-browser', '--ui-port', '0', '--config', str(self.config)]
         if cmd:
             command = [os.environ.get('COMSPEC', 'cmd.exe'), '/d', '/c',
                        str(self.base/'Start-Signal-Tester.cmd'), *args]
