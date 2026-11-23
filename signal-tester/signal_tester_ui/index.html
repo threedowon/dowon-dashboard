@@ -24,6 +24,7 @@
   <main class="app">
     <div id="updateBar" class="update-bar" hidden><span id="updateStatus" role="status">새 버전 확인 중…</span><button id="updateCheck" class="button">업데이트 확인</button><button id="updateInstall" class="button dark" hidden>업데이트</button></div>
     <div id="desktopBar" class="desktop-bar" hidden><div><strong>이 PC에서 실행 중</strong><span id="desktopBackupStatus" role="status">백업 상태 확인 중…</span></div><button id="desktopBackup" class="button">설정 자동 백업</button><button id="desktopExit" class="button desktop-exit">프로그램 종료</button></div>
+    <div id="webDevNotice" class="notice" hidden><strong>웹 개발 모드</strong><p>화면 수정은 새로고침으로 반영됩니다. Python 코드 수정 후에는 Start-Web-Tester.cmd를 다시 실행하세요. 브라우저 탭을 닫아도 통신은 계속됩니다. 종료하려면 위의 프로그램 종료를 누르세요.</p></div>
     <div id="workspaceStatus" class="notice" role="status"><strong id="workspaceTitle">Loading workspace…</strong><p id="workspaceDetail">Reading saved connections and Signals from the tester engine.</p><button id="retryWorkspace" class="button" disabled>Retry loading</button></div>
     <div id="warning" class="notice error" hidden></div>
     <section class="connection-bar" aria-label="Active target">

@@ -13,7 +13,7 @@
     for(const id of ['cloudList','cloudSync','cloudDisconnect'])$(id).disabled=working||!state.connected;
     $('cloudForce').hidden=!state.conflict;$('cloudForce').disabled=working;
   }
-  async function refresh(){try{const result=await api('cloud/status');$('desktopBar').hidden=!result.desktop;state=result.cloud;renderCloud();}catch{}}
+  async function refresh(){try{const result=await api('cloud/status');$('desktopBar').hidden=!result.desktop;$('webDevNotice').hidden=!result.webDev;$('desktopBackup').disabled=!result.cloud;state=result.cloud;renderCloud();}catch{}}
   async function task(work){if(working)return;working=true;renderCloud();try{await work();}catch(e){toast(e.message,true);}finally{working=false;await refresh();}}
   $('cloudClose').onclick=()=>$('cloudDialog').close();
   $('cloudName').oninput=()=>{$('cloudName').dataset.edited='true';};

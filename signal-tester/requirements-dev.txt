@@ -1,0 +1,2 @@
+pyserial==3.5
+Markdown==3.7

@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Signal Tester
+title Signal Tester - Web Development
 set "SIGNAL_PYTHON="
 for /d %%D in ("%LOCALAPPDATA%\Python\pythoncore-*") do if exist "%%~D\python.exe" set "SIGNAL_PYTHON=%%~D\python.exe"
 if defined SIGNAL_PYTHON goto run_path
@@ -15,13 +15,13 @@ echo Python 3.10 or newer is required. Install Python, then run this file again.
 pause
 exit /b 1
 :run_path
-"%SIGNAL_PYTHON%" "%~dp0tester_launcher.py" --desktop %*
+"%SIGNAL_PYTHON%" "%~dp0tester_web_dev.py" %*
 goto finished
 :run_py
-py -3 "%~dp0tester_launcher.py" --desktop %*
+py -3 "%~dp0tester_web_dev.py" %*
 goto finished
 :run_python
-python "%~dp0tester_launcher.py" --desktop %*
+python "%~dp0tester_web_dev.py" %*
 :finished
 if errorlevel 1 pause
 endlocal
