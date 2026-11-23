@@ -2,7 +2,32 @@
 
 Serial·UDP 송수신, 숫자/JSON 센서 그래프, HTTP Signal, 자동 규칙을 한 화면에서 사용합니다. 통신과 설정 저장은 이 PC에서 처리하며 측정값을 서버에 업로드하지 않습니다.
 
-## Windows에서 시작
+## 웹 개발 모드로 시작
+
+개발 중에는 **`Start-Web-Tester.cmd`**를 더블클릭하세요. 기존 `Start-Signal-Tester.cmd`도 웹 개발 모드를 실행합니다. Python 3.10 이상이 필요하며, 첫 실행 시 개발용 환경에 Serial 지원과 문서 생성 도구를 자동 준비합니다. 준비된 환경은 다음 실행에서도 사용합니다.
+
+1. 실행 중인 EXE에서 **프로그램 종료**를 누릅니다. 같은 설정을 사용하는 EXE가 열려 있으면 웹 모드는 시작을 중단하고 종료를 안내합니다.
+2. `Start-Web-Tester.cmd`를 실행합니다. 브라우저에 로컬 화면이 자동으로 열리며 연결 코드를 입력하지 않습니다. 콘솔에도 접속 주소가 표시됩니다.
+3. 기존 COM 포트·Signal·센서·규칙과 백업 계정 연결을 그대로 불러옵니다. **연결과 자동 규칙은 정지 상태**이므로 사용할 연결을 열고 규칙을 켜세요.
+4. HTML·CSS·JavaScript를 수정한 후 브라우저를 새로고침합니다. Python을 수정했다면 같은 CMD를 다시 실행하세요. 같은 소스 폴더의 기존 통신 프로그램을 종료하고 다시 시작합니다.
+5. 종료는 화면의 **프로그램 종료** 또는 실행 콘솔의 Ctrl+C를 사용합니다. 브라우저 탭만 닫으면 통신과 자동 규칙은 계속 실행됩니다.
+
+EXE와 동일한 `%LOCALAPPDATA%/SignalTester/dashboard-workspace.json`을 사용하며 백업 인증도 같은 Windows 사용자에서 그대로 재사용합니다. EXE로 돌아갈 때도 웹 프로그램을 먼저 종료하면 됩니다. 서로 다른 설정으로 시험하려면 `Start-Web-Tester.cmd --config C:\테스트\workspace.json`을 사용하세요.
+
+| 수정할 부분 | 파일 | 확인 방법 |
+| --- | --- | --- |
+| 화면 구조 | `signal_tester_ui/index.html` | 브라우저 새로고침 |
+| 화면 스타일 | `signal_tester_ui/style.css` | 브라우저 새로고침 |
+| 화면 동작 | `signal_tester_ui/*.js` | 브라우저 새로고침 |
+| 디버깅 화면 | `signal_tester_ui/debug.html`, `debug.js`, `debug.css` | 디버깅 브라우저 창 새로고침 |
+| 통신과 센서 판정 | `signal_tester.py`, `tester_transports.py`, `tester_sensors.py` | CMD 다시 실행 |
+| 내장 문서 원문 | `devices/CODE-GUIDE.md` 등 | CMD 다시 실행하여 문서 갱신 |
+
+웹 개발 모드에서는 EXE 업데이트를 실행하지 않습니다. 화면은 소스 파일을 매 요청마다 읽고 캐시하지 않으므로 EXE를 빌드하지 않아도 수정 내용을 확인할 수 있습니다. 자동 새로고침은 하지 않으며, 폼 입력 중인 내용이 갑자기 초기화되지 않도록 직접 새로고침합니다.
+
+명령줄 실행: `python tester_web_dev.py`. 이미 의존성이 준비된 환경에서는 `python tester_launcher.py --web-dev`로도 실행할 수 있습니다. `--no-browser`는 브라우저 자동 열기만 생략하며, `--ui-port`로 로컬 화면 포트를 지정할 수 있습니다. Windows 외 환경은 `python signal_tester.py --web-dev`로 실행하며 Windows DPAPI 기반 자동 백업은 제공하지 않습니다.
+
+## 배포된 Windows EXE에서 시작
 
 1. [SignalTester.exe 다운로드](https://github.com/threedowon/dowon-dashboard/releases/latest/download/SignalTester.exe).
 2. 더블클릭하면 콘솔 없이 Signal Tester 전용 창이 열립니다. **Python 설치, 압축 해제, 연결 코드 입력이 필요 없습니다.** Windows 10/11 64비트용입니다.
@@ -67,7 +92,7 @@ Serial·UDP 송수신, 숫자/JSON 센서 그래프, HTTP Signal, 자동 규칙�
 
 ## 소스 실행·개발
 
-Python 3.10 이상과 `pyserial`이 필요합니다. Windows에서는 `Start-Signal-Tester.cmd`를 실행하면 로컬 화면이 바로 열립니다. macOS/Linux에서는 `python3 signal_tester.py`를 실행하세요. 직접 Python으로 실행할 때의 기본 설정은 `workspace.json`이며, `--desktop` 옵션은 EXE와 같은 설정 파일을 사용합니다.
+웹 개발은 위의 **웹 개발 모드로 시작**을 참고하세요. 일반 소스 실행 `python signal_tester.py`의 기본 설정은 `workspace.json`이며, `--web-dev` 옵션은 EXE와 같은 설정과 Windows 백업 기능을 사용하는 브라우저 화면을 엽니다. `--desktop`은 이전 런처의 설정 경로 호환용 옵션입니다.
 
 전용 창은 Windows의 Microsoft Edge WebView2 Runtime을 사용합니다. 미설치 PC에서는 [Microsoft WebView2](https://developer.microsoft.com/microsoft-edge/webview2/consumer/)를 설치하세요. 진단 로그는 `%LOCALAPPDATA%/SignalTester/logs`에 보관됩니다.
 

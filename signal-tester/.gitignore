@@ -3,5 +3,6 @@ __pycache__/
 *.local.json
 .pio/
 .build-venv/
+.dev-venv/
 .build-work/
 dist/

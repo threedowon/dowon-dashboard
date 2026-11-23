@@ -40,7 +40,8 @@ def publish_instance(server):
     file.parent.mkdir(parents=True, exist_ok=True)
     temp = file.with_name(file.name+'.'+identity+'.tmp')
     temp.write_text(json.dumps({'pid': os.getpid(), 'instance': identity,
-                               'port': server.server_port, 'token': server.token}), encoding='utf-8')
+                               'port': server.server_port, 'token': server.token,
+                               'config': getattr(server, 'config', None)}), encoding='utf-8')
     os.replace(temp, file)
 
 
