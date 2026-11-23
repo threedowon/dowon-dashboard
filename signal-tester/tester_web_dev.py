@@ -11,6 +11,22 @@ import venv
 ROOT = Path(__file__).resolve().parent
 
 
+def restart_web(config, port):
+    """Run the fixed source launcher; never execute a command supplied by the UI."""
+    if os.name != 'nt':
+        raise RuntimeError('Web restart currently requires Windows.')
+    log = Path(os.environ['LOCALAPPDATA'])/'SignalTester/logs/web-dev.log'
+    log.parent.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ)
+    for key in ('SIGNAL_TESTER_INSTANCE_FILE', 'SIGNAL_TESTER_INSTANCE_ID'):
+        env.pop(key, None)
+    with log.open('ab') as output:
+        subprocess.Popen([sys.executable, str(ROOT/'tester_web_dev.py'), '--no-browser',
+                          '--config', str(Path(config).resolve()), '--ui-port', str(port)],
+                         cwd=ROOT, env=env, stdin=subprocess.DEVNULL, stdout=output, stderr=output,
+                         creationflags=subprocess.CREATE_NO_WINDOW)
+
+
 def check_workspace_in_use(config):
     """Older EXEs expose a stable cloud device ID; newer engines publish the path."""
     if os.name != 'nt':

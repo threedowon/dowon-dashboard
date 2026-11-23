@@ -305,7 +305,7 @@ def perform_send(store, body, target_snapshot=None):
 DASHBOARD_ORIGIN = 'https://dashboard.3dowon.com'
 
 
-def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False, cloud=None, desktop=False, updater=None, web_dev=False):
+def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False, cloud=None, desktop=False, updater=None, web_dev=False, web_restart=None):
     token = secrets.token_urlsafe(32)
     sensors = SensorEngine(store.emit, lambda body: perform_send(store, body, body.get('_target')))
     sensors.configure(store.snapshot())
@@ -380,7 +380,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 except (OSError, ValueError):
                     return self.reply(400, {'error': '로그인을 완료하지 못했습니다. Signal Tester에서 다시 연결하세요.'})
             if route.path == '/api/cloud/status':
-                return self.reply(200, {'desktop': desktop, 'webDev': web_dev, 'cloud': cloud.status() if cloud else None})
+                return self.reply(200, {'desktop': desktop, 'webDev': web_dev, 'webRestart': web_dev and web_restart is not None, 'cloud': cloud.status() if cloud else None})
             if route.path == '/api/cloud/backups' and cloud:
                 try:
                     return self.reply(200, cloud.backups())
@@ -437,6 +437,13 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                     return self.reply(200, updater.start_check())
                 if self.path == '/api/update/install' and updater:
                     return self.reply(200, updater.install(body.get('version')))
+                if self.path == '/api/web/restart' and web_dev and web_restart:
+                    with operation_lock:
+                        if self.server.web_restart_pending:
+                            return self.reply(409, {'error': 'Web restart is already in progress.'})
+                        web_restart(store.file, self.server.server_port)
+                        self.server.web_restart_pending = True
+                    return self.reply(200, {'ok': True})
                 if self.path == '/api/exit' and desktop:
                     with operation_lock:
                         stopping.set()
@@ -570,6 +577,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
     server.hub = hub
     server.sensors = sensors
     server.ui_ready = True
+    server.web_restart_pending = False
     if updater:
         def update_shutdown():
             with operation_lock:
@@ -633,7 +641,11 @@ def main(argv=None, native=False):
         updater = Updater(sys.executable if getattr(sys, 'frozen', False) else None, restart_args)
         updater.cleanup()
     ui_port = args.ui_port if args.ui_port is not None else (6699 if args.web_dev else 0)
-    server = create_server(store, ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native or args.web_dev, updater=updater, web_dev=args.web_dev)
+    web_restart = None
+    if args.web_dev and os.name == 'nt':
+        from tester_web_dev import restart_web
+        web_restart = restart_web
+    server = create_server(store, ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native or args.web_dev, updater=updater, web_dev=args.web_dev, web_restart=web_restart)
     url = f'http://127.0.0.1:{server.server_port}/'
     try:
         publish_instance(server)

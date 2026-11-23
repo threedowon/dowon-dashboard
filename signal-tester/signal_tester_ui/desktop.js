@@ -13,7 +13,7 @@
     for(const id of ['cloudList','cloudSync','cloudDisconnect'])$(id).disabled=working||!state.connected;
     $('cloudForce').hidden=!state.conflict;$('cloudForce').disabled=working;
   }
-  async function refresh(){try{const result=await api('cloud/status');$('desktopBar').hidden=!result.desktop;$('webDevNotice').hidden=!result.webDev;$('desktopBackup').disabled=!result.cloud;state=result.cloud;renderCloud();}catch{}}
+  async function refresh(){try{const result=await api('cloud/status');$('desktopBar').hidden=!result.desktop;$('webDevNotice').hidden=!result.webDev;$('webRestart').hidden=!result.webRestart;$('desktopBackup').disabled=!result.cloud;state=result.cloud;renderCloud();}catch{}}
   async function task(work){if(working)return;working=true;renderCloud();try{await work();}catch(e){toast(e.message,true);}finally{working=false;await refresh();}}
   $('cloudClose').onclick=()=>$('cloudDialog').close();
   $('cloudName').oninput=()=>{$('cloudName').dataset.edited='true';};
@@ -50,6 +50,30 @@
     const pending=state?.dirty?' 백업 대기 중인 설정은 이 PC에 보관되고 다음 실행 시 다시 백업합니다.':'';
     if(!await confirmAction('Signal Tester를 종료할까요?','Serial·UDP 연결과 자동 규칙이 모두 종료됩니다.'+pending,'프로그램 종료'))return;
     await api('exit',{});
+  });
+  $('webRestart').onclick=safe(async()=>{
+    if($('webRestart').disabled)return;
+    if(lockWorkspace())return;
+    if(!await confirmAction('변경사항을 적용하고 다시 시작할까요?','설정은 유지됩니다. Serial·UDP 연결과 자동 규칙은 정지하며 송수신 기록은 초기화됩니다. 필요한 기록은 먼저 내보내세요. 다시 시작한 뒤 사용할 연결과 규칙을 켜주세요.','적용 · 다시 시작'))return;
+    $('webRestart').disabled=true;
+    $('webRestartStatus').textContent='변경사항 적용 중… 준비되면 이 화면이 자동으로 새로고침됩니다.';
+    try{
+      await api('web/restart',{});
+      for(let attempt=0;attempt<90;attempt++){
+        await new Promise(resolve=>setTimeout(resolve,1000));
+        try{
+          const response=await fetch('/',{cache:'no-store',signal:AbortSignal.timeout(2000)});
+          if(!response.ok)continue;
+          const html=await response.text();
+          const nextToken=/name="tester-token" content="([A-Za-z0-9_-]{43})"/.exec(html)?.[1];
+          if(nextToken&&nextToken!==token){location.reload();return;}
+        }catch{}
+      }
+      throw Error('다시 시작을 확인하지 못했습니다. Start-Web-Tester.cmd를 실행한 뒤 새로고침하세요.');
+    }catch(error){
+      $('webRestartStatus').textContent=error.message;
+      $('webRestart').disabled=false;
+    }
   });
   refresh();setInterval(refresh,5000);
 })();
