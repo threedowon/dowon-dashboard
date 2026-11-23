@@ -9,7 +9,7 @@ Serial·UDP 송수신, 숫자/JSON 센서 그래프, HTTP Signal, 자동 규칙�
 1. 실행 중인 EXE에서 **프로그램 종료**를 누릅니다. 같은 설정을 사용하는 EXE가 열려 있으면 웹 모드는 시작을 중단하고 종료를 안내합니다.
 2. `Start-Web-Tester.cmd`를 실행합니다. 브라우저에 로컬 화면이 자동으로 열리며 연결 코드를 입력하지 않습니다. 기본 주소는 `http://127.0.0.1:6699/`이며 대시보드 홈의 Signal Tester 카드나 **Open web tester** 버튼으로도 열 수 있습니다. PC를 재시작했다면 CMD를 먼저 실행하세요. 콘솔에도 접속 주소가 표시됩니다.
 3. 기존 COM 포트·Signal·센서·규칙과 백업 계정 연결을 그대로 불러옵니다. **연결과 자동 규칙은 정지 상태**이므로 사용할 연결을 열고 규칙을 켜세요.
-4. HTML·CSS·JavaScript를 수정한 후 브라우저를 새로고침합니다. Python을 수정했다면 같은 CMD를 다시 실행하세요. 같은 소스 폴더의 기존 통신 프로그램을 종료하고 다시 시작합니다.
+4. HTML·CSS·JavaScript를 수정한 후 브라우저를 새로고침합니다. Python을 수정했다면 화면 상단의 **변경사항 적용 · 다시 시작** 버튼을 누르세요. 같은 소스 폴더의 통신 프로그램을 다시 실행하고 이 탭을 자동 새로고침합니다. 설정과 백업 연결은 유지되며 센서 연결·자동 규칙은 정지하고 송수신 기록은 초기화됩니다. 필요한 기록은 먼저 내보내세요. 이 버튼은 Windows 웹 개발 모드에만 표시되며 EXE에는 표시하지 않습니다. GitHub의 코드를 내려받는 버튼이 아니라 현재 PC의 수정된 소스를 적용하는 버튼입니다. 프로그램이 꺼져 있거나 다시 시작에 실패하면 `Start-Web-Tester.cmd`로 실행하세요.
 5. 종료는 화면의 **프로그램 종료** 또는 실행 콘솔의 Ctrl+C를 사용합니다. 브라우저 탭만 닫으면 통신과 자동 규칙은 계속 실행됩니다.
 
 EXE와 동일한 `%LOCALAPPDATA%/SignalTester/dashboard-workspace.json`을 사용하며 백업 인증도 같은 Windows 사용자에서 그대로 재사용합니다. EXE로 돌아갈 때도 웹 프로그램을 먼저 종료하면 됩니다. 서로 다른 설정으로 시험하려면 `Start-Web-Tester.cmd --config C:\테스트\workspace.json`을 사용하세요.
@@ -20,8 +20,8 @@ EXE와 동일한 `%LOCALAPPDATA%/SignalTester/dashboard-workspace.json`을 사�
 | 화면 스타일 | `signal_tester_ui/style.css` | 브라우저 새로고침 |
 | 화면 동작 | `signal_tester_ui/*.js` | 브라우저 새로고침 |
 | 디버깅 화면 | `signal_tester_ui/debug.html`, `debug.js`, `debug.css` | 디버깅 브라우저 창 새로고침 |
-| 통신과 센서 판정 | `signal_tester.py`, `tester_transports.py`, `tester_sensors.py` | CMD 다시 실행 |
-| 내장 문서 원문 | `devices/CODE-GUIDE.md` 등 | CMD 다시 실행하여 문서 갱신 |
+| 통신과 센서 판정 | `signal_tester.py`, `tester_transports.py`, `tester_sensors.py` | 변경사항 적용 · 다시 시작 |
+| 내장 문서 원문 | `devices/CODE-GUIDE.md` 등 | 변경사항 적용 · 다시 시작으로 문서 갱신 |
 
 웹 개발 모드에서는 EXE 업데이트를 실행하지 않습니다. 화면은 소스 파일을 매 요청마다 읽고 캐시하지 않으므로 EXE를 빌드하지 않아도 수정 내용을 확인할 수 있습니다. 자동 새로고침은 하지 않으며, 폼 입력 중인 내용이 갑자기 초기화되지 않도록 직접 새로고침합니다.
 

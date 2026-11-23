@@ -52,7 +52,16 @@ class LauncherTests(unittest.TestCase):
                     process.wait(5)
             for log in self.logs:
                 log.close()
-            self.temp.cleanup()
+            # A restart launched from HTTP has independent bootstrap/launcher
+            # parents; let them observe the engine exit and release their cwd.
+            for attempt in range(50):
+                try:
+                    self.temp.cleanup()
+                    break
+                except PermissionError:
+                    if attempt == 49:
+                        raise
+                    time.sleep(.1)
 
     def start(self, managed=True, cmd=False):
         args = ['--no-browser', '--ui-port', '0', '--config', str(self.config)]
@@ -146,6 +155,33 @@ class LauncherTests(unittest.TestCase):
         unrelated = record(104, 100, r'C:\Python\python.exe', ['-c', 'pass', script])
         self.assertEqual(launcher.engine_processes([wrapper, engine, other, unrelated], self.base), [engine, other])
         self.assertEqual(launcher.engine_processes([wrapper, other], self.base), [wrapper, other])
+
+    def test_web_button_restarts_on_same_port_preserving_settings_and_closing_connections(self):
+        first = self.start(cmd=True)
+        previous = self.ready()
+        initial = self.call(previous)
+        data = initial['workspace']
+        data['signals'][0]['name'] = 'Saved before web restart'
+        data['targets'].append({'id':'udp', 'name':'Restart socket', 'type':'udp', 'bindHost':'127.0.0.1',
+                                'bindPort':0, 'remoteHost':'127.0.0.1', 'remotePort':9001})
+        saved = self.call(previous, 'workspace', {**data, 'revision':initial['revision']})['workspace']
+        opened = self.call(previous, 'io/open', {'targetId':'udp'})['connections']['udp']
+        udp_port = int(opened['local'].rsplit(':', 1)[1])
+        self.assertTrue(self.call(previous, 'cloud/status')['webRestart'])
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.call(previous, 'web/restart', {}, token='wrong')
+        self.assertEqual(error.exception.code, 403)
+        error.exception.close()
+        self.assertTrue(self.call(previous, 'web/restart', {})['ok'])
+        current = self.ready(previous['pid'], timeout=40)
+        self.assertEqual(first.wait(20), 0)
+        self.assertEqual(current['port'], previous['port'])
+        self.assertNotEqual(current['token'], previous['token'])
+        state = self.call(current)
+        self.assertEqual(state['workspace'], saved)
+        self.assertEqual(state['connections']['udp']['status'], 'closed')
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.bind(('127.0.0.1', udp_port))
 
     def test_exe_matching_requires_exact_path_and_internal_engine_flag(self):
         exe = self.base / 'SignalTester.exe'
