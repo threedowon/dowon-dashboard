@@ -588,7 +588,7 @@ def main(argv=None, native=False):
     mode.add_argument('--dashboard', action='store_true', help='Allow the Dowon dashboard to connect with a per-run pairing code.')
     mode.add_argument('--web-dev', action='store_true', help='Open the source UI in a browser using the EXE workspace and backup account.')
     parser.add_argument('--desktop', action='store_true', help=argparse.SUPPRESS)
-    parser.add_argument('--ui-port', type=int, default=0, help='Local web UI port (0 chooses a free port).')
+    parser.add_argument('--ui-port', type=int, help='Local web UI port (web development defaults to 6699; 0 chooses a free port).')
     parser.add_argument('--port', type=int, help='Add/select a receiver port.')
     parser.add_argument('--host', help='Add/select a receiver IP / hostname.')
     parser.add_argument('--key', help='Add a Signal key.')
@@ -632,7 +632,8 @@ def main(argv=None, native=False):
             restart_args.append('--dashboard')
         updater = Updater(sys.executable if getattr(sys, 'frozen', False) else None, restart_args)
         updater.cleanup()
-    server = create_server(store, args.ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native or args.web_dev, updater=updater, web_dev=args.web_dev)
+    ui_port = args.ui_port if args.ui_port is not None else (6699 if args.web_dev else 0)
+    server = create_server(store, ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native or args.web_dev, updater=updater, web_dev=args.web_dev)
     url = f'http://127.0.0.1:{server.server_port}/'
     try:
         publish_instance(server)
