@@ -155,7 +155,7 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-map-tools-v2">
 <link rel="stylesheet" href="assets/retro-wirenest.css?v=20261122-v1">
 <link rel="stylesheet" href="assets/retro-signaltester.css?v=20261122-v1">
-<link rel="stylesheet" href="assets/arduino-sketchbook.css?v=20261124-icon-size">
+<link rel="stylesheet" href="assets/arduino-sketchbook.css?v=20261125-sketch-explorer-v1">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -202,16 +202,17 @@ html[data-active-page="home"] .side{display:none}
 <div id="hardwareMount"></div>
 </section>
 <section id="arduinoPage" data-screen="arduino" aria-labelledby="arduinoTitle" hidden>
-<div class="placeholder-heading"><div><h1 id="arduinoTitle" tabindex="-1">Arduino Sketchbook</h1><p class="page-intro">코드를 모으고, 수정하고, 바로 복사하세요.</p></div><div class="tools"><button type="button" class="btn primary" id="sketchNew">새 코드 추가</button><button type="button" class="btn" id="sketchRefresh">새로고침</button><button type="button" class="btn" id="sketchLogin" hidden>GitHub 연결</button><button type="button" class="btn" id="sketchRestore" hidden>작성 중인 코드 복구</button></div></div>
-<p id="sketchStatus" role="status" aria-live="polite">저장한 코드는 GitHub 계정으로 연결한 기기에서 다시 열 수 있습니다.</p>
-<div class="sketchbook-grid" id="sketchList"></div>
-<dialog id="sketchEditor" aria-labelledby="sketchEditorTitle"><form id="sketchForm"><h2 id="sketchEditorTitle">코드 추가</h2>
-<div class="sketch-editor-fields"><label>제목<input id="sketchTitle" required maxlength="120" placeholder="예: FSR 단일 센서"></label><label>보드<input id="sketchBoard" maxlength="120" placeholder="예: ESP32-S3"></label><label class="sketch-wide">설명<textarea id="sketchDescription" maxlength="2000" rows="2"></textarea></label></div>
-<div class="sketch-code-toolbar"><label>편집할 파일<select id="sketchFileSelect"></select></label><div class="tools"><button type="button" class="btn" id="sketchFileAdd">파일 추가</button><button type="button" class="btn" id="sketchFileRemove">파일 제거</button></div></div>
-<label class="sketch-filename">파일명<input id="sketchFilename" required maxlength="160" placeholder="sketch.ino"></label>
-<label for="sketchSource">코드</label><textarea id="sketchSource" class="sketch-code" required spellcheck="false" wrap="off"></textarea>
-<p id="sketchEditorStatus" role="status" aria-live="polite">저장을 누르면 비공개 코드 모음집에 반영됩니다.</p>
-<div class="tools"><button class="btn primary" id="sketchSave" type="submit">저장</button><button class="btn" id="sketchCancel" type="button">취소</button><button class="btn" id="sketchEditorLogin" type="button" hidden>GitHub 연결</button></div>
+<h1 id="arduinoTitle" class="sr-only" tabindex="-1">Arduino Sketchbook</h1>
+<div class="sketch-main-toolbar"><div class="tools"><button type="button" class="btn" id="sketchNew">New sketch</button><button type="button" class="btn" id="sketchRefresh">Sync</button><button type="button" class="btn" id="sketchRestore" hidden>Restore draft</button></div><div class="sketch-account"><span id="sketchConnection" role="status">Checking GitHub…</span><button type="button" class="btn" id="sketchLogin" hidden>Connect GitHub</button></div></div>
+<div class="sketch-workspace"><aside class="sketch-sidebar" aria-labelledby="sketchListTitle"><h2 id="sketchListTitle">Sketches</h2><nav id="sketchList" aria-label="Saved sketches"></nav><p id="sketchCount">Loading sketches…</p></aside><div id="sketchDetail" class="sketch-detail" aria-live="polite"></div></div>
+<p id="sketchStatus" class="sketch-status" role="status" aria-live="polite">Loading sketches…</p>
+<dialog id="sketchEditor" aria-labelledby="sketchEditorTitle"><form id="sketchForm"><h2 id="sketchEditorTitle">New sketch</h2>
+<div class="sketch-editor-fields"><label>Title<input id="sketchTitle" required maxlength="120" placeholder="예: FSR 단일 센서"></label><label>Board<input id="sketchBoard" maxlength="120" placeholder="예: ESP32-S3"></label><label class="sketch-wide">Description<textarea id="sketchDescription" maxlength="2000" rows="2"></textarea></label></div>
+<div class="sketch-code-toolbar"><label>File<select id="sketchFileSelect"></select></label><div class="tools"><button type="button" class="btn" id="sketchFileAdd">Add file</button><button type="button" class="btn" id="sketchFileRemove">Remove file</button></div></div>
+<label class="sketch-filename">Filename<input id="sketchFilename" required maxlength="160" placeholder="sketch.ino"></label>
+<label for="sketchSource">Code</label><textarea id="sketchSource" class="sketch-code" required spellcheck="false" wrap="off"></textarea>
+<p id="sketchEditorStatus" role="status" aria-live="polite">Save to your private GitHub sketchbook.</p>
+<div class="tools"><button class="btn primary" id="sketchSave" type="submit">Save</button><button class="btn" id="sketchCancel" type="button">Cancel</button><button class="btn" id="sketchEditorLogin" type="button" hidden>Connect GitHub</button></div>
 </form></dialog>
 </section>
 <section id="signaltesterPage" data-screen="signaltester" aria-labelledby="signaltesterTitle" hidden>
@@ -645,6 +646,6 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261124-arduino" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
-<script src="assets/arduino-sketchbook.js?v=20261124-editor" defer></script>
+</script><script src="assets/retro-pages.js?v=20261125-sketch-explorer-v1" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
+<script src="assets/arduino-sketchbook.js?v=20261125-sketch-explorer-v1" defer></script>
 </body></html>
