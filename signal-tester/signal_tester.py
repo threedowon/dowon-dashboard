@@ -305,7 +305,7 @@ def perform_send(store, body, target_snapshot=None):
 DASHBOARD_ORIGIN = 'https://dashboard.3dowon.com'
 
 
-def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False, cloud=None, desktop=False, updater=None, web_dev=False, web_restart=None):
+def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dashboard=False, cloud=None, desktop=False, updater=None, web_dev=False, web_restart=None, hosted_ui=False):
     token = secrets.token_urlsafe(32)
     sensors = SensorEngine(store.emit, lambda body: perform_send(store, body, body.get('_target')))
     sensors.configure(store.snapshot())
@@ -368,6 +368,13 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             if not self.allowed(self.path.startswith('/api/')):
                 return self.reply(403, {'error': 'Open this tester from its local launch address.'})
             route = urlsplit(self.path)
+            if route.path == '/pair' and dashboard:
+                page = ('<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+                        '<meta name="tester-token" content="'+token+'">'
+                        '<title>Signal Tester 연결 확인</title><script src="pair.js" defer></script></head>'
+                        '<body><h1>대시보드 연결을 허용할까요?</h1><p>https://dashboard.3dowon.com에서 이 PC의 센서와 규칙을 제어합니다.</p>'
+                        '<button id="allowPair">연결 허용</button><p id="pairStatus"></p></body></html>')
+                return self.reply(200, page.encode(), 'text/html; charset=utf-8')
             if route.path == '/api/update/status':
                 from tester_version import VERSION
                 return self.reply(200, {**(updater.status() if updater else {'enabled': False, 'current': VERSION}),
@@ -380,7 +387,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 except (OSError, ValueError):
                     return self.reply(400, {'error': '로그인을 완료하지 못했습니다. Signal Tester에서 다시 연결하세요.'})
             if route.path == '/api/cloud/status':
-                return self.reply(200, {'desktop': desktop, 'webDev': web_dev, 'webRestart': web_dev and web_restart is not None, 'cloud': cloud.status() if cloud else None})
+                return self.reply(200, {'desktop': desktop, 'webDev': web_dev, 'hostedUI': hosted_ui, 'webRestart': web_dev and web_restart is not None, 'cloud': cloud.status() if cloud else None})
             if route.path == '/api/cloud/backups' and cloud:
                 try:
                     return self.reply(200, cloud.backups())
@@ -389,7 +396,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             if route.path == '/api/state':
                 with store.lock:
                     data = {'workspace': store.snapshot(), 'events': list(store.events), 'warning': store.warning,
-                            'cursor': store.sequence, 'generation': store.generation, 'revision': store.revision}
+                            'cursor': store.sequence, 'generation': store.generation, 'revision': store.revision, 'bridgeApiVersion': 1}
                 data.update(connections=hub.snapshot(data['workspace']['targets']), serial=hub.port_state(), sensors=sensors.snapshot())
                 return self.reply(200, data)
             if route.path == '/api/debug':
@@ -423,6 +430,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(parse_qs(route.query).get('monitor', [None])[0]))
                 return self.reply(200, data)
             assets = {'/fields.js': ('fields.js', 'text/javascript; charset=utf-8'), '/workbench.js': ('workbench.js', 'text/javascript; charset=utf-8'), '/workbench.css': ('workbench.css', 'text/css; charset=utf-8'), '/debug.html': ('debug.html', 'text/html; charset=utf-8'), '/debug.js': ('debug.js', 'text/javascript; charset=utf-8'), '/debug.css': ('debug.css', 'text/css; charset=utf-8'), '/debug-open.js': ('debug-open.js', 'text/javascript; charset=utf-8'), '/code-guide.js': ('code-guide.js', 'text/javascript; charset=utf-8'), '/code-guide.json': ('code-guide.json', 'application/json; charset=utf-8'), '/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            assets.update({path: (path[1:], 'text/javascript; charset=utf-8') for path in ('/pair.js', '/bridge.js')})
             if self.path not in assets:
                 return self.reply(404, {'error': 'Not found.'})
             name, mime = assets[self.path]
@@ -611,6 +619,7 @@ def main(argv=None, native=False):
     mode.add_argument('--dashboard', action='store_true', help='Allow the Dowon dashboard to connect with a per-run pairing code.')
     mode.add_argument('--web-dev', action='store_true', help='Open the source UI in a browser using the EXE workspace and backup account.')
     parser.add_argument('--desktop', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--web-ui', action='store_true', help='Use the hosted dashboard UI with explicit local pairing approval.')
     parser.add_argument('--ui-port', type=int, help='Local web UI port (web development defaults to 6699; 0 chooses a free port).')
     parser.add_argument('--port', type=int, help='Add/select a receiver port.')
     parser.add_argument('--host', help='Add/select a receiver IP / hostname.')
@@ -618,7 +627,7 @@ def main(argv=None, native=False):
     parser.add_argument('--scene', type=Path, help='Import Signals from this .scene.')
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args(argv)
-    config = args.config or Path(os.getenv('LOCALAPPDATA') or Path.home()/'.config')/'SignalTester'/('dashboard-workspace.json' if args.dashboard or args.desktop or args.web_dev else 'workspace.json')
+    config = args.config or Path(os.getenv('LOCALAPPDATA') or Path.home()/'.config')/'SignalTester'/('dashboard-workspace.json' if args.dashboard or args.desktop or args.web_dev or args.web_ui else 'workspace.json')
     if args.web_dev:
         if native:
             parser.error('Run --web-dev from the Python source checkout, not the packaged EXE.')
@@ -649,36 +658,38 @@ def main(argv=None, native=False):
         import sys
         from tester_update import Updater
         restart_args = ['--config', str(config.resolve())]
+        if args.web_ui:
+            restart_args.append('--web-ui')
         if args.no_browser:
             restart_args.append('--no-browser')
         if args.dashboard:
             restart_args.append('--dashboard')
         updater = Updater(sys.executable if getattr(sys, 'frozen', False) else None, restart_args)
         updater.cleanup()
-    ui_port = args.ui_port if args.ui_port is not None else (6699 if args.web_dev else 0)
+    ui_port = args.ui_port if args.ui_port is not None else (6699 if args.web_dev or args.web_ui else 0)
     web_restart = None
     if args.web_dev and os.name == 'nt':
         from tester_web_dev import restart_web
         web_restart = restart_web
-    server = create_server(store, ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard, cloud=cloud, desktop=native or args.web_dev, updater=updater, web_dev=args.web_dev, web_restart=web_restart)
+    server = create_server(store, ui_port, instance_id=os.environ.get('SIGNAL_TESTER_INSTANCE_ID'), dashboard=args.dashboard or args.web_ui, cloud=cloud, desktop=native or args.web_dev, updater=updater, web_dev=args.web_dev, web_restart=web_restart, hosted_ui=args.web_ui)
     url = f'http://127.0.0.1:{server.server_port}/'
     try:
         publish_instance(server)
         if cloud:
             cloud.start()
-        if updater and not args.no_browser:
+        if updater and (not args.no_browser or args.web_ui):
             updater.start_check()
         print(f'Signal Tester: {url}\nWorkspace: {store.file}\nKeep this window open. Ctrl+C stops the tester.', flush=True)
         if args.web_dev:
             print('Web development: edit signal_tester_ui files, then refresh the browser. Restart this launcher after Python changes. Closing a browser tab does not stop communication.', flush=True)
         if args.dashboard:
             print(f'\nDashboard pairing code (paste into Signal Tester):\n{server.server_port}:{server.token}\n', flush=True)
-        if native and not args.no_browser and not args.dashboard:
+        if native and not args.no_browser and not args.dashboard and not args.web_ui:
             from tester_window import run_window
             run_window(server, url)
         else:
             if not args.no_browser:
-                webbrowser.open(DASHBOARD_ORIGIN+'/#signaltester' if args.dashboard else url)
+                webbrowser.open(DASHBOARD_ORIGIN+'/signal-tester/signal_tester_ui/index.html' if args.web_ui else DASHBOARD_ORIGIN+'/#signaltester' if args.dashboard else url)
             server.serve_forever(poll_interval=.2)
     except KeyboardInterrupt:
         pass

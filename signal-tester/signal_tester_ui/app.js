@@ -30,7 +30,7 @@ let workspaceRevision=null;
 let toastTimer, healthChecks=new Map(), healthBusy=new Set();
 let workspaceLoading=false, workspaceSetup=false, startupControls=null;
 let workspaceError='Workspace is still loading. Wait for the saved connections to appear.';
-const restartHelp='Run SignalTester.exe again (or Start-Signal-Tester.cmd for source installations), then use the newly opened page. Saved targets and Signals are kept.';
+const restartHelp=token==='__TESTER_TOKEN__'?'통신 프로그램을 실행한 뒤 설정에서 이 PC 통신 프로그램 연결을 눌러 주세요. 기존 설정은 유지됩니다.':'Run SignalTester.exe again (or Start-Signal-Tester.cmd for source installations), then use the newly opened page. Saved targets and Signals are kept.';
 const selected=()=>workspace?.signals.find(s=>s.id===selectedId);
 const active=()=>workspace?.targets.find(t=>t.id===workspace.activeTarget);
 const address=t=>kind(t)==='serial'?`${t.device} · ${t.baudrate} baud`:kind(t)==='udp'?`${t.bindHost}:${t.bindPort} → ${t.remoteHost}:${t.remotePort}`:`${t.host.includes(':')?'['+t.host+']':t.host}:${t.port}`;
@@ -42,11 +42,12 @@ async function api(path,body){
   let base='', auth=token;
   if(token==='__TESTER_TOKEN__'){
     const pairing=JSON.parse(sessionStorage.getItem('dowon-signal-pairing') || 'null');
-    if(!pairing || !/^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(pairing.base) || !/^[A-Za-z0-9_-]{43}$/.test(pairing.token))throw Error('대시보드에서 PC 연결 코드를 입력하세요.');
+    if(!pairing || !/^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(pairing.base) || !/^[A-Za-z0-9_-]{43}$/.test(pairing.token))throw Error('통신 프로그램을 실행하고 아래의 PC 연결 버튼을 누르세요. 로컬 네트워크 접근 권한 요청은 허용하세요.');
     base=pairing.base;auth=pairing.token;
   }
   const res=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'X-Tester-Token':auth,...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
   let data;try{data=await res.json();}catch{throw Error('Tester is not responding. Keep its launch window open and reload this page.');}
+  if(res.ok&&path==='state'&&token==='__TESTER_TOKEN__'&&data.bridgeApiVersion!==1)throw Error('통신 프로그램 v1.3.0 이상으로 업데이트한 뒤 다시 연결하세요. 설정은 유지됩니다.');
   if(!res.ok)throw Object.assign(Error(data.error || 'Request failed.'),{status:res.status});return data;
 }
 function safe(handler){return async (...args)=>{try{await handler(...args);}catch(e){toast(e.message,true);}};}
@@ -384,7 +385,7 @@ function lockStartupControls(){
   if(startupControls)return;
   startupControls=new Map();
   for(const control of document.querySelectorAll('button,input,select,textarea')){
-    if(control.id==='helpButton'||control.id==='retryWorkspace'||control.closest('#helpDialog, #codeGuideDialog')||control.classList.contains('close-dialog'))continue;
+    if(control.classList.contains('bridge-connect')||control.id==='helpButton'||control.id==='retryWorkspace'||control.closest('#helpDialog, #codeGuideDialog')||control.classList.contains('close-dialog'))continue;
     startupControls.set(control,control.disabled);control.disabled=true;
   }
 }

@@ -32,6 +32,8 @@ def main():
             return apply_update(args[1])
         if args[:1] == ['--tester-engine']:
             from signal_tester import main as run_engine
+            if '--dashboard' not in args and '--web-ui' not in args:
+                args.append('--web-ui')
             run_engine(['--desktop', *args[1:]], native=True)
             return 0
         executable = Path(sys.executable).resolve() if getattr(sys, 'frozen', False) else None

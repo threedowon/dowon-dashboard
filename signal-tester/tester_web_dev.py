@@ -73,7 +73,7 @@ def bootstrap():
         subprocess.run([str(python), '-m', 'pip', 'install', '-r', str(ROOT/'requirements-dev.txt')], check=True)
     subprocess.run([str(python), str(ROOT/'build_guide.py')], check=True)
     entry = 'tester_launcher.py' if os.name == 'nt' else 'signal_tester.py'
-    return subprocess.call([str(python), str(ROOT/entry), '--web-dev', *sys.argv[1:]], cwd=ROOT)
+    return subprocess.call([str(python), str(ROOT/entry), '--web-dev', '--web-ui', *sys.argv[1:]], cwd=ROOT)
 
 
 if __name__ == '__main__':

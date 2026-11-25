@@ -88,7 +88,9 @@ if (typeof document !== 'undefined') (() => {
   }
   async function poll() {
     try {
-      const response=await fetch('/api/debug',{headers:{'X-Tester-Token':token},signal:AbortSignal.timeout(5000)});
+      const pair=token==='__TESTER_TOKEN__'?JSON.parse(sessionStorage.getItem('dowon-signal-pairing')||'null'):null;
+      if(token==='__TESTER_TOKEN__'&&(!pair||!/^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(pair.base)||!/^[A-Za-z0-9_-]{43}$/.test(pair.token)))throw Error('PC connection required');
+      const response=await fetch((pair?.base||'')+'/api/debug',{headers:{'X-Tester-Token':pair?.token||token},signal:AbortSignal.timeout(5000)});
       if(!response.ok)throw Error('offline');
       latest=await response.json();connected=true;lastUpdated=time(Date.now());
       if(!paused)render(latest);

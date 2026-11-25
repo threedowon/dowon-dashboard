@@ -102,6 +102,12 @@
   $('transferUpload')?.classList.remove('primary');
   document.querySelectorAll('#transfersPage .retro-heading-icon,#transfersPage>.retro-titlebar>img').forEach(img=>img.src='assets/transfer-floppies.svg');
   const download=document.querySelector('#signaltesterPage .signal-download');
+  const testerWeb='signal-tester/signal_tester_ui/index.html';
+  document.querySelectorAll('a[href="http://127.0.0.1:6699/"]').forEach(link=>{link.href=testerWeb;link.title='최신 Signal Tester 웹 화면 열기';});
+  const testerNote=download?.querySelector('.signal-note');
+  if(testerNote)testerNote.textContent='처음에는 통신 프로그램 v1.3.0 이상을 설치하세요. 웹 화면에서 PC 연결 → 연결 허용을 누르면 됩니다. 이후 디자인 변경은 새로고침으로 적용되며 기존 CMD도 사용할 수 있습니다.';
+  const testerFooter=document.querySelector('#signaltesterPage .signal-footer-note');
+  if(testerFooter)testerFooter.textContent='센서 값은 PC에서 처리합니다. Serial·UDP·OSC 주소별 값 확인을 지원합니다. 브라우저를 닫아도 통신은 계속되며, 완전히 중지하려면 설정의 프로그램 종료를 누르세요.';
   if(download){const img=make('img','retro-signal-icon');img.src='assets/dashboard-objects/retro-v1/signaltester.png';img.alt='';download.querySelector('strong').after(img);}
   document.querySelectorAll('#signaltesterPage .signal-setup ol li').forEach((li,i)=>{const img=make('img','retro-step-icon');img.src='assets/dashboard-objects/retro-v1/'+['library','computer','wirenest'][i]+'.png';img.alt='';li.prepend(img);});
   localize();window.addEventListener('hashchange',localize);

@@ -59,6 +59,7 @@
     $('webRestartStatus').textContent='변경사항 적용 중… 준비되면 이 화면이 자동으로 새로고침됩니다.';
     try{
       await api('web/restart',{});
+      if(token==='__TESTER_TOKEN__'){$('webRestartStatus').textContent='재시작 중입니다. 잠시 후 설정의 PC 연결 버튼을 눌러 주세요.';$('webRestart').disabled=false;return;}
       for(let attempt=0;attempt<90;attempt++){
         await new Promise(resolve=>setTimeout(resolve,1000));
         try{

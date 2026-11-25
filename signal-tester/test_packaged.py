@@ -58,7 +58,7 @@ class PackagedTests(unittest.TestCase):
     def start(self):
         log = open(Path(self.temp.name) / f'process-{len(self.processes)}.log', 'w+b')
         self.logs.append(log)
-        process = subprocess.Popen([str(self.exe), '--no-browser'], cwd=self.base, env=self.env,
+        process = subprocess.Popen([str(self.exe), '--no-browser', '--ui-port', '0'], cwd=self.base, env=self.env,
                                    stdout=log, stderr=log, creationflags=subprocess.CREATE_NO_WINDOW)
         self.processes.append(process)
         return process
@@ -161,7 +161,7 @@ class PackagedTests(unittest.TestCase):
         def launch(command):
             process=update.spawn(command);self.processes.append(process);return process
         with patch.dict(os.environ,self.env):
-            updater=update.Updater(self.exe,['--config',str(self.config),'--no-browser'],current='1.1.0',opener=opener,launch=launch)
+            updater=update.Updater(self.exe,['--config',str(self.config),'--no-browser','--ui-port','0'],current='1.1.0',opener=opener,launch=launch)
             updater.release=update.choose_release([release(update.VERSION,payload)],current='1.1.0')
             updater.shutdown=lambda:self.call(previous,'shutdown',{'instance':previous['instance']})
             updater.install(update.VERSION)
