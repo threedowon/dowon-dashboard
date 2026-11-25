@@ -73,7 +73,7 @@ class PackagedTests(unittest.TestCase):
             html = response.read().decode()
         self.assertIn(previous['token'], html)
         self.assertNotIn('__TESTER_TOKEN__', html)
-        for asset in ('app.js', 'io.js', 'keyboard.js', 'sensors.js', 'style.css', 'code-guide.js', 'debug.js', 'debug.css', 'debug-open.js'):
+        for asset in ('app.js', 'io.js', 'keyboard.js', 'sensors.js', 'style.css', 'code-guide.js', 'debug.js', 'debug.css', 'debug-open.js', 'bridge.js', 'pair.js'):
             with self.opener.open(base_url+'/'+asset, timeout=3) as response:
                 self.assertGreater(len(response.read()), 100)
         with self.opener.open(base_url+'/code-guide.json', timeout=3) as response:
@@ -89,6 +89,15 @@ class PackagedTests(unittest.TestCase):
         self.assertEqual(error.exception.code, 403)
         error.exception.close()
         initial = self.call(previous)
+        self.assertEqual(initial['bridgeApiVersion'], 1)
+        self.assertTrue(self.call(previous, 'cloud/status')['hostedUI'])
+        with self.opener.open(base_url+'/pair', timeout=3) as response:
+            self.assertIn(b'id="allowPair"', response.read())
+        request = urllib.request.Request(base_url+'/api/state', headers={
+            'Origin': 'https://dashboard.3dowon.com', 'X-Tester-Token': previous['token']})
+        with self.opener.open(request, timeout=3) as response:
+            self.assertEqual(response.headers['Access-Control-Allow-Origin'], 'https://dashboard.3dowon.com')
+            self.assertEqual(json.load(response)['workspace'], initial['workspace'])
         self.assertTrue(initial['serial']['available'])
         self.assertEqual(self.call(previous, 'ports', {})['error'], '')
         preset = self.call(previous, 'sensors/preset', {'preset': 'all'})

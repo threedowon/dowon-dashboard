@@ -45,7 +45,9 @@ async function api(path,body){
     if(!pairing || !/^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(pairing.base) || !/^[A-Za-z0-9_-]{43}$/.test(pairing.token))throw Error('통신 프로그램을 실행하고 아래의 PC 연결 버튼을 누르세요. 로컬 네트워크 접근 권한 요청은 허용하세요.');
     base=pairing.base;auth=pairing.token;
   }
-  const res=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'X-Tester-Token':auth,...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
+  let res;
+  try{res=await fetch(base+'/api/'+path,{method:body===undefined?'GET':'POST',headers:{'X-Tester-Token':auth,...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});}
+  catch(error){if(token==='__TESTER_TOKEN__')throw Error('PC 통신 프로그램에 연결하지 못했습니다. 프로그램 실행 상태와 이 사이트의 로컬 네트워크 접근 권한을 확인한 뒤 Retry loading을 누르세요.');throw error;}
   let data;try{data=await res.json();}catch{throw Error('Tester is not responding. Keep its launch window open and reload this page.');}
   if(res.ok&&path==='state'&&token==='__TESTER_TOKEN__'&&data.bridgeApiVersion!==1)throw Error('통신 프로그램 v1.3.0 이상으로 업데이트한 뒤 다시 연결하세요. 설정은 유지됩니다.');
   if(!res.ok)throw Object.assign(Error(data.error || 'Request failed.'),{status:res.status});return data;
