@@ -1,18 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="tester-token" content="__TESTER_TOKEN__">
   <title>Signal Tester</title><link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script><script src="updates.js" defer></script><script src="code-guide.js" defer></script><script src="debug-open.js" defer></script>
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="workbench.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="fields.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script><script src="updates.js" defer></script><script src="code-guide.js" defer></script><script src="debug-open.js" defer></script><script src="workbench.js" defer></script>
 <script src="https://dashboard.3dowon.com/assets/workspace-taskbar.js?v=20261122-taskbar-eight" data-page="signaltester" defer></script>
 </head>
-<body>
+<body class="workbench"><header class="workbench-header">    <a class="brand" href="/" aria-label="Signal Tester home"><span class="brand-mark" data-icon="send"></span><span>SIGNAL TESTER<small>SENSOR WORKBENCH</small></span></a><span id="localStatus" class="local-status">LOCAL · CONNECTING</span><button id="openSettings" class="button">⚙ 설정</button></header><nav class="tabs workbench-nav" role="tablist" aria-label="Workspace">
+<button id="tabSensors" role="tab" aria-selected="true" aria-controls="paneSensors" data-tab="sensors">모니터 <span id="sensorCount" class="count">0</span><span id="sensorTabLive" class="live-pill" hidden>LIVE</span></button>
+<button id="tabRules" role="tab" aria-selected="false" aria-controls="paneRules" data-tab="rules">신호 규칙</button>
+<button id="tabLogs" role="tab" aria-selected="false" aria-controls="paneLogs" data-tab="logs">기록 <span id="logTabCount" class="count">0</span></button>
+<button id="tabTest" role="tab" aria-selected="false" aria-controls="paneTest" data-tab="test"><span id="tabTestLabel">수동 전송</span><span id="signalCount" class="count">0</span></button></nav>
   <aside class="sidebar">
-    <a class="brand" href="/" aria-label="Signal Tester home"><span class="brand-mark" data-icon="send"></span><span>Signal Tester<small>SCENECAST</small></span></a>
-    <div class="sidebar-heading"><span>CONNECTIONS</span><span id="targetCount" class="count">0</span></div>
+
+    <div class="sidebar-heading"><span>연결된 장치</span><span id="targetCount" class="count">0</span></div>
     <div id="targets" class="targets"></div>
-    <button id="addTarget" class="add-target" disabled><span data-icon="plus"></span>Add connection</button>
+    <button id="addTarget" class="add-target" disabled><span data-icon="plus"></span>장치 추가</button>
     <button id="sensorHub" class="scan-ports"><span data-icon="wave"></span>센서 대시보드</button>
     <button id="openDebug" class="scan-ports">↗ 송수신 디버깅</button>
     <button id="scanPorts" class="scan-ports"><span data-icon="plug"></span><span class="scan-label">COM ports</span><span id="portCount">Scanning…</span></button>
@@ -21,7 +25,7 @@
       <div class="workspace-tools"><button id="importWorkspace">Import</button><button id="exportWorkspace">Export</button><button id="helpButton" class="sidebar-guide" title="Quick guide (?)">? <span>Guide</span></button></div>
     </div>
   </aside>
-  <main class="app">
+  <main class="app" tabindex="0" aria-label="센서 작업 영역">
     <div id="updateBar" class="update-bar" hidden><span id="updateStatus" role="status">새 버전 확인 중…</span><button id="updateCheck" class="button">업데이트 확인</button><button id="updateInstall" class="button dark" hidden>업데이트</button></div>
     <div id="desktopBar" class="desktop-bar" hidden><div><strong>이 PC에서 실행 중</strong><span id="desktopBackupStatus" role="status">백업 상태 확인 중…</span></div><button id="desktopBackup" class="button">설정 자동 백업</button><button id="desktopExit" class="button desktop-exit">프로그램 종료</button></div>
     <div id="webDevNotice" class="notice" hidden><strong>웹 개발 모드</strong><p>화면 수정은 새로고침으로 반영됩니다. Python 코드 수정 후에는 아래 버튼으로 변경사항을 적용하세요. 현재 PC의 소스를 다시 실행하며 설정은 유지됩니다. 브라우저 탭을 닫아도 통신은 계속됩니다.</p><button id="webRestart" type="button" class="button" hidden>변경사항 적용 · 다시 시작</button><p id="webRestartStatus" role="status" aria-live="polite"></p></div>
@@ -29,7 +33,7 @@
     <div id="warning" class="notice error" hidden></div>
     <section class="connection-bar" aria-label="Active target">
       <span class="connection-icon" data-icon="monitor"></span>
-      <div class="connection-title"><span class="eyebrow">SENDING TO</span><strong id="activeName">No target selected</strong><code id="activeAddress">Add a target to begin</code></div>
+      <div class="connection-title"><span class="eyebrow">ACTIVE DEVICE</span><strong id="activeName">No target selected</strong><code id="activeAddress">Add a target to begin</code></div>
       <div class="health"><span id="healthStatus" class="badge">Not checked</span><span id="healthTime" class="muted"></span></div>
       <button id="checkTarget" class="button" title="Checks the receiver. Does not send a Signal."><span data-icon="refresh"></span>Check</button>
       <button id="connectTarget" class="button dark" hidden>Open connection</button>
@@ -39,11 +43,8 @@
     <div id="engineWarning" class="notice error" hidden role="alert"></div>
     <div class="layout">
       <div class="main-col">
-        <nav class="tabs" role="tablist" aria-label="Workspace">
-          <button id="tabTest" role="tab" aria-selected="true" aria-controls="paneTest" data-tab="test"><span data-icon="send"></span><span id="tabTestLabel">Signals</span><span id="signalCount" class="count">0</span></button>
-          <button id="tabSensors" role="tab" aria-selected="false" aria-controls="paneSensors" data-tab="sensors"><span data-icon="wave"></span><span>Sensors</span><span id="sensorCount" class="count">0</span><span id="sensorTabLive" class="live-pill" hidden>LIVE</span></button>
-        </nav>
-        <div id="paneTest" class="work-area" role="tabpanel" aria-labelledby="tabTest">
+
+        <div id="paneTest" hidden class="work-area" role="tabpanel" aria-labelledby="tabTest">
           <section id="ioPanel" class="panel io-panel" hidden>
             <div class="section-heading"><div><div id="ioProtocol" class="eyebrow">SERIAL</div><h2>Connection diagnostics</h2><p id="ioDescription">Open a connection to receive data.</p></div><button id="editConnection" class="icon-button" aria-label="Edit connection" title="Edit connection"><span data-icon="edit"></span></button></div>
             <div id="connectionStages" class="connection-stages"></div>
@@ -81,32 +82,34 @@
             <details class="repeat-block" id="repeatDetails"><summary class="section-heading small"><h3>Repeat test</h3><span class="muted">Send several times</span></summary><div class="repeat-fields"><div class="field"><label for="repeatCount">Sends</label><input id="repeatCount" type="number" min="2" max="1000" value="5" step="1"></div><div class="field"><label for="repeatInterval">Interval · s</label><input id="repeatInterval" type="number" min="0.2" max="3600" step="0.1" value="1"></div></div><div class="repeat-controls"><button id="startRepeat" class="button">Start repeat</button><button id="stopRepeat" class="button stop" disabled>Stop <kbd>Esc</kbd></button></div><p id="repeatStatus" class="muted" aria-live="polite">Starts now. Stops on connection errors.</p><progress id="repeatProgress" max="5" value="0" hidden></progress></details>
           </section>
         </div>
-        <div id="paneSensors" role="tabpanel" aria-labelledby="tabSensors" hidden>
+        <div id="paneSensors" role="tabpanel" aria-labelledby="tabSensors">
           <section class="panel sensor-panel" aria-label="Sensor monitors">
-            <div class="section-heading"><div><div class="eyebrow">SENSOR → CONDITION → SIGNAL</div><h2>Sensor monitors</h2></div><div class="actions"><span id="sensorMode" class="badge">PREVIEW ONLY</span><button id="addSensor" class="button"><span data-icon="plus"></span>Add sensor</button><button id="sensorCollapse" class="button quiet" hidden>Collapse</button></div></div>
+            <div class="section-heading"><div><div class="eyebrow">SENSOR → CONDITION → SIGNAL</div><h2>선택한 값 · 그래프</h2></div><div class="actions"><span id="sensorMode" class="badge">PREVIEW ONLY</span><button id="addSensor" class="button"><span data-icon="plus"></span>센서 추가</button><button id="sensorCollapse" class="button quiet" hidden>Collapse</button></div></div>
             <div id="sensorBody">
               <div id="sensorOverview" hidden>
                 <div class="sensor-overview-heading"><label for="sensorSourceFilter">표시할 연결</label><select id="sensorSourceFilter"><option value="">모든 센서</option></select><span class="muted">카드를 누르면 상세 그래프를 봅니다.</span></div>
                 <div id="sensorCards" class="sensor-cards"></div>
-                <p class="muted" lang="ko">FSR 보정: 상판·러그만 올린 뒤 FSR 연결 → Serial → Text / LF로 <code>c</code> 전송. Ready=1 확인.</p>
+                <p class="muted sensor-fsr-note" lang="ko">FSR 보정: 상판·러그만 올린 뒤 FSR 연결 → Serial → Text / LF로 <code>c</code> 전송. Ready=1 확인.</p>
               </div>
-              <div id="sensorEmpty" class="sensor-empty"><strong>Turn sensor values into Player Signals</strong><ol><li>Add a <b>Serial</b> or <b>UDP</b> connection on the left and open it.</li><li>Press <b>Add sensor</b>, pick that connection and the message format.</li><li>Add Below / Above rules, check the live graph, then <b>Enable all rules</b>.</li></ol></div>
+              <div id="sensorEmpty" class="sensor-empty"><strong>센서의 값을 실시간으로 확인하세요.</strong><ol><li>왼쪽에서 Serial 또는 UDP / OSC 장치를 추가하고 연결하세요.</li><li>Serial·JSON 수신값은 <b>센서 추가</b>에서 필드와 단위를 지정하세요.</li><li>OSC는 UDP 연결에서 주소별로 자동 표시됩니다. 조건에 따른 출력은 <b>신호 규칙</b>에서 설정하세요.</li></ol></div>
               <div id="sensorContent" hidden>
                 <div class="sensor-toolbar"><label class="sr-only" for="sensorSelect">Sensor monitor</label><select id="sensorSelect"></select><button id="configureSensor" class="button"><span data-icon="edit"></span>Configure</button><span class="spacer"></span><button id="pauseGraph" class="button quiet">Freeze graph</button><button id="sensorArm" class="button dark">Enable all rules</button></div>
                 <div class="sensor-chart-layout"><div class="sensor-reading"><span id="sensorStatus" class="badge">Waiting for data</span><div><strong id="sensorValue">—</strong> <span id="sensorUnit"></span></div><p id="sensorSource"></p><small id="sensorStats"></small></div><div class="sensor-plot"><canvas id="sensorGraph" role="img" aria-label="Live sensor values over the last sixty seconds"></canvas><p id="graphCaption" class="muted"></p></div></div>
-                <div id="sensorError" class="notice error" hidden></div><div id="sensorRules" class="sensor-rules"></div>
+                <div id="sensorError" class="notice error" hidden></div><div class="signal-flow"><b>A</b><span>센서 입력</span><i>→</i><b>B</b><span>조건 판정</span><i>→</i><b>C</b><span>출력</span><button id="goRules" class="button">규칙 편집 ↗</button></div><div id="sensorRules" class="sensor-rules"></div>
               </div>
               <p id="sensorRunNote" class="sensor-run-note">Graph receives live data. Enable rules to send Signals.</p>
             </div>
           </section>
         </div>
+        <section id="paneRules" role="tabpanel" aria-labelledby="tabRules" hidden><div class="section-heading"><div><div class="eyebrow">INPUT → CONDITION → OUTPUT</div><h2>신호 규칙</h2><p>현재 선택한 센서의 필드별 조건과 출력 결과를 확인합니다.</p></div><button id="rulesAddSensor" class="button">센서·규칙 추가</button></div><p class="notice">규칙은 ‘모든 규칙 활성화’를 눌러야 전송됩니다. 설정 변경·프로그램 재시작 후에는 정지 상태로 돌아갑니다.</p><button id="rulesArm" class="button dark">모든 규칙 활성화</button><div id="ruleWorkbench"></div></section>
+        <section id="paneLogs" role="tabpanel" aria-labelledby="tabLogs" hidden></section>
       </div>
       <aside class="activity-rail">
         <div id="activityResize" class="activity-resize" role="separator" tabindex="0" aria-label="Activity 너비 조절" aria-orientation="vertical" aria-controls="activityPanel" title="드래그하여 로그 너비 조절 · 더블클릭하면 기본 너비"></div>
         <section id="activityPanel" class="panel activity-panel" aria-label="Activity">
-          <div class="section-heading"><div><h2>Activity <span id="eventCount" class="count">0</span></h2><p id="activitySummary">All connections, one timeline.</p></div><div class="actions"><button id="pauseLog" class="icon-button" aria-pressed="false" title="Pause view" aria-label="Pause view"><span data-icon="pause"></span></button><button id="exportLog" class="icon-button" title="Export log" aria-label="Export log"><span data-icon="download"></span></button><button id="clearLog" class="icon-button" title="Clear log" aria-label="Clear log"><span data-icon="trash"></span></button></div></div>
+          <div class="section-heading"><div><h2>송수신 기록 <span id="eventCount" class="count">0</span></h2><p id="activitySummary">All connections, one timeline.</p></div><div class="actions"><button id="pauseLog" class="icon-button" aria-pressed="false" title="Pause view" aria-label="Pause view"><span data-icon="pause"></span></button><button id="exportLog" class="icon-button" title="Export log" aria-label="Export log"><span data-icon="download"></span></button><button id="clearLog" class="icon-button" title="Clear log" aria-label="Clear log"><span data-icon="trash"></span></button></div></div>
           <div class="log-chips" role="group" aria-label="Filter results"><button type="button" data-log-filter="all" aria-pressed="true">All</button><button type="button" data-log-filter="changed" aria-pressed="false">Scene changed</button><button type="button" data-log-filter="received" aria-pressed="false">No change</button><button type="button" data-log-filter="failed" aria-pressed="false">Errors</button></div>
-          <details class="log-more"><summary>More filters</summary><div class="log-filters"><select id="protocolFilter" aria-label="Filter protocol"><option value="all">All protocols</option><option value="http">HTTP Signal</option><option value="serial">Serial</option><option value="udp">UDP</option></select><select id="directionFilter" aria-label="Filter direction"><option value="all">TX / RX / System</option><option value="TX">TX · sent</option><option value="RX">RX · received</option><option value="SYSTEM">System</option></select><select id="logFilter" aria-label="Filter activity" hidden><option value="all">All results</option><option value="failed">Errors</option><option value="changed">Scene changed</option><option value="received">HTTP · no change</option></select><label class="filter-current"><input id="currentOnly" type="checkbox">This connection only</label></div></details>
+          <details class="log-more"><summary>More filters</summary><div class="log-filters"><select id="protocolFilter" aria-label="Filter protocol"><option value="all">All protocols</option><option value="http">HTTP Signal</option><option value="serial">Serial</option><option value="udp">UDP / OSC</option><option value="osc">OSC만</option></select><select id="directionFilter" aria-label="Filter direction"><option value="all">TX / RX / System</option><option value="TX">TX · sent</option><option value="RX">RX · received</option><option value="SYSTEM">System</option></select><select id="logFilter" aria-label="Filter activity" hidden><option value="all">All results</option><option value="failed">Errors</option><option value="changed">Scene changed</option><option value="received">HTTP · no change</option></select><label class="filter-current"><input id="currentOnly" type="checkbox">This connection only</label></div></details>
           <p id="logNotice" class="log-notice" hidden></p>
           <div id="events" class="events"></div>
           <footer class="activity-footer">Click an event for its request, response and raw data.</footer>
@@ -114,6 +117,7 @@
       </aside>
     </div>
   </main>
+  <dialog id="settingsDialog"><div class="dialog-header"><div><div class="eyebrow">WORKSPACE / SYSTEM</div><h2>설정</h2></div><button class="icon-button close-dialog" type="button" aria-label="닫기">×</button></div><div id="settingsContent"></div><p class="field-help">측정값과 송수신 기록은 이 PC에서만 처리합니다. 자동 백업은 연결·신호·센서 설정만 저장합니다.</p></dialog>
   <dialog id="editDialog"><form id="editForm"><div class="dialog-header"><div><div class="eyebrow" id="editEyebrow">WORKSPACE</div><h2 id="editTitle">Add target</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><div id="editFields"></div><p id="formError" class="form-error" role="alert"></p><div class="dialog-footer"><button id="deleteItem" type="button" class="button danger" hidden><span data-icon="trash"></span>Delete</button><span class="spacer"></span><button type="button" class="button close-dialog">Cancel</button><button type="submit" class="button dark">Save</button></div></form></dialog>
   <dialog id="sensorDialog" class="sensor-dialog"><form id="sensorForm"><div class="dialog-header"><div><div class="eyebrow">SENSOR AUTOMATION</div><h2 id="sensorEditTitle">Configure sensor</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><div id="sensorEditFields"></div><div class="section-heading"><h3>Send rules</h3><button id="addSensorRule" type="button" class="button">＋ Add rule</button></div><div id="sensorEditRules"></div><p class="field-help">Hold is the initial continuous detection time. Repeat = 0 sends once per crossing; Repeat = 1 sends about every second while fresh samples still match. Repeats stop on a non-matching sample or missing data, and do not use the reset margin. Reset margin prevents flicker near the threshold: Below 100 with margin 10 resets at 110 or above. A new crossing can send again. Cooldown is configured in Edit signal and shared by all sends of that Signal.</p><p class="field-help">No valid data within the timeout resets the hold timer. No values are invented between samples. Changing sensor settings pauses all rules; enable them again after reviewing the graph.</p><p id="sensorFormError" class="form-error" role="alert"></p><div class="dialog-footer"><button id="deleteSensor" type="button" class="button danger" hidden>Delete monitor</button><span class="spacer"></span><button type="button" class="button close-dialog">Cancel</button><button type="submit" class="button dark">Save sensor</button></div></form></dialog>
   <dialog id="confirmDialog"><div class="dialog-header"><h2 id="confirmTitle">Confirm</h2></div><p id="confirmText"></p><div class="dialog-footer"><button id="confirmNo" class="button">Cancel</button><button id="confirmYes" class="button dark">Continue</button></div></dialog>

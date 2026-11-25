@@ -15,6 +15,7 @@ function mergeEvents(incoming){
 function applyRuntime(data){
   connectionStates=data.connections||connectionStates;serialInfo=data.serial||serialInfo;
   sensorRuntimeUpdate(data);
+  if(typeof workbenchUpdate==='function')workbenchUpdate();
   $('portCount').textContent=serialInfo.available?`${serialInfo.ports.length} found`:'Setup needed';
   if($('portsDialog').open&&lastPortsPaint!==JSON.stringify(serialInfo))renderPorts();
 }
@@ -38,10 +39,10 @@ function renderTransportFields(item={}){
     frame.append(selectField('serialBits','Data bits',[[8,'8'],[7,'7'],[6,'6'],[5,'5']],item.dataBits||8),selectField('serialParity','Parity',[['N','None'],['E','Even'],['O','Odd'],['M','Mark'],['S','Space']],item.parity||'N'),selectField('serialStop','Stop bits',[[1,'1'],[1.5,'1.5'],[2,'2']],item.stopBits||1));
     fields.append(frame,el('p','field-help',serialInfo.error||'Match the sensor manual. Detection does not prove that the port is free. Close other apps using the same COM port before opening it here.'));
   }else{
-    const local=el('div','field-row');local.append(field('udpBind','Local bind IP',item.bindHost||'127.0.0.1'),field('udpLocalPort','Local port',item.bindPort??9000,{type:'number',min:0,max:65535}));
-    const remote=el('div','field-row');remote.append(field('udpRemote','Remote IP / hostname',item.remoteHost||'127.0.0.1'),field('udpRemotePort','Remote port',item.remotePort||9001,{type:'number',min:1,max:65535}));
-    const check=el('label','check-field'),input=el('input');input.type='checkbox';input.id='udpBroadcast';input.checked=!!item.broadcast;check.append(input,document.createTextNode('Allow broadcast sends'));
-    fields.append(local,el('p','field-help','Local = where this tester receives. Use 0.0.0.0 for all local IPv4 interfaces, or local port 0 for an available port.'),remote,el('p','field-help','Remote = where test data is sent. For a same-PC loopback test, set both ports to the same unused number.'),check);
+    const local=el('div','field-row');local.append(field('udpBind','수신 IP · 이 PC',item.bindHost||'127.0.0.1'),field('udpLocalPort','수신 포트',item.bindPort??9000,{type:'number',min:0,max:65535}));
+    const remote=el('div','field-row');remote.append(field('udpRemote','전송 대상 IP',item.remoteHost||'127.0.0.1'),field('udpRemotePort','전송 대상 포트',item.remotePort||9001,{type:'number',min:1,max:65535}));
+    const check=el('label','check-field'),input=el('input');input.type='checkbox';input.id='udpBroadcast';input.checked=!!item.broadcast;check.append(input,document.createTextNode('브로드캐스트 전송 허용'));
+    fields.append(local,el('p','field-help','OSC는 수신 즉시 주소별로 자동 해석됩니다. 같은 PC는 127.0.0.1, 외부 장치 수신은 0.0.0.0을 사용하세요. 포트 0은 빈 포트를 자동 선택합니다.'),remote,el('p','field-help','아래는 수동 전송에 사용하는 목적지입니다. 수신만 할 때는 기본값을 유지해도 됩니다.'),check);
   }
   if(editing?.id&&connectionStates[editing.id]?.status==='open')fields.append(el('p','notice','Saving changed connection settings closes this connection. Open it again to use the new settings.'));
 }
@@ -77,9 +78,9 @@ function renderIO(){
   $('checkTarget').hidden=raw;$('connectTarget').hidden=!raw;
   const repeat=document.querySelector('.repeat-block'),repeatParent=raw?$('rawComposer'):document.querySelector('.composer');
   if(repeat.parentElement!==repeatParent)repeatParent.append(repeat);
-  $('tabTestLabel').textContent=raw?(kind(target)==='serial'?'Serial':'UDP'):'Signals';$('signalCount').hidden=raw;
+  $('tabTestLabel').textContent='수동 전송';$('signalCount').hidden=raw;
   if(!raw)return;
-  $('connectTarget').textContent=ioBusy?'Working…':opened?'Close connection':'Open connection';
+  $('connectTarget').textContent=ioBusy?'Working…':opened?'연결 해제':'연결 열기';
   $('connectTarget').classList.toggle('stop',opened);$('connectTarget').classList.toggle('dark',!opened);
   const error=state.error,serialTarget=kind(target)==='serial';
   $('healthStatus').textContent=ioBusy?'Working…':error?'Needs attention':opened?(serialTarget?'Port open':'Listening'):state.status==='error'?'Connection failed':'Closed';
@@ -124,15 +125,15 @@ function updateIOControls(locked){
   for(const id of ['rawFormat','rawData','rawEnding'])$(id).disabled=locked||(id==='rawEnding'&&$('rawFormat').value==='hex');
   if(isRaw())$('startRepeat').disabled=locked||!open||engineOffline;
 }
-async function toggleConnection(){
-  if(lockWorkspace())return;const target=active();if(!target||!isRaw())return;ioBusy=true;renderIO();updateControls();
+async function toggleConnection(targetId=active()?.id){
+  if(lockWorkspace()||engineOffline)return;const target=workspace.targets.find(t=>t.id===targetId);if(!target||kind(target)==='http')return;ioBusy=true;renderIO();updateControls();
   try{const close=connectionStates[target.id]?.status==='open';const result=await api(close?'io/close':'io/open',{targetId:target.id});applyRuntime(result);renderTargets();renderIO();
     const state=connectionStates[target.id];if(state?.error)toast(`${state.error.label} · ${state.error.detail}`,true);else toast(close?'Connection closed.':kind(target)==='udp'?'UDP socket listening. Remote receipt is not confirmed.':'Serial port opened.');
   }finally{ioBusy=false;renderIO();updateControls();}
 }
 function ioSetup(){
   $('scanPorts').onclick=safe(async()=>{renderPorts();$('portsDialog').showModal();await refreshPorts();});$('refreshPorts').onclick=safe(refreshPorts);
-  $('connectTarget').onclick=safe(toggleConnection);$('editConnection').onclick=()=>openEditor('target',active());
+  $('connectTarget').onclick=safe(()=>toggleConnection());$('editConnection').onclick=()=>openEditor('target',active());
   for(const id of ['rawFormat','rawEnding'])$(id).onchange=()=>updateRaw();$('rawData').oninput=()=>updateRaw();$('sendRaw').onclick=safe(()=>sendOnce(rawPayload()));
   for(const fmt of ['Text','Hex'])$('showRx'+fmt).onclick=()=>{rxFormat=fmt.toLowerCase();$('showRxText').setAttribute('aria-pressed',String(rxFormat==='text'));$('showRxHex').setAttribute('aria-pressed',String(rxFormat==='hex'));renderIO();};
   for(const id of ['protocolFilter','directionFilter','currentOnly'])$(id).onchange=renderEvents;
@@ -147,6 +148,6 @@ async function pollLive(){
       mergeEvents(data.events);liveCursor=data.cursor;missedEvents+=data.skipped||0;
     }
     renderTargets();renderIO();renderKeyboard();if(!logPaused)renderEvents();updateControls();
-  }catch(e){engineOffline=true;$('engineWarning').hidden=false;$('engineWarning').textContent='Live monitor disconnected. Connection states are unconfirmed. Keep the tester launch window open; reload this page if the engine restarted.';renderSensors();renderKeyboard();updateControls();}
+  }catch(e){engineOffline=true;$('engineWarning').hidden=false;$('engineWarning').textContent='Live monitor disconnected. Connection states are unconfirmed. Keep the tester launch window open; reload this page if the engine restarted.';renderSensors();renderKeyboard();updateControls();if(typeof workbenchUpdate==='function')workbenchUpdate();}
   finally{setTimeout(pollLive,650);}
 }

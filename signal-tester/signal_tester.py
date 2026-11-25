@@ -399,6 +399,21 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 data['runtime'] = sensors.snapshot(selected='__debug_no_graph__')
                 data['connections'] = hub.snapshot(data['targets'])
                 return self.reply(200, data)
+            if route.path == '/api/fields':
+                query = parse_qs(route.query)
+                key = query.get('field', [''])[0]
+                if len(key) > 4096:
+                    return self.reply(400, {'error': 'Field path is too long.'})
+                return self.reply(200, hub.field_detail(query.get('target', [''])[0], key))
+            if route.path == '/api/osc':
+                query = parse_qs(route.query)
+                try:
+                    argument = int(query.get('argument', ['0'])[0])
+                    if not 0 <= argument < 64:
+                        raise ValueError()
+                except ValueError:
+                    return self.reply(400, {'error': 'OSC argument must be 0–63.'})
+                return self.reply(200, hub.osc_detail(query.get('target', [''])[0], query.get('address', [''])[0], argument))
             if route.path == '/api/live':
                 try:
                     after = max(0, int(parse_qs(route.query).get('after', ['0'])[0]))
@@ -407,7 +422,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 data = store.activity(after)
                 data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(parse_qs(route.query).get('monitor', [None])[0]))
                 return self.reply(200, data)
-            assets = {'/debug.html': ('debug.html', 'text/html; charset=utf-8'), '/debug.js': ('debug.js', 'text/javascript; charset=utf-8'), '/debug.css': ('debug.css', 'text/css; charset=utf-8'), '/debug-open.js': ('debug-open.js', 'text/javascript; charset=utf-8'), '/code-guide.js': ('code-guide.js', 'text/javascript; charset=utf-8'), '/code-guide.json': ('code-guide.json', 'application/json; charset=utf-8'), '/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            assets = {'/fields.js': ('fields.js', 'text/javascript; charset=utf-8'), '/workbench.js': ('workbench.js', 'text/javascript; charset=utf-8'), '/workbench.css': ('workbench.css', 'text/css; charset=utf-8'), '/debug.html': ('debug.html', 'text/html; charset=utf-8'), '/debug.js': ('debug.js', 'text/javascript; charset=utf-8'), '/debug.css': ('debug.css', 'text/css; charset=utf-8'), '/debug-open.js': ('debug-open.js', 'text/javascript; charset=utf-8'), '/code-guide.js': ('code-guide.js', 'text/javascript; charset=utf-8'), '/code-guide.json': ('code-guide.json', 'application/json; charset=utf-8'), '/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if self.path not in assets:
                 return self.reply(404, {'error': 'Not found.'})
             name, mime = assets[self.path]

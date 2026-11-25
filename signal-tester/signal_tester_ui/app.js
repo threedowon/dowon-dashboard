@@ -71,23 +71,32 @@ async function saveWorkspace(next){
 function render(){
   if(!workspace)return;
   if(!selected()){selectedId=workspace.signals[0]?.id || null;draft=selected()?clone(selected().value):null;}
-  renderTargets();renderSignals();renderComposer();renderIO();renderEvents();renderSensors();renderKeyboard();updateControls();
+  renderTargets();renderSignals();renderComposer();renderIO();renderEvents();renderSensors();renderKeyboard();updateControls();if(typeof workbenchUpdate==='function')workbenchUpdate();
 }
+let targetPaint='';
 function renderTargets(){
   $('targetCount').textContent=workspace.targets.length;
-  $('targets').replaceChildren();
-  for(const t of workspace.targets){
-    const row=el('div','target-row'+(t.id===workspace.activeTarget?' active':''));
-    const pick=button('target-select','',safe(async()=>{
-      if(lockWorkspace()||t.id===workspace.activeTarget)return;
-      const next=clone(workspace);next.activeTarget=t.id;await saveWorkspace(next);checkHealth();
-    }));
-    pick.setAttribute('aria-pressed',String(t.id===workspace.activeTarget));
-    const state=connectionStates[t.id],check=kind(t)==='http'?healthChecks.get(t.id):state?{online:state.status==='open'&&!state.error}:null,dot=el('span','dot'+(check?(check.online?' online':' offline'):'')),body=el('span');
-    body.append(el('strong','',t.name),el('span','protocol-tag',kind(t)==='http'?'HTTP SIGNAL':kind(t).toUpperCase()),el('small','',liveAddress(t)));pick.append(dot,body);
-    row.append(pick,iconButton('edit',`Edit target ${t.name}`,()=>openEditor('target',t)));$('targets').append(row);
+  const signature=JSON.stringify([workspace.targets,workspace.activeTarget,workspace.targets.map(t=>[connectionStates[t.id]?.status,connectionStates[t.id]?.local,connectionStates[t.id]?.error,healthChecks.get(t.id)?.online])]);
+  if(signature!==targetPaint){
+    targetPaint=signature;
+    $('targets').replaceChildren();
+    for(const t of workspace.targets){
+      const row=el('div','target-row'+(t.id===workspace.activeTarget?' active':''));row.dataset.number=String(workspace.targets.indexOf(t)+1).padStart(2,'0');
+      const pick=button('target-select','',safe(async()=>{
+        if(lockWorkspace()||t.id===workspace.activeTarget)return;
+        const next=clone(workspace);next.activeTarget=t.id;await saveWorkspace(next);checkHealth();
+      }));
+      pick.setAttribute('aria-pressed',String(t.id===workspace.activeTarget));
+      const state=connectionStates[t.id],check=kind(t)==='http'?healthChecks.get(t.id):state?{online:state.status==='open'&&!state.error}:null,dot=el('span','dot'+(check?(check.online?' online':' offline'):'')),body=el('span');
+      body.append(el('strong','',t.name),el('span','protocol-tag',kind(t)==='http'?'HTTP SIGNAL':kind(t).toUpperCase()),el('small','',liveAddress(t)));pick.append(dot,body);
+      const actions=el('div','target-actions'),remove=button('icon-button target-remove','×',safe(()=>removeTarget(t.id)));
+      remove.setAttribute('aria-label',`${t.name} 장치 삭제`);remove.title='장치 삭제';
+      if(kind(t)!=='http'){const connected=state?.status==='open',connect=iconButton('plug',`${t.name} ${connected?'연결 끊기':'연결'}`,safe(()=>toggleConnection(t.id)));connect.classList.add('target-connect');connect.classList.toggle('connected',connected);connect.setAttribute('aria-pressed',String(connected));actions.append(connect);}
+      actions.append(iconButton('edit',`Edit target ${t.name}`,()=>openEditor('target',t)),remove);
+      row.append(pick,actions);$('targets').append(row);
+    }
+    if(!workspace.targets.length)$('targets').append(el('p','muted','장치를 추가해 센서 테스트를 시작하세요.'));
   }
-  if(!workspace.targets.length)$('targets').append(el('p','muted','No targets yet. Add your first Player.'));
   const t=active();$('activeName').textContent=t?.name || 'No target selected';$('activeAddress').textContent=t?liveAddress(t):'Add a target to begin';
   $('remoteNotice').hidden=!t||kind(t)!=='http'||['127.0.0.1','localhost','::1'].includes(t.host);
   if(t&&kind(t)!=='http'){renderIO();return;}
@@ -154,6 +163,7 @@ function updateControls(){
   const locked=saving||sending||!!repeating||ioBusy||!workspace,hasSignal=!!selected(),hasTarget=!!active();
   for(const id of ['addTarget','addSignal','importScene','importWorkspace','exportWorkspace','addSensor','scanPorts','editSignal','sensorHub'])$(id).disabled=locked||(id==='editSignal'&&!hasSignal);
   document.querySelectorAll('.target-select,.target-row .icon-button,.signal-card .icon-button').forEach(b=>b.disabled=locked);
+  document.querySelectorAll('.target-connect').forEach(b=>b.disabled=locked||engineOffline);
   document.querySelectorAll('[data-send]').forEach(b=>b.disabled=locked||!hasTarget||isRaw()||engineOffline);
   $('sendSignal').disabled=locked||!hasSignal||!hasTarget||isRaw()||engineOffline;
   $('startRepeat').disabled=locked||!hasSignal||!hasTarget;$('stopRepeat').disabled=!repeating;
@@ -214,15 +224,15 @@ function updateCardResults(flash=true){
 let renderedEvents=null;
 function renderEvents(){
   const source=logPaused?frozenEvents:events;$('eventCount').textContent=source.length;
-  const changed=source.filter(e=>e.status==='transitioned').length,rx=source.filter(e=>e.direction==='RX').length,errors=source.filter(e=>e.severity==='error').length;
-  $('activitySummary').textContent=source.length?[`${changed} scene change${changed===1?'':'s'}`,errors?`${errors} error${errors===1?'':'s'}`:'no errors',rx?`${rx} RX`:''].filter(Boolean).join(' · '):'All connections, one timeline.';
+  const rx=source.filter(e=>e.direction==='RX').length,errors=source.filter(e=>e.severity==='error').length;
+  $('activitySummary').textContent=source.length?[`${source.length} 기록`,errors?`${errors} error${errors===1?'':'s'}`:'no errors',rx?`${rx} RX`:''].filter(Boolean).join(' · '):'All connections, one timeline.';
   $('logNotice').hidden=!logPaused&&!missedEvents;$('logNotice').textContent=logPaused?'View paused. Capture continues in the Python engine.':`${missedEvents} older events skipped during high traffic or a background tab. The engine keeps the latest 500.`;
   const filter=$('logFilter').value,protocol=$('protocolFilter').value,direction=$('directionFilter').value;
-  const visible=source.filter(e=>(protocol==='all'||e.protocol===protocol)&&(direction==='all'||e.direction===direction)&&(!$('currentOnly').checked||e.target.id===active()?.id)&&(filter==='all'||(filter==='changed'&&e.status==='transitioned')||(filter==='received'&&e.protocol==='http'&&e.received&&e.status!=='transitioned')||(filter==='failed'&&e.severity==='error'))).slice(0,200);
+  const visible=source.filter(e=>(protocol==='all'||e.protocol===protocol||(protocol==='osc'&&e.packet?.osc))&&(direction==='all'||e.direction===direction)&&(!$('currentOnly').checked||e.target.id===active()?.id)&&(filter==='all'||(filter==='changed'&&e.status==='transitioned')||(filter==='received'&&e.protocol==='http'&&e.received&&e.status!=='transitioned')||(filter==='failed'&&e.severity==='error'))).slice(0,200);
   $('events').replaceChildren();
   for(const e of visible){
     const row=button('log-row tone-'+resultClass(e)+(renderedEvents&&!renderedEvents.has(e.id)?' fresh':''),'',()=>showEvent(e)),time=el('time','',new Date(e.time).toLocaleTimeString('en-GB', {hour12:false}));time.dateTime=new Date(e.time).toISOString();
-    const key=el('span'),preview=e.key||e.packet?.text?.replace(/\s+/g,' ')||e.packet?.hex||e.label;
+    const key=el('span'),preview=e.packet?.osc?(e.packet.osc.error||e.packet.osc.messages.map(m=>m.address+' '+m.arguments.map(a=>JSON.stringify(a.value)).join(' ')).join(' · ')):e.key||e.packet?.text?.replace(/\s+/g,' ')||e.packet?.hex||e.label;
     key.append(el('code','',preview),el('small','',`${e.target.name} · ${(e.protocol||'http').toUpperCase()} ${e.direction||'TX'}`));
     const outcome=el('span');outcome.append(el('span','badge '+resultClass(e),e.label),el('small','',`${e.origin||e.stage||'response'}${e.peer?' · '+e.peer:''}`));
     row.append(time,key,outcome,el('span','latency',e.packet?`${e.packet.bytes} B`:e.elapsed!=null?`${e.elapsed} ms`:'—'));$('events').append(row);
@@ -237,6 +247,7 @@ function showEvent(event){
   content.append(el('p','',event.detail),el('p','muted',`${event.target.name} · ${address(event.target)} · ${new Date(event.time).toLocaleString('en-GB')} · ${event.protocol.toUpperCase()} / ${event.direction} / ${event.stage}`));
   $('retryEvent').hidden=event.protocol!=='http';
   if(event.protocol!=='http'){
+    if(event.packet?.osc){content.append(el('h3','','OSC / ADDRESS · ARGUMENTS'),el('pre','',JSON.stringify(event.packet.osc,null,2)));}
     if(event.packet){content.append(el('h3','',`${event.packet.bytes} BYTES${event.packet.truncated?' · PREVIEW LIMITED TO 2 KB':''}`),el('pre','',event.packet.text||'(empty)'),el('h3','','HEX'),el('pre','',event.packet.hex||'(empty)'));}
     if(event.peer)content.append(el('h3','','PEER'),el('pre','',event.peer));
     if(event.error)content.append(el('h3','','SYSTEM ERROR'),el('pre','',event.error));
@@ -252,10 +263,10 @@ function field(id,text,value,opts={}){
   wrap.append(label,input);return wrap;
 }
 function openEditor(kind,item=null){
-  if(lockWorkspace())return;editing={kind,id:item?.id};$('editTitle').textContent=`${item?'Edit':'Add'} ${kind==='target'?'connection':'signal'}`;$('editEyebrow').textContent=kind==='target'?'SAVED CONNECTION':'SIGNAL LIBRARY';$('editFields').replaceChildren();$('formError').textContent='';$('deleteItem').hidden=!item;
+  if(lockWorkspace())return;editing={kind,id:item?.id};$('editTitle').textContent=`${kind==='target'?'장치':'신호'} ${item?'편집':'추가'}`;$('editEyebrow').textContent=kind==='target'?'SAVED CONNECTION':'SIGNAL LIBRARY';$('editFields').replaceChildren();$('formError').textContent='';$('deleteItem').hidden=!item;
   if(kind==='target'){
     $('editFields').append(field('itemName','Name',item?.name||'',{maxLength:80}));
-    $('editFields').append(selectField('targetType','Connection type',[['http','HTTP Signal · Player'],['serial','Serial · COM device'],['udp','UDP · send / receive']],item?.type||'http'));
+    $('editFields').append(selectField('targetType','Connection type',[['http','HTTP Signal · 출력'],['serial','Serial · COM device'],['udp','UDP / OSC · 송수신']],item?(item.type||'http'):'serial'));
     const transport=el('div');transport.id='transportFields';$('editFields').append(transport);renderTransportFields(item||{});$('targetType').onchange=()=>renderTransportFields(item||{});
   }else{
     $('editFields').append(field('itemName','Display name',item?.name||'',{maxLength:80}),field('itemKey','Signal key',item?.key||'',{maxLength:120}),field('itemCooldown','Cooldown · seconds',item?.cooldown??3,{type:'number',min:0,max:3600,step:0.1}),el('p','field-help','Must match the key in Editor → Signals. Keys are saved in lowercase. Set its optional value in the right panel.'));
@@ -277,6 +288,15 @@ $('editForm').addEventListener('submit',async e=>{
     render();$('editDialog').close();toast(`${editing.kind==='target'?'Target':'Signal'} saved.`);
   }catch(err){$('formError').textContent=err.message;}
 });
+async function removeTarget(id){
+  if(lockWorkspace()||$('confirmDialog').open)return;
+  const target=workspace.targets.find(t=>t.id===id);if(!target)return;
+  if(!await confirmAction('장치를 삭제할까요?',`“${target.name}” 장치를 목록에서 삭제합니다. 열린 통신 연결은 종료됩니다. 이 장치에 연결된 모든 필드와 규칙도 함께 삭제됩니다. 이 장치를 출력 대상으로 사용하는 규칙도 삭제됩니다.`,'삭제'))return;
+  if(lockWorkspace())return;
+  const next=clone(workspace);next.targets=next.targets.filter(t=>t.id!==id);
+  next.sensors=(next.sensors||[]).filter(m=>m.sourceId!==id).map(m=>({...m,rules:m.rules.filter(r=>r.targetId!==id)}));
+  await saveWorkspace(next);healthChecks.delete(id);toast('장치를 삭제했습니다.');
+}
 function confirmAction(title,text,yes='Continue'){
   $('confirmTitle').textContent=title;$('confirmText').textContent=text;$('confirmYes').textContent=yes;$('confirmDialog').showModal();
   return new Promise(resolve=>{
@@ -286,6 +306,7 @@ function confirmAction(title,text,yes='Continue'){
 }
 $('deleteItem').addEventListener('click',safe(async()=>{
   if(!editing?.id||saving)return;const kind=editing.kind;
+  if(kind==='target'){const id=editing.id;await removeTarget(id);if(!workspace.targets.some(t=>t.id===id))$('editDialog').close();return;}
   if(!await confirmAction(`Delete this ${kind}?`,'This removes it from the tester only. Your Player and .scene file stay unchanged.','Delete'))return;
   const next=clone(workspace),list=kind==='target'?'targets':'signals';next[list]=next[list].filter(i=>i.id!==editing.id);await saveWorkspace(next);$('editDialog').close();toast(`${kind==='target'?'Target':'Signal'} deleted.`);
 }));
@@ -301,6 +322,7 @@ $('copyPayload').onclick=safe(async()=>{const {key,value}=currentPayload();await
 $('logFilter').onchange=renderEvents;
 document.querySelectorAll('[data-log-filter]').forEach(b=>b.addEventListener('click',()=>{$('logFilter').value=b.dataset.logFilter;renderEvents();}));
 function showTab(name,remember=true){
+  document.body.dataset.view=name;
   for(const tab of document.querySelectorAll('[data-tab]')){const on=tab.dataset.tab===name;tab.setAttribute('aria-selected',String(on));tab.tabIndex=on?0:-1;$(tab.getAttribute('aria-controls')).hidden=!on;}
   if(name==='sensors')requestAnimationFrame(()=>{if(typeof drawSensorGraph==='function')drawSensorGraph();});
   if(remember)try{localStorage.setItem('signalTesterTab',name);}catch{}
@@ -309,7 +331,7 @@ document.querySelectorAll('[data-tab]').forEach(tab=>{
   tab.addEventListener('click',()=>showTab(tab.dataset.tab));
   tab.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;const tabs=[...document.querySelectorAll('[data-tab]')],next=tabs[(tabs.indexOf(tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];e.preventDefault();e.stopPropagation();showTab(next.dataset.tab);next.focus();});
 });
-try{const saved=localStorage.getItem('signalTesterTab');if(saved==='sensors')showTab('sensors',false);}catch{}
+try{const saved=localStorage.getItem('signalTesterTab');if(['sensors','rules','logs','test'].includes(saved))showTab(saved,false);else showTab('sensors',false);}catch{}
 $('repeatDetails').addEventListener('toggle',()=>{try{localStorage.setItem('signalTesterRepeat',$('repeatDetails').open?'1':'0');}catch{}});
 try{if(localStorage.getItem('signalTesterRepeat')==='1')$('repeatDetails').open=true;}catch{}
 $('copyPayload').addEventListener('click',e=>e.preventDefault());

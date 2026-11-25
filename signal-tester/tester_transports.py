@@ -6,6 +6,8 @@ import re
 import socket
 import threading
 import time
+from tester_osc import OSCMonitor
+from tester_fields import JSONFields
 
 try:
     import serial
@@ -116,6 +118,8 @@ def diagnose(error, stage, kind):
 class Session:
     def __init__(self, profile):
         self.profile = deepcopy(profile)
+        self.osc = OSCMonitor()
+        self.fields = JSONFields()
         self.lock = threading.RLock()
         self.write_lock = threading.Lock()
         self.stop = threading.Event()
@@ -188,11 +192,30 @@ class TransportHub:
                 if session:
                     with session.lock:
                         state = deepcopy(session.state)
+                        state['fields'] = session.fields.snapshot()
+                        if profile['type'] == 'udp':
+                            state['osc'] = session.osc.snapshot()
                 else:
                     state = deepcopy(Session(profile).state)
                 state['detected'] = profile.get('device', '').casefold() in found if profile['type'] == 'serial' else None
                 states[profile['id']] = state
             return states
+
+    def field_detail(self, target_id, key):
+        with self.lock:
+            session = self.sessions.get(target_id)
+            if not session:
+                return {'key': key, 'points': []}
+            with session.lock:
+                return session.fields.detail(key)
+
+    def osc_detail(self, target_id, address, argument):
+        with self.lock:
+            session = self.sessions.get(target_id)
+            if not session:
+                return {'address': address, 'argument': argument, 'points': []}
+            with session.lock:
+                return session.osc.detail(address, argument)
 
     def _event(self, session, direction, stage, status, label, detail, **extra):
         return self.emit({'protocol': session.profile['type'], 'direction': direction, 'stage': stage,
@@ -278,11 +301,17 @@ class TransportHub:
                         return
                     session.state['rxBytes'] += len(data)
                     session.state['rxCount'] += 1
+                    session.fields.receive(data, stamp, session.profile['type'] == 'udp')
+                    osc = session.osc.receive(data, stamp, peer) if session.profile['type'] == 'udp' else None
+                    if osc is not None:
+                        packet['osc'] = osc
                     session.state.update(lastRx=stamp, lastPacket={**packet, 'peer': peer}, detail='Bytes received. Inspect Text / HEX below.')
                 if self.on_data:
                     self.on_data(session.profile, data)
                 detail = ('Raw serial chunks; one read may contain part of a message or several messages.' if session.profile['type'] == 'serial' else 'A datagram arrived at this local socket. This is not an acknowledgment of a specific send.')
-                self._event(session, 'RX', 'receive', 'received', 'Bytes received', detail, packet=packet, peer=peer)
+                self._event(session, 'RX', 'receive', 'error' if osc and 'error' in osc else 'received',
+                            'OSC parse error' if osc and 'error' in osc else 'OSC received' if osc else 'Bytes received',
+                            osc['error'] if osc and 'error' in osc else detail, packet=packet, peer=peer)
             except socket.timeout:
                 continue
             except Exception as error:

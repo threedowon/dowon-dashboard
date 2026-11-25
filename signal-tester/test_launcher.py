@@ -22,7 +22,7 @@ class LauncherTests(unittest.TestCase):
         self.base = Path(self.temp.name)/'isolated tester'
         self.base.mkdir()
         for filename in ('signal_tester.py', 'tester_launcher.py', 'tester_transports.py',
-                         'tester_sensors.py', 'tester_presets.py', 'tester_debug.py', 'tester_cloud.py',
+                         'tester_fields.py', 'tester_osc.py', 'tester_sensors.py', 'tester_presets.py', 'tester_debug.py', 'tester_cloud.py',
                          'tester_web_dev.py', 'tester_version.py', 'build_guide.py', 'requirements-dev.txt',
                          'README.md', 'LOCAL-TESTER.md', 'Start-Signal-Tester.cmd'):
             shutil.copy2(launcher.BASE/filename, self.base/filename)

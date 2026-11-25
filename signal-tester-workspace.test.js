@@ -64,3 +64,47 @@ test('an older engine without workspace revisions cannot receive an unsafe repla
   assert.equal(a.requests.length, 0);
   assert.equal(a.client.state().saving, false);
 });
+
+test('connection editor preserves legacy HTTP profiles while new devices default to Serial', () => {
+  const editorSource=source.slice(source.indexOf('function openEditor('),source.indexOf("$('editForm').addEventListener"));
+  const selections=[];
+  const nodes=new Map();
+  const node=id=>{if(!nodes.has(id))nodes.set(id,{append(){},replaceChildren(){},showModal(){},focus(){}});return nodes.get(id);};
+  const context=vm.createContext({$:node,lockWorkspace:()=>false,field:()=>({}),el:()=>({}),renderTransportFields(){},renderKeyPicker(){},
+    selectField:(id,title,options,current)=>{selections.push({id,current});return {};}});
+  vm.runInContext(`let editing=null;${editorSource};globalThis.open=openEditor;`,context);
+  context.open('target',{id:'legacy',name:'This PC',host:'127.0.0.1',port:8420});
+  assert.equal(selections.at(-1).current,'http');
+  context.open('target',{id:'osc',type:'udp',name:'OSC Input'});
+  assert.equal(selections.at(-1).current,'udp');
+  context.open('target');
+  assert.equal(selections.at(-1).current,'serial');
+});
+
+const removeTargetSource=source.slice(source.indexOf('async function removeTarget('),source.indexOf('function confirmAction('));
+test('device X requires confirmation and removes dependent fields/rules',async()=>{
+  for(const confirmed of [false,true]){
+    const original={targets:[{id:'one',name:'Sensor'},{id:'two',name:'Other'}],sensors:[{sourceId:'one',rules:[{threshold:2.5}]},{sourceId:'two',rules:[{targetId:'one'},{targetId:'two'}]}]};
+    const saved=[],prompts=[];
+    const context=vm.createContext({workspace:original,lockWorkspace:()=>false,$:()=>({open:false}),clone:structuredClone,
+      confirmAction:async(...args)=>{prompts.push(args);return confirmed;},saveWorkspace:async next=>saved.push(next),healthChecks:new Map(),toast(){}});
+    vm.runInContext(`${removeTargetSource};globalThis.remove=removeTarget;`,context);
+    await context.remove('one');
+    assert.equal(prompts.length,1);
+    assert.equal(saved.length,confirmed?1:0);
+    assert.equal(original.targets.length,2);
+    if(confirmed){assert.deepEqual(saved[0].targets,[original.targets[1]]);assert.equal(saved[0].sensors.length,1);assert.equal(saved[0].sensors[0].sourceId,'two');assert.deepEqual(Array.from(saved[0].sensors[0].rules,r=>r.targetId),['two']);}
+  }
+});
+
+test('sidebar connection toggle operates on its own device and releases busy state',async()=>{
+  const io=readFileSync(new URL('./signal-tester/signal_tester_ui/io.js',import.meta.url),'utf8');
+  const fn=io.slice(io.indexOf('async function toggleConnection('),io.indexOf('function ioSetup('));
+  const requests=[],states={other:{status:'closed'}};
+  const ctx=vm.createContext({workspace:{targets:[{id:'other',type:'udp'}]},active:()=>({id:'selected'}),lockWorkspace:()=>false,engineOffline:false,connectionStates:states,kind:t=>t.type,
+    renderIO(){},updateControls(){},renderTargets(){},toast(){},applyRuntime(){},api:async(path,body)=>{requests.push({path,body});states.other.status=path==='io/open'?'open':'closed';return {};}});
+  vm.runInContext(`let ioBusy=false;${fn};globalThis.toggle=toggleConnection;globalThis.busy=()=>ioBusy;`,ctx);
+  await ctx.toggle('other');await ctx.toggle('other');
+  assert.deepEqual(requests.map(r=>r.path),['io/open','io/close']);
+  assert.deepEqual(requests.map(r=>r.body.targetId),['other','other']);assert.equal(ctx.busy(),false);
+});
