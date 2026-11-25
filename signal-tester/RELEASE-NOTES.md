@@ -1,4 +1,4 @@
-Signal Tester v1.4.0 — 공통 센서 테스트 프로그램
+Signal Tester v1.4.1 — 공통 센서 테스트 프로그램
 
 - 대시보드와 DFESTA에서 같은 릴리스/웹 화면을 사용합니다. DFESTA의 기본 CMD는 공통 EXE를 설치·실행하며 Python이 필요 없습니다.
 - DMX ENTTEC USB Pro 4개 조명 제어, VL53L0X 진단 필드 추가, 같은 센서의 그래프 겹쳐 보기, OSC 주소/값→Player Signal 매핑을 통합했습니다.

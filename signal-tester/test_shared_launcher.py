@@ -27,7 +27,8 @@ function Invoke-WebRequest {
 }
 function Start-Process {
     param($FilePath,$ArgumentList,$WindowStyle)
-    if($WindowStyle -ne 'Hidden' -or $ArgumentList[0] -ne '--web-ui' -or $ArgumentList[1] -ne '--config' -or $ArgumentList[2] -ne ('"'+$env:LOCALAPPDATA+'\settings with spaces.json"')) { throw 'Incorrect launch arguments' }
+    $expectedWorkspace=[IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'settings with spaces.json'))
+    if($WindowStyle -ne 'Hidden' -or $ArgumentList[0] -ne '--web-ui' -or $ArgumentList[1] -ne '--config' -or $ArgumentList[2] -ne ('"'+$expectedWorkspace+'"')) { throw 'Incorrect launch arguments' }
     $stats.launches++
 }
 & $env:TEST_LAUNCHER -WorkspacePath (Join-Path $env:LOCALAPPDATA 'settings with spaces.json')
