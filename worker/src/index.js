@@ -1,3 +1,4 @@
+import {archive} from './archive.js';
 import {sketchbook} from './sketchbook.js';
 
 import {library} from './library.js';
@@ -60,13 +61,14 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil(Promise.all([cleanu
  return j({ok:true},200,{"set-cookie":cookie("__Host-dowon_session","","SameSite=Lax; Max-Age=0"),...cors});
  }
  if(u.pathname.startsWith("/api/")){
- const nativeDownload=req.method==='GET'&&/^\/api\/transfers\/[a-f0-9-]{36}\/file$/.test(u.pathname)&&!origin&&req.headers.get('sec-fetch-site')==='same-site'&&req.headers.get('referer')?.startsWith(site+'/');
+ const nativeDownload=req.method==='GET'&&/^\/api\/(?:transfers|archive)\/[a-f0-9-]{36}\/file$/.test(u.pathname)&&!origin&&req.headers.get('sec-fetch-site')==='same-site'&&req.headers.get('referer')?.startsWith(site+'/');
  if(origin!==site&&!nativeDownload)return j({error:"Origin denied"},403,cors);
  let session;try{session=await unseal(env,cookies["__Host-dowon_session"])}catch{return j({error:"로그인이 필요합니다."},401,cors)}
  if(session.expires<Date.now()||session.login.toLowerCase()!==(env.ALLOWED_GITHUB_LOGIN||"threedowon").toLowerCase())return j({error:"로그인 만료"},401,cors);
  if(u.pathname==="/api/me")return j({login:session.login},200,cors);
  if(u.pathname.startsWith('/api/signal-tester/'))return signalBackups(req,session.token,gh,{headers:cors});
  if(u.pathname==='/api/hardware-projects')return hardwareProjects(req,env,cors);
+ if(u.pathname==='/api/archive'||u.pathname.startsWith('/api/archive/'))return archive(req,env,cors);
  if(u.pathname==='/api/transfers'||u.pathname.startsWith('/api/transfers/'))return transfers(req,env,cors);
  if(u.pathname==='/api/wirenest'||u.pathname.startsWith('/api/wirenest/'))return library(req,session.token,gh,cors,'wnest');
  if(u.pathname==='/api/library'||u.pathname.startsWith('/api/library/'))return library(req,session.token,gh,cors);

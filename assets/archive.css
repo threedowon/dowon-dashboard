@@ -1,0 +1,15 @@
+#archivePage .transfer-dropzone{border:2px dashed #777;text-align:center;padding:24px 16px;margin:20px 0;background:#faf8ef}
+#archivePage .transfer-dropzone strong{font-size:22px}
+#archivePage .transfer-dropzone p{font-size:15px;color:#555}
+#archivePage .transfer-list{overflow-x:auto;border:2px solid;border-color:#808080 #fff #fff #808080;background:#faf8ef}
+#archivePage .transfer-table{width:100%;min-width:640px;border-collapse:collapse;table-layout:fixed;font:16px/1.4 Tahoma,'Pretendard Variable',sans-serif}
+#archivePage .transfer-table th{background:#c0c0c0;box-shadow:inset 1px 1px #fff;text-align:left}
+#archivePage .transfer-table th,#archivePage .transfer-table td{border:1px solid #aaa;padding:12px;overflow-wrap:anywhere;vertical-align:middle}
+#archivePage .transfer-table th:first-child{width:34%}
+#archivePage .transfer-table th:nth-child(2){width:12%}
+#archivePage .transfer-table th:nth-child(3){width:28%}
+#archivePage .transfer-actions .btn{margin:3px;min-height:36px}
+#archivePage .transfer-empty{text-align:center;padding:32px}
+#archivePage .transfer-footnote{font-size:14px;line-height:1.6;color:#555;margin-top:18px}
+#archivePage .small{font-size:14px}
+@media(max-width:600px){#archivePage .library-toolbar{flex-wrap:wrap}#archivePage .library-toolbar>label{width:100%;min-width:0}#archivePage .transfer-dropzone{padding:16px 10px}}

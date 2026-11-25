@@ -156,6 +156,7 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/retro-wirenest.css?v=20261122-v1">
 <link rel="stylesheet" href="assets/retro-signaltester.css?v=20261122-v1">
 <link rel="stylesheet" href="assets/arduino-sketchbook.css?v=20261125-sketch-explorer-v1">
+<link rel="stylesheet" href="assets/archive.css?v=20261126">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -184,12 +185,13 @@ html[data-active-page="home"] .side{display:none}
 <a class="catalog-card object-card" href="#pdf" aria-labelledby="pdfCardTitle"><div class="catalog-symbol object-1" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/library.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">02</span><div class="catalog-card-head"><div><h2 id="pdfCardTitle">PDF Library</h2><span class="catalog-en">Document library</span></div></div><div class="catalog-details"><p>Keep documents to read and revisit.</p><div class="catalog-status">Upload documents · Browse by tag</div></div></a>
 <a class="catalog-card object-card" href="#ideas" aria-labelledby="ideasCardTitle"><div class="catalog-symbol object-2" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/ideas.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">03</span><div class="catalog-card-head"><div><h2 id="ideasCardTitle">Reference</h2><span class="catalog-en">Reference</span></div></div><div class="catalog-details"><p>Collect images, references, and ideas.</p><div class="catalog-status">Images · Links · Project boards</div></div></a>
 <a class="catalog-card object-card" href="#wirenest" aria-labelledby="wireNestCardTitle"><div class="catalog-symbol object-3" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">04</span><div class="catalog-card-head"><div><h2 id="wireNestCardTitle">WireNest</h2><span class="catalog-en">PCB harness studio</span></div></div><div class="catalog-details"><p>Arrange components and design connections.</p><div class="catalog-status"><span id="wireNestCardAction">Open saved backups</span></div></div></a>
+<a class="catalog-card object-card" href="#archive"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"></div><div class="catalog-card-head"><h2>파일 보관함</h2></div><div class="catalog-details"><p>Keep files until you delete them.</p><div class="catalog-status">Store · Search · Download</div></div></a>
 <a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">File Transfer</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>Move files between workspaces.</p><div class="catalog-status">Upload · Download</div></div></a>
 <a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>Organize hardware requests and purchase quantities.</p></div></a>
 <a class="catalog-card object-card" href="http://127.0.0.1:6699/" target="_blank" rel="noopener noreferrer" title="Open the running web tester on this PC" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>Live sensor readings · Charts · Communication logs</p></div></a>
 <a class="catalog-card object-card" href="#arduino" aria-labelledby="arduinoCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">08</span><div class="catalog-card-head"><div><h2 id="arduinoCardTitle">Arduino Sketchbook</h2><span class="catalog-en">Reusable sketches &amp; sensor code</span></div></div><div class="catalog-details"><p>Browse Arduino code, wiring guides and project settings.</p></div></a>
 <div class="retro-welcome"><span aria-hidden="true">⚙</span><p>A place for things<br>in progress.</p></div></div>
-<footer class="retro-status"><span id="retroHomeStatus" role="status">8 tools ready</span></footer></div>
+<footer class="retro-status"><span id="retroHomeStatus" role="status">9 tools ready</span></footer></div>
 <aside class="retro-desktop-side" aria-label="Desktop accessories">
 <button type="button" id="retroComputer" class="retro-desktop-icon" data-retro-action="restore"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>My Computer</span></button>
 <section class="retro-window retro-note" id="retroNote" aria-labelledby="retroNoteTitle"><header class="retro-titlebar"><h2 id="retroNoteTitle">Quick Note</h2><button type="button" class="retro-control" data-retro-action="close-note" aria-label="Close Quick Note">×</button></header><textarea id="retroNoteText" aria-label="Quick Note — saved on this device" spellcheck="false" maxlength="4000">Make something today.</textarea></section>
@@ -225,6 +227,14 @@ html[data-active-page="home"] .side{display:none}
 <section class="signal-cloud" aria-labelledby="signalCloudTitle"><div class="signal-cloud-title"><h2 id="signalCloudTitle">Settings backups</h2><span>Saved per PC</span></div><div class="signal-cloud-toolbar"><p>Connect your dashboard account in the app to back up settings automatically. Restore a backup on another PC from the app.</p><div class="tools"><button id="signalBackupConnect" class="btn editable">Connect account</button><button id="signalBackupRefresh" class="btn editable">Sync</button></div></div><p id="signalBackupStatus" role="status" aria-live="polite">Connect your account to view saved settings.</p><div class="signal-backup-head" aria-hidden="true"><span>Computer / Backup</span><span>Updated</span><span>Action</span></div><div id="signalBackupList"></div><p class="signal-backup-note">Settings only — readings and send / receive logs are not backed up.</p></section>
 <details class="signal-advanced"><summary>Connect inside dashboard <span>Advanced</span></summary><p class="signal-note">For an embedded view, run <code>SignalTester.exe --dashboard</code> and enter the connection code shown in the console. Allow local network access if your browser asks.</p><form id="signalPairForm" class="signal-pair editable"><label for="signalPairCode">PC connection code<input id="signalPairCode" type="password" autocomplete="off" spellcheck="false" placeholder="Port:connection code" required></label><div class="tools"><button class="btn primary" id="signalPairButton" type="submit">Connect</button><button class="btn" id="signalForget" type="button">Disconnect</button></div><p id="signalPairStatus" role="status" aria-live="polite">Run the program and enter your connection code.</p><a id="signalLocalLink" target="_blank" rel="noopener noreferrer" hidden>Open directly on this PC</a></form></details>
 <p class="signal-note signal-footer-note">Readings stay on your PC. Closing a browser tab does not stop communication. To stop it completely, use the tester’s Exit button. OSC address / argument parsing is not supported.</p><div id="signalFrameHost"></div>
+</section>
+<section id="archivePage" data-screen="archive" aria-labelledby="archiveTitle" hidden>
+<div class="page-top"><span class="eyebrow">FILE ARCHIVE</span><a class="back-link" href="#home">대시보드 홈</a></div>
+<div class="placeholder-heading library-heading"><div><h1 id="archiveTitle" tabindex="-1">파일 보관함</h1><p class="page-intro">직접 삭제할 때까지 안전하게 보관하세요.</p></div><button class="btn editable" id="archiveConnect">GitHub 연결</button></div>
+<div class="library-toolbar"><button class="btn primary editable" id="archiveUpload" disabled>파일 보관하기</button><input type="file" id="archiveFiles" multiple hidden><label>파일 검색 <input id="archiveSearch" type="search" placeholder="파일 이름 검색"></label><button class="btn" id="archiveRefresh">새로고침</button></div>
+<div class="transfer-dropzone"><div><span class="transfer-folder-icon" aria-hidden="true"></span><strong>파일을 여기에 놓으세요</strong></div><p>파일당 최대 25MB · 여러 파일 선택 가능 · 자동 만료 없음</p></div>
+<p id="archiveStatus" class="small" role="status" aria-live="polite"></p><p id="archiveUsage" class="small"></p><div id="archiveList" class="transfer-list"></div>
+<p class="transfer-footnote">파일은 비공개 R2 저장소에 보관되며 Git 용량에 포함되지 않습니다. 보관량에 따라 R2 저장 비용이 발생할 수 있습니다.</p>
 </section>
 <section id="transfersPage" data-screen="transfers" aria-labelledby="transfersTitle" hidden>
 <div class="page-top"><span class="eyebrow">TEMPORARY FILE TRANSFER</span><a class="back-link" href="#home">← 대시보드 홈</a></div>
@@ -301,6 +311,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="retro-task" href="#pdf" data-page="pdf"><img src="assets/dashboard-objects/retro-v1/library.png" alt="" decoding="async"><span>PDF Library</span></a>
 <a class="retro-task" href="#ideas" data-page="ideas"><img src="assets/dashboard-objects/retro-v1/ideas.png" alt="" decoding="async"><span>Reference</span></a>
 <a class="retro-task" href="#wirenest" data-page="wirenest"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"><span>WireNest</span></a>
+<a class="retro-task" href="#archive" data-page="archive"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>파일 보관함</span></a>
 <a class="retro-task" href="#transfers" data-page="transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a>
 <a class="retro-task" href="#signaltester" data-page="signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
 <a class="retro-task" href="#arduino" data-page="arduino"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"><span>Arduino Sketchbook</span></a>
@@ -313,7 +324,7 @@ html[data-active-page="home"] .side{display:none}
 <a href="#signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
 <a href="#arduino"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"><span>Arduino Sketchbook</span></a>
 <a href="#hardware"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"><span>Hardware Sheet</span></a>
-<a href="#transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a><button type="button" data-retro-action="note">Quick Note</button></nav>
+<a href="#archive"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt=""><span>파일 보관함</span></a><a href="#transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a><button type="button" data-retro-action="note">Quick Note</button></nav>
 <dialog id="modal"><h2 id="modalTitle"></h2><form id="form"><div class="formgrid" id="fields"></div><div class="footer"><button type="button" class="btn danger" id="remove">삭제</button><div><button type="button" class="btn" id="cancel">취소</button> <button class="btn primary" type="submit">저장</button></div></div></form></dialog>
 <input type="file" accept=".json,application/json" id="file" hidden>
 <input type="file" id="ideasFiles" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" multiple hidden><input type="file" id="ideasBackupFile" accept=".json,application/json" hidden>
@@ -324,6 +335,7 @@ html[data-active-page="home"] .side{display:none}
 <dialog id="pdfViewer" aria-labelledby="pdfViewerTitle"><div class="sectionhead"><h2 id="pdfViewerTitle">PDF 보기</h2><button class="btn" id="pdfViewerClose">닫기</button></div><p class="small">미리보기가 표시되지 않으면 파일을 내려받아 열어주세요. <a id="pdfDownload">PDF 다운로드</a></p><iframe id="pdfFrame" title="PDF 미리보기"></iframe></dialog>
 <script src="assets/wirenest-preview.js?v=20261122-v1" defer></script>
 <script src="assets/wirenest.js?v=20261122-delete-key-v1" defer></script>
+<script src="assets/archive.js?v=20261126" defer></script>
 <script src="assets/transfers.js?v=20261122-transfer-table-v1" defer></script>
 <script src="library.js?v=20261122-pdf-previews-v1" defer></script>
 <script type="module" src="assets/pdf-thumbnails.mjs?v=20261122-v1"></script>
@@ -363,7 +375,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매",arduino:"Arduino Sketchbook"};
+const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",archive:"파일 보관함",signaltester:"신호 테스트",hardware:"하드웨어 구매",arduino:"Arduino Sketchbook"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
@@ -646,6 +658,6 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261125-sketch-explorer-v1" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
+</script><script src="assets/retro-pages.js?v=20261126-archive" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
 <script src="assets/arduino-sketchbook.js?v=20261125-sketch-explorer-v1" defer></script>
 </body></html>
