@@ -4,7 +4,7 @@ Serial·UDP 송수신, 숫자/JSON 센서 그래프, HTTP Signal, 자동 규칙�
 
 ## 다른 PC에서 소스 없이 웹으로 시작
 
-[SignalTester.exe 다운로드](https://github.com/threedowon/dowon-dashboard/releases/latest/download/SignalTester.exe)와 [Open-Signal-Tester.cmd 다운로드](Open-Signal-Tester.cmd)를 같은 폴더에 저장하고 CMD를 실행하세요. Python이나 소스 코드는 필요 없습니다. CMD가 EXE를 --no-browser --ui-port 6699 옵션으로 실행하고 브라우저를 엽니다.
+[SignalTester.exe 다운로드](https://github.com/threedowon/dowon-dashboard/releases/latest/download/SignalTester.exe)와 [Open-Signal-Tester.cmd 다운로드](https://github.com/threedowon/dowon-dashboard/raw/refs/heads/main/signal-tester/Open-Signal-Tester.cmd)를 같은 폴더에 저장하고 CMD를 실행하세요. Python이나 소스 코드는 필요 없습니다. CMD가 EXE를 --no-browser --ui-port 6699 옵션으로 실행하고 브라우저를 엽니다.
 
 브라우저가 열리지 않으면 http://127.0.0.1:6699/ 에 직접 접속하세요. PC 재시작 후에는 CMD를 다시 실행하세요. 브라우저 탭을 닫아도 통신은 계속됩니다. 시작 실패 시 포트 6699와 %LOCALAPPDATA%/SignalTester/logs 를 확인하세요. 기존 EXE 설정과 백업 계정을 사용합니다. 소스 개발용 Start-Web-Tester.cmd와는 다릅니다.
 
