@@ -28,6 +28,9 @@
       };return b;
     }
     status.append(connectButton());document.getElementById('settingsContent')?.append(connectButton());
+    const recovery=document.createElement('p');recovery.className='field-help';
+    recovery.textContent='연결 창에 Not found가 나오면 이전 프로그램이 실행 중일 수 있습니다. 연결되지 않은 웹 화면에서는 PC 프로그램을 종료할 수 없습니다. 해당 PC의 작업 관리자에서 SignalTester.exe를 종료한 뒤 최신 EXE를 직접 실행하고 다시 연결하세요. CMD는 같은 폴더의 EXE를 실행합니다.';
+    document.getElementById('settingsContent')?.append(recovery);
     const link=document.createElement('a');link.className='button';link.href='https://github.com/threedowon/dowon-dashboard/releases/latest/download/SignalTester.exe';link.textContent='최신 통신 프로그램 다운로드';status.append(link);
   });
 })();
