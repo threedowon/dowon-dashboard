@@ -30,6 +30,8 @@ function renderTransportFields(item={}){
   if(protocol==='http'){
     const row=el('div','field-row');row.append(field('itemHost','IP / hostname',item.host||'127.0.0.1'),field('itemPort','Port',item.port||8420,{type:'number',min:1,max:65535}));
     fields.append(row,el('p','field-help','Player HTTP Signal receiver. Use 127.0.0.1 for this PC; each Player needs its own port.'));
+  }else if(protocol==='enttec'){
+    fields.append(field('serialDevice','ENTTEC COM port',item.device||'COM3'),field('dmxAddress','First DMX address (4 fixtures / 8 channels)',item.startAddress||1,{type:'number',min:1,max:505}),selectField('dmxOrder','Channel order',[['ww-cw','Warm → Cool'],['cw-ww','Cool → Warm']],item.channelOrder||'ww-cw'),el('p','field-help','USB PRO only, not Open DMX USB. Set both D4-P units to 4CH / 8-bit, addresses N and N+4. This output owns the entire universe; unused channels are zero.'));
   }else if(protocol==='serial'){
     const device=field('serialDevice','COM port',item.device||serialInfo.ports[0]?.device||'COM3');device.querySelector('input').setAttribute('list','serialPortOptions');
     const list=el('datalist');list.id='serialPortOptions';
@@ -48,6 +50,7 @@ function renderTransportFields(item={}){
 }
 function readTargetFields(item){
   const base={id:item.id,name:$('itemName').value},protocol=$('targetType').value;
+  if(protocol==='enttec')return {...base,type:protocol,device:$('serialDevice').value,startAddress:Number($('dmxAddress').value),channelOrder:$('dmxOrder').value};
   if(protocol==='serial')return {...base,type:protocol,device:$('serialDevice').value,baudrate:Number($('serialBaud').value),dataBits:Number($('serialBits').value),parity:$('serialParity').value,stopBits:Number($('serialStop').value)};
   if(protocol==='udp')return {...base,type:protocol,bindHost:$('udpBind').value,bindPort:Number($('udpLocalPort').value),remoteHost:$('udpRemote').value,remotePort:Number($('udpRemotePort').value),broadcast:$('udpBroadcast').checked};
   return {...base,host:$('itemHost').value,port:Number($('itemPort').value)};
@@ -79,10 +82,11 @@ function renderIO(){
   const repeat=document.querySelector('.repeat-block'),repeatParent=raw?$('rawComposer'):document.querySelector('.composer');
   if(repeat.parentElement!==repeatParent)repeatParent.append(repeat);
   $('tabTestLabel').textContent='수동 전송';$('signalCount').hidden=raw;
+  renderDmx();
   if(!raw)return;
   $('connectTarget').textContent=ioBusy?'Working…':opened?'연결 해제':'연결 열기';
   $('connectTarget').classList.toggle('stop',opened);$('connectTarget').classList.toggle('dark',!opened);
-  const error=state.error,serialTarget=kind(target)==='serial';
+  const error=state.error,serialTarget=['serial','enttec'].includes(kind(target));
   $('healthStatus').textContent=ioBusy?'Working…':error?'Needs attention':opened?(serialTarget?'Port open':'Listening'):state.status==='error'?'Connection failed':'Closed';
   $('healthStatus').className='badge '+(error||state.status==='error'?'bad':opened?'good':'');
   $('healthTime').textContent=opened?`${state.rxBytes||0} B received`:'';
@@ -107,6 +111,7 @@ function renderIO(){
   if(rawTargetId!==target.id){rawTargetId=target.id;const saved=rawDrafts.get(target.id)||{format:'text',data:'',ending:'none'};$('rawFormat').value=saved.format;$('rawData').value=saved.data;$('rawEnding').value=saved.ending;updateRaw(false);}
 }
 function rawPayload(){
+  if(kind(active())==='enttec')throw Error('Use the DMX lighting controls. Raw serial sending is disabled for ENTTEC.');
   if(!active()||!isRaw())throw Error('Choose a Serial or UDP connection.');
   return {io:true,targetId:active().id,key:kind(active()).toUpperCase()+' data',format:$('rawFormat').value,data:$('rawData').value,ending:$('rawEnding').value};
 }
@@ -119,6 +124,7 @@ function updateRaw(save=true){
   if(save&&active())rawDrafts.set(active().id,{format:$('rawFormat').value,data:$('rawData').value,ending});
 }
 function updateIOControls(locked){
+  if($('dmxPanel'))for(const b of $('dmxPanel').querySelectorAll('button'))b.disabled=locked||dmxBusy||engineOffline||connectionStates[active()?.id]?.status!=='open';
   const target=active(),open=connectionStates[target?.id]?.status==='open';
   $('connectTarget').disabled=locked||!target||engineOffline;$('editConnection').disabled=locked;
   $('sendRaw').disabled=locked||!target||!open||engineOffline;
@@ -142,7 +148,8 @@ function ioSetup(){
 async function pollLive(){
   if(!workspace){setTimeout(pollLive,650);return;}
   try{
-    const data=await api('live?after='+liveCursor+(sensorSelected?'&monitor='+encodeURIComponent(sensorSelected):''));engineOffline=false;$('engineWarning').hidden=true;applyRuntime(data);
+    const graphs=sensorOverlay?sensorGraphSeries().map(s=>'&graph='+encodeURIComponent(s.config.id)).join(''):'';
+    const data=await api('live?after='+liveCursor+(sensorSelected?'&monitor='+encodeURIComponent(sensorSelected):'')+graphs);engineOffline=false;$('engineWarning').hidden=true;applyRuntime(data);
     if(data.generation>=logGeneration){
       if(data.generation>logGeneration){events=[];logGeneration=data.generation;}
       mergeEvents(data.events);liveCursor=data.cursor;missedEvents+=data.skipped||0;
@@ -150,4 +157,39 @@ async function pollLive(){
     renderTargets();renderIO();renderKeyboard();if(!logPaused)renderEvents();updateControls();
   }catch(e){engineOffline=true;$('engineWarning').hidden=false;$('engineWarning').textContent='Live monitor disconnected. Connection states are unconfirmed. Keep the tester launch window open; reload this page if the engine restarted.';renderSensors();renderKeyboard();updateControls();if(typeof workbenchUpdate==='function')workbenchUpdate();}
   finally{setTimeout(pollLive,650);}
+}
+
+// ENTTEC USB PRO: desired levels are drafts; ON/OFF state comes from the engine.
+let dmxBusy=false, dmxTarget=null;
+function renderDmx(){
+  let panel=$('dmxPanel');
+  if(!panel){
+    panel=el('section','panel');panel.id='dmxPanel';panel.style.padding='24px';
+    panel.append(el('h2','','DMX · ENTTEC USB Pro'),el('p','field-help','조명 4개 · 공통 밝기 / 색 혼합 · 개별 ON/OFF. 색 혼합은 보정된 Kelvin 값이 아닙니다.'));
+    const row=el('div','field-row');
+    row.append(field('dmxBrightness','밝기 (%)',50,{type:'number',min:0,max:100}),field('dmxMix','주광색 비율 (%) · 0=전구색 / 100=주광색',50,{type:'number',min:0,max:100}));panel.append(row);
+    panel.append(button('button','밝기 / 색 혼합 적용',safe(()=>sendDmx())));
+    const lights=el('div','field-row');lights.id='dmxLights';lights.style.marginTop='16px';panel.append(lights);
+    for(let i=0;i<4;i++){const b=button('button','',safe(()=>{const on=dmxState().on.slice();on[i]=!on[i];return sendDmx(on);}));b.id='dmxLight'+i;lights.append(b);}
+    panel.append(button('button','전체 켜기',safe(()=>sendDmx([true,true,true,true]))),button('button stop','전체 소등',safe(()=>sendDmx([false,false,false,false],true))));
+    const status=el('p','field-help');status.id='dmxStatus';panel.append(status,el('p','field-help','다른 프로그램에서 같은 COM 포트를 열지 마세요. 연결/종료 시 전체 소등을 전송합니다. 브라우저를 닫아도 마지막 출력은 유지됩니다. USB 단절 시 소등은 보장되지 않습니다.'));
+    $('rawComposer').parentElement.append(panel);
+  }
+  const target=active(),enabled=kind(target)==='enttec';panel.hidden=!enabled;
+  if(!enabled)return;
+  $('rawComposer').hidden=true;
+  if(dmxTarget!==target.id){dmxTarget=target.id;const state=dmxState();$('dmxBrightness').value=state.brightness;$('dmxMix').value=state.mix;}
+  const state=dmxState();
+  for(let i=0;i<4;i++){const b=$('dmxLight'+i),address=target.startAddress+i*2;b.textContent=`조명 ${i+1} · CH ${address}/${address+1} · ${state.on[i]?'ON':'OFF'}`;b.setAttribute('aria-pressed',String(state.on[i]));}
+  $('dmxStatus').textContent=`마지막 전송값: 밝기 ${state.brightness}% · 주광색 ${state.mix}% · 실제 점등 확인은 별도입니다.`;
+}
+function dmxState(){return connectionStates[active()?.id]?.dmx||{brightness:50,mix:50,on:[false,false,false,false]};}
+async function sendDmx(on=null,blackout=false){
+  if(dmxBusy||saving||sending||ioBusy||repeating||engineOffline)return;
+  const target=active();if(kind(target)!=='enttec')return;
+  const previous=dmxState();
+  const body={targetId:target.id,brightness:blackout?previous.brightness:Number($('dmxBrightness').value),mix:blackout?previous.mix:Number($('dmxMix').value),on:on||previous.on.slice()};
+  dmxBusy=true;updateControls();
+  try{const event=await api('io/send',body);mergeEvents([event]);renderEvents();if(!event.ok)throw Error(event.detail);const live=await api('live?after='+liveCursor);applyRuntime(live);renderDmx();toast('DMX 전송 완료 · 실제 점등을 확인하세요.');}
+  finally{dmxBusy=false;updateControls();}
 }

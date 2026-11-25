@@ -391,7 +391,7 @@ class SensorEngine:
                         state.retry_at = self.clock() + result['remaining']
                         state.status = 'Signal cooldown · waiting for fresh data'
 
-    def snapshot(self, selected=None):
+    def snapshot(self, selected=None, graph_ids=()):
         now = self.clock()
         with self.lock:
             result = []
@@ -409,7 +409,7 @@ class SensorEngine:
                         'Rules paused' if not self.armed else status if not live else s.status), 'lastResult': s.last_result, 'lastOK': s.last_ok})
                 result.append({'id': mid, 'status': status, 'live': live, 'value': m['value'], 'time': m['time'],
                     'error': m['error'], 'errors': m['errors'], 'samples': m['samples'], 'rules': rules,
-                    'points': list(m['points']) if mid == selected or selected is None and index == 0 else []})
+                    'points': list(m['points']) if mid in graph_ids or mid == selected or selected is None and index == 0 else []})
             return {'armed': self.armed, 'monitors': result, 'queued': len(self.jobs)}
 
     def close(self):

@@ -1,9 +1,39 @@
 """Add built-in sensor bundles without replacing the user's workspace."""
 from copy import deepcopy
 import json
+import uuid
 from pathlib import Path
 
 PRESETS = Path(__file__).resolve().parent / 'presets'
+
+VL53L0X_DIAGNOSTICS = (
+    ('distance', 'Distance', 'mm'), ('raw_mm', 'Raw distance (unvalidated)', 'mm'),
+    ('valid', 'Valid', '0 / 1'), ('range_status', 'Range status', 'code'),
+    ('signal_mcps', 'Return signal', 'MCPS'), ('ambient_mcps', 'Ambient light', 'MCPS'),
+    ('i2c_ack', 'I2C response', '0 / 1'), ('api_status', 'API status', 'code'),
+    ('ready', 'Ready', '0 / 1'), ('error', 'Error', 'code'),
+    ('spads', 'Effective SPADs', 'count'), ('timing_us', 'Timing budget', 'us'),
+    ('mode', 'Test mode', 'code'), ('seq', 'Sample sequence', 'count'),
+)
+
+
+def add_vl53l0x_diagnostics(workspace, source_id):
+    """Append read-only monitors to an explicit existing source; keep edits intact."""
+    source = next((t for t in workspace['targets'] if t['id'] == source_id), None)
+    if not source or source.get('type', 'http') not in ('serial', 'udp'):
+        raise ValueError('Choose an existing Serial or UDP sensor connection.')
+    result = deepcopy(workspace)
+    monitors = result.setdefault('sensors', [])
+    fields = {m.get('field') for m in monitors
+              if m['sourceId'] == source_id and m['parser'] == 'json'}
+    missing = [spec for spec in VL53L0X_DIAGNOSTICS if spec[0] not in fields]
+    if len(monitors) + len(missing) > 32:
+        raise ValueError('Adding diagnostics would exceed the 32-monitor limit. Remove unused monitors first.')
+    for field, name, unit in missing:
+        monitors.append(dict(id=uuid.uuid4().hex, name='VL53L0X ' + name,
+            sourceId=source_id, parser='json', field=field, unit=unit,
+            staleSeconds=2, rules=[]))
+    return result, dict(targets=0, signals=0, sensors=len(missing))
 
 
 def add_sensor_preset(workspace, preset):

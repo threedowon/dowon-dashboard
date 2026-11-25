@@ -15,7 +15,7 @@ from signal_tester import Store, create_server
 import tester_update as update
 
 
-def release(version='1.4.0', payload=b'MZverified test executable'):
+def release(version='1.5.0', payload=b'MZverified test executable'):
     prefix=update.REPOSITORY+'/releases/download/signal-tester-v'+version+'/'
     return {'tag_name':'signal-tester-v'+version,'assets':[
         {'name':'SignalTester.exe','browser_download_url':prefix+'SignalTester.exe','size':len(payload),
@@ -78,7 +78,7 @@ class UpdateTests(unittest.TestCase):
             settings=Path(directory)/'workspace.json';settings.write_bytes(b'original settings')
             credential=Path(directory)/'cloud.credential';credential.write_bytes(b'protected credential')
             job={'target':str(target),'staged':str(staged),'backup':str(backup),'originalHash':update.sha256(target),
-                 'sha256':update.sha256(staged),'version':'1.4.0','instance':'old','args':['--config',str(settings)]}
+                 'sha256':update.sha256(staged),'version':'1.5.0','instance':'old','args':['--config',str(settings)]}
             update.write_json(folder/'job.json',job)
             class Process:
                 def wait(self,**kwargs):return 1
@@ -100,7 +100,7 @@ class UpdateTests(unittest.TestCase):
             updater=update.Updater(Path(root)/'app.exe',opener=lambda _:(_ for _ in ()).throw(OSError('offline')))
             updater.start_check();updater.thread.join(2)
             self.assertEqual(updater.status()['phase'],'error')
-            with self.assertRaises(ValueError):updater.install('1.4.0')
+            with self.assertRaises(ValueError):updater.install('1.5.0')
             updater.close()
 
     def test_startup_checks_public_manifest_without_github_api_or_login(self):
@@ -110,7 +110,7 @@ class UpdateTests(unittest.TestCase):
             updater=update.Updater(Path(root)/'app.exe',opener=opener)
             updater.start_check();updater.thread.join(2)
             self.assertEqual(urls,[update.UPDATE_FEED])
-            self.assertEqual(updater.status()['latest'],'1.4.0')
+            self.assertEqual(updater.status()['latest'],'1.5.0')
             self.assertEqual(updater.status()['phase'],'available')
             updater.close()
 

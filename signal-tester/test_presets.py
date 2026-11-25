@@ -8,11 +8,26 @@ import unittest
 import urllib.request
 
 from signal_tester import defaults, validate_workspace, Store, create_server
-from tester_presets import add_sensor_preset
+from tester_presets import add_sensor_preset, add_vl53l0x_diagnostics
 from tester_sensors import SensorEngine
 
 
 class PresetTests(unittest.TestCase):
+    def test_diagnostics_preserve_existing_fields_and_rules(self):
+        original, _ = add_sensor_preset(defaults(), 'all')
+        original['sensors'][0]['unit'] = 'custom-unit'
+        before = deepcopy(original)
+        merged, added = add_vl53l0x_diagnostics(original, 'sen0610-serial')
+        self.assertGreater(added['sensors'], 0)
+        self.assertEqual(merged['sensors'][:len(original['sensors'])], original['sensors'])
+        self.assertEqual(original, before)
+        validate_workspace(merged)
+        again, added = add_vl53l0x_diagnostics(merged, 'sen0610-serial')
+        self.assertEqual(again, merged)
+        self.assertEqual(added['sensors'], 0)
+        with self.assertRaises(ValueError):
+            add_vl53l0x_diagnostics(original, 'missing')
+
     def test_combined_is_valid_and_idempotent(self):
         before = defaults()
         original = deepcopy(before)
@@ -78,6 +93,11 @@ class PresetTests(unittest.TestCase):
         self.assertEqual(values['fsr-ready'], 0)
         self.assertEqual(values['fsr-raw4'], 400)
         self.assertEqual(values['fsr-delta1'], -1)
+        graphs = engine.snapshot('sen0610-ready', ['sen0610-distance'])['monitors']
+        by_id = {m['id']: m for m in graphs}
+        self.assertTrue(by_id['sen0610-ready']['points'])
+        self.assertTrue(by_id['sen0610-distance']['points'])
+        self.assertEqual(by_id['fsr-ready']['points'], [])
         self.assertFalse(engine.armed)
 
     def test_api_persists_presets_without_opening_ports_and_rejects_bad_input(self):

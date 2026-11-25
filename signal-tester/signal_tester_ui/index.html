@@ -5,14 +5,14 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="tester-token" content="__TESTER_TOKEN__">
   <title>Signal Tester</title><link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="workbench.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="fields.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script><script src="updates.js" defer></script><script src="code-guide.js" defer></script><script src="debug-open.js" defer></script><script src="workbench.js" defer></script>
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="workbench.css"><script src="io.js" defer></script><script src="keyboard.js" defer></script><script src="sensors.js" defer></script><script src="fields.js" defer></script><script src="app.js" defer></script><script src="desktop.js" defer></script><script src="updates.js" defer></script><script src="code-guide.js" defer></script><script src="debug-open.js" defer></script><script src="workbench.js" defer></script><script src="osc-routing.js" defer></script>
 <script src="https://dashboard.3dowon.com/assets/workspace-taskbar.js?v=20261122-taskbar-eight" data-page="signaltester" defer></script>
 </head>
 <body class="workbench"><header class="workbench-header">    <a class="brand" href="/" aria-label="Signal Tester home"><span class="brand-mark" data-icon="send"></span><span>SIGNAL TESTER<small>SENSOR WORKBENCH</small></span></a><span id="localStatus" class="local-status">LOCAL · CONNECTING</span><button id="openSettings" class="button">⚙ 설정</button></header><nav class="tabs workbench-nav" role="tablist" aria-label="Workspace">
 <button id="tabSensors" role="tab" aria-selected="true" aria-controls="paneSensors" data-tab="sensors">모니터 <span id="sensorCount" class="count">0</span><span id="sensorTabLive" class="live-pill" hidden>LIVE</span></button>
 <button id="tabRules" role="tab" aria-selected="false" aria-controls="paneRules" data-tab="rules">신호 규칙</button>
 <button id="tabLogs" role="tab" aria-selected="false" aria-controls="paneLogs" data-tab="logs">기록 <span id="logTabCount" class="count">0</span></button>
-<button id="tabTest" role="tab" aria-selected="false" aria-controls="paneTest" data-tab="test"><span id="tabTestLabel">수동 전송</span><span id="signalCount" class="count">0</span></button></nav>
+<button id="tabTest" role="tab" aria-selected="false" aria-controls="paneTest" data-tab="test"><span id="tabTestLabel">수동 전송</span><span id="signalCount" class="count">0</span></button><button id="tabOsc" role="tab" aria-selected="false" aria-controls="paneOsc" data-tab="osc">OSC 매핑</button></nav>
   <aside class="sidebar">
 
     <div class="sidebar-heading"><span>연결된 장치</span><span id="targetCount" class="count">0</span></div>
@@ -103,6 +103,16 @@
           </section>
         </div>
         <section id="paneRules" role="tabpanel" aria-labelledby="tabRules" hidden><div class="section-heading"><div><div class="eyebrow">INPUT → CONDITION → OUTPUT</div><h2>신호 규칙</h2><p>현재 선택한 센서의 필드별 조건과 출력 결과를 확인합니다.</p></div><button id="rulesAddSensor" class="button">센서·규칙 추가</button></div><p class="notice">규칙은 ‘모든 규칙 활성화’를 눌러야 전송됩니다. 설정 변경·프로그램 재시작 후에는 정지 상태로 돌아갑니다.</p><button id="rulesArm" class="button dark">모든 규칙 활성화</button><div id="ruleWorkbench"></div></section>
+                <div id="paneOsc" role="tabpanel" aria-labelledby="tabOsc" hidden>
+          <section class="panel"><h2>OSC → HTTP Signal</h2><p>주소와 첫 번째 값을 검사해 지정한 Player로 Signal을 보냅니다. 브라우저를 닫아도 수신은 유지됩니다.</p>
+          <p id="oscStatusRouting" role="status">설정 불러오는 중…</p>
+          <form id="oscForm"><label><input id="oscEnabled" type="checkbox"> OSC 수신 사용 · 저장 시 시작 / 프로그램 재시작 후에는 정지</label>
+          <div class="repeat-fields"><label>수신 IP<input id="oscHost" value="0.0.0.0" required></label><label>UDP 포트<input id="oscPort" type="number" min="1" max="65535" value="9000" required></label></div>
+          <p class="muted">다른 장비에서는 이 PC의 LAN IP로 전송하세요. 0.0.0.0은 모든 네트워크 인터페이스에서 수신합니다.</p>
+          <div id="oscRules"></div><button type="button" id="oscAddRouting" class="button">매핑 추가</button>
+          <button type="submit" class="button dark">저장 및 적용</button><button type="button" id="oscStop" class="button">수신 중지</button><button type="button" id="oscReload" class="button">저장된 설정 다시 불러오기</button></form>
+          <p>일치 조건: 첫 번째 OSC 값 기준 · 전송 값: 선택한 Signal의 기본값 · 기존 Signal cooldown도 적용됩니다.</p>
+          <h3>OSC 수신 / 전달 로그</h3><pre id="oscLog"></pre></section></div>
         <section id="paneLogs" role="tabpanel" aria-labelledby="tabLogs" hidden></section>
       </div>
       <aside class="activity-rail">

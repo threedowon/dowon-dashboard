@@ -1,6 +1,25 @@
 let sensorRuntime={armed:false,monitors:[]}, sensorSelected=null, sensorEditing=null, sensorPaused=false, frozenSensor=null;
 let sensorBusy=false, sensorPaint='', sensorRuleDrafts=[];
 let sensorSourceFilter='', sensorCardSignature='', sensorSourceSignature='';
+let sensorOverlay=false, sensorHiddenSeries=new Set();
+const sensorColors=['#1f7a52','#2563eb','#d97706','#9333ea','#dc2626','#0891b2'];
+function sensorGraphSeries(){
+  const configs=sensorOverlay?sourceMonitors():[selectedMonitor()].filter(Boolean);
+  const states=sensorPaused?(frozenSensor?.monitors||[]):[...sensorRuntime.monitors,...(autoSensorState?[autoSensorState]:[])];
+  return configs.map(m=>({config:m,state:states.find(s=>s.id===m.id),color:sensorOverlay?sensorColors[workspace.sensors.indexOf(m)%sensorColors.length]:'#1f7a52'}));
+}
+function renderSensorLegend(){
+  const host=$('sensorGraphLegend');host.hidden=!sensorOverlay;host.replaceChildren();
+  $('sensorOverlay').checked=sensorOverlay;
+  if(!sensorOverlay)return;
+  for(const {config,color} of sensorGraphSeries()){
+    const label=el('label','sensor-series'),check=el('input'),swatch=el('span','sensor-series-swatch');
+    check.type='checkbox';check.checked=!sensorHiddenSeries.has(config.id);
+    check.onchange=()=>{if(check.checked)sensorHiddenSeries.delete(config.id);else sensorHiddenSeries.add(config.id);drawSensorGraph();};
+    swatch.style.backgroundColor=color;
+    label.append(check,swatch,document.createTextNode(config.name+(config.unit?' · '+config.unit:'')));host.append(label);
+  }
+}
 function selectSensorMonitor(id){sensorSelected=id;sensorPaused=false;frozenSensor=null;selectJSONMonitor(id);renderSensors();}
 function renderSensorOverview(monitors){
   $('sensorOverview').hidden=monitors.length<=1;
@@ -76,30 +95,35 @@ function renderSensors(){
   }
   if(!config.rules.length)$('sensorRules').append(el('p','muted','규칙이 없습니다. 신호 규칙 탭에서 조건과 출력을 설정하세요.'));
   $('pauseGraph').textContent=sensorPaused?'그래프 재개':'그래프 일시정지';
+  renderSensorLegend();
   drawSensorGraph();
 }
 function drawSensorGraph(){
   const canvas=$('sensorGraph');if(!canvas||!selectedMonitor()||$('sensorBody').hidden)return;
-  const config=selectedMonitor(),state=sensorPaused?frozenSensor:sensorState();
+  const config=selectedMonitor();
   const w=canvas.clientWidth,h=220;if(!w)return;
   const ratio=window.devicePixelRatio||1;canvas.width=w*ratio;canvas.height=h*ratio;
   const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);ctx.clearRect(0,0,w,h);
   const end=sensorPaused?(frozenSensor?.graphTime||Date.now()):Date.now(),start=end-60000;
-  const pts=(state?.points||[]).filter(p=>p[0]>=start);
-  const values=pts.map(p=>p[1]).filter(Number.isFinite).concat(config.rules.map(r=>r.threshold));
+  const series=sensorGraphSeries().filter(s=>!sensorOverlay||!sensorHiddenSeries.has(s.config.id))
+    .map(s=>({...s,points:(s.state?.points||[]).filter(p=>p[0]>=start&&p[0]<=end&&Number.isFinite(p[1]))}));
+  const values=series.flatMap(s=>s.points.map(p=>p[1])).concat(sensorOverlay?[]:config.rules.map(r=>r.threshold));
   let min=values.length?Math.min(...values):0,max=values.length?Math.max(...values):100;
   const padding=Math.max((max-min)*.12,Math.abs(max)*.03,1);min-=padding;max+=padding;
   const l=68,r=w-18,top=18,bottom=185;
   const x=t=>l+(t-start)/60000*(r-l),y=v=>bottom-(v-min)/(max-min)*(bottom-top);
   ctx.font='11px "Segoe UI", system-ui, sans-serif';ctx.lineWidth=1;
-  for(let i=0;i<5;i++){const v=min+(max-min)*i/4,yy=y(v);ctx.strokeStyle='#c2c6bd';ctx.beginPath();ctx.moveTo(l,yy);ctx.lineTo(r,yy);ctx.stroke();ctx.fillStyle='#50574e';ctx.textAlign='right';ctx.fillText(Number(v.toPrecision(4)).toString(),l-9,yy+4);}
+  for(let i=0;i<5;i++){const v=min+(max-min)*i/4,yy=y(v);ctx.strokeStyle='#e2e7df';ctx.beginPath();ctx.moveTo(l,yy);ctx.lineTo(r,yy);ctx.stroke();ctx.fillStyle='#6f7f76';ctx.textAlign='right';ctx.fillText(Number(v.toPrecision(4)).toString(),l-9,yy+4);}
   ctx.textAlign='center';for(let i=0;i<=4;i++)ctx.fillText(i===4?'Now':`−${60-15*i}s`,l+(r-l)*i/4,209);
-  config.rules.forEach((rule,i)=>{ctx.strokeStyle='#555e52';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(l,y(rule.threshold));ctx.lineTo(r,y(rule.threshold));ctx.stroke();ctx.setLineDash([]);});
-  ctx.strokeStyle='#080a08';ctx.lineWidth=2.2;ctx.beginPath();let previous=null;
-  for(const p of pts){if(!Number.isFinite(p[1])){previous=null;continue;}if(!previous||p[0]-previous[0]>config.staleSeconds*1000)ctx.moveTo(x(p[0]),y(p[1]));else ctx.lineTo(x(p[0]),y(p[1]));previous=p;}ctx.stroke();
-  if(previous){ctx.beginPath();ctx.arc(x(previous[0]),y(previous[1]),3.5,0,Math.PI*2);ctx.fillStyle='#218b4e';ctx.fill();}
-  if(!pts.length){ctx.textAlign='center';ctx.fillStyle='#50574e';ctx.fillText('Waiting for numeric sensor data…',(l+r)/2,100);}
-  $('graphCaption').textContent=sensorPaused?'Frozen view · receiving and rules continue':'Last 60 seconds · dashed lines = thresholds · units are not converted';
+  if(!sensorOverlay)config.rules.forEach((rule,i)=>{ctx.strokeStyle=i%2?'#c48a2a':'#b13a30';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(l,y(rule.threshold));ctx.lineTo(r,y(rule.threshold));ctx.stroke();ctx.setLineDash([]);});
+  for(const s of series){
+    ctx.strokeStyle=s.color;ctx.lineWidth=2.2;ctx.beginPath();let previous=null;
+    for(const p of s.points){if(!previous||p[0]-previous[0]>s.config.staleSeconds*1000)ctx.moveTo(x(p[0]),y(p[1]));else ctx.lineTo(x(p[0]),y(p[1]));previous=p;}ctx.stroke();
+    if(previous){ctx.beginPath();ctx.arc(x(previous[0]),y(previous[1]),3.5,0,Math.PI*2);ctx.fillStyle=s.color;ctx.fill();}
+  }
+  if(!series.some(s=>s.points.length)){ctx.textAlign='center';ctx.fillStyle='#6f7f76';ctx.fillText(series.length?'Waiting for numeric sensor data…':'표시할 센서를 선택하세요',(l+r)/2,100);}
+  canvas.setAttribute('aria-label',`Last sixty seconds: ${series.map(s=>s.config.name).join(', ')}`);
+  $('graphCaption').textContent=(sensorPaused?'Frozen view · receiving and rules continue · ':'Last 60 seconds · ')+(sensorOverlay?'공통 눈금 · 단위 환산 없음 · 임계값은 개별 보기에서 확인':'dashed lines = thresholds · units are not converted');
 }
 function numberField(id,title,value,min=0,max=3600){const f=field(id,title,value,{type:'number',min,max});f.querySelector('input').step='any';return f;}
 function newSensorRule(){return {id:crypto.randomUUID(),signalId:workspace.signals[0]?.id||'',targetId:workspace.targets.find(t=>kind(t)==='http')?.id||'',op:'lt',threshold:100,hysteresis:10,hold:0,valueMode:'sensor',enabled:true};}
@@ -140,12 +164,23 @@ function openSensorEditor(){
   sensorRuleDrafts=clone(m?.rules||[]);renderSensorRuleEditor();$('sensorDialog').showModal();
 }
 function sensorSetup(){
+  const overlay=el('label','check-field'),checkbox=el('input');checkbox.type='checkbox';checkbox.id='sensorOverlay';overlay.append(checkbox,document.createTextNode('이 센서의 저장된 필드 그래프 겹쳐 보기'));
+  const legend=el('div','sensor-graph-legend');legend.id='sensorGraphLegend';$('sensorGraph').before(overlay,legend);
+  checkbox.onchange=e=>{sensorOverlay=e.target.checked;renderSensors();};
+  const diagnosticButton=button('button','VL53L0X 진단 필드 추가',safe(async()=>{
+    if(lockWorkspace()||sensorBusy)return;
+    const source=active();if(!source||!['serial','udp'].includes(kind(source)))throw Error('Serial 또는 UDP 센서를 선택하세요.');
+    sensorBusy=true;
+    try{const result=await api('sensors/preset',{preset:'vl53l0x-diagnostic',sourceId:source.id});workspace=result.workspace;workspaceRevision=result.revision;applyRuntime(result);render();toast(`진단 필드 ${result.added.sensors}개 추가 · 기존 설정 유지`);}
+    finally{sensorBusy=false;}
+  }));diagnosticButton.id='addVL53Diagnostics';$('sensorGraph').before(diagnosticButton);
+
   $('sensorHub').onclick=()=>showTab('sensors');
   $('sensorSourceFilter').onchange=e=>{sensorSourceFilter=e.target.value;renderSensors();};
   $('addSensor').onclick=()=>{sensorSelected=null;openSensorEditor();};$('configureSensor').onclick=openSensorEditor;
   $('sensorSelect').onchange=e=>selectSensorMonitor(e.target.value);
   $('sensorCollapse').onclick=()=>{$('sensorBody').hidden=!$('sensorBody').hidden;renderSensors();};
-  $('pauseGraph').onclick=()=>{sensorPaused=!sensorPaused;frozenSensor=sensorPaused?{...clone(sensorState()||{}),graphTime:Date.now()}:null;renderSensors();};
+  $('pauseGraph').onclick=()=>{sensorPaused=!sensorPaused;frozenSensor=sensorPaused?{monitors:clone([...sensorRuntime.monitors,...(autoSensorState?[autoSensorState]:[])]),graphTime:Date.now()}:null;renderSensors();};
   $('sensorArm').onclick=safe(async()=>{sensorBusy=true;renderSensors();try{sensorRuntimeUpdate(await api('sensors/arm',{enabled:!sensorRuntime.armed}));}finally{sensorBusy=false;renderSensors();}});
   $('addSensorRule').onclick=()=>{sensorRuleDrafts=readSensorRules();if(sensorRuleDrafts.length>=16){$('sensorFormError').textContent='Maximum 16 rules per sensor.';return;}sensorRuleDrafts.push(newSensorRule());renderSensorRuleEditor();};
   $('sensorForm').onsubmit=async e=>{

@@ -21,7 +21,8 @@ import webbrowser
 from tester_transports import TransportHub, validate_profile
 from tester_sensors import SensorEngine, validate_monitors, shortcut
 from tester_launcher import publish_instance, clear_instance
-from tester_presets import add_sensor_preset
+from tester_presets import add_sensor_preset, add_vl53l0x_diagnostics
+from tester_osc_routing import OscBridge, validate_osc
 from tester_debug import DebugLog
 
 BASE = Path(__file__).resolve().parent
@@ -119,6 +120,8 @@ def validate_workspace(raw):
     result = {'version': 1, 'targets': targets, 'signals': signals, 'activeTarget': active}
     if 'sensors' in raw:
         result['sensors'] = validate_monitors(raw['sensors'], targets, signals)
+    if 'osc' in raw:
+        result['osc'] = validate_osc(raw['osc'], targets, signals)
     return result
 
 
@@ -314,6 +317,13 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
         return store.emit(event)
     hub = io_factory(io_event)
     hub.on_data = sensors.feed
+    osc = OscBridge(lambda body, target: perform_send(store, body, target))
+    osc_enabled = False
+    def configure_osc(workspace):
+        effective = deepcopy(workspace)
+        if effective.get('osc'):
+            effective['osc']['enabled'] = osc_enabled and effective['osc']['enabled']
+        osc.configure(effective)
     operation_lock = threading.RLock()
     stopping = threading.Event()
 
@@ -368,6 +378,9 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             if not self.allowed(self.path.startswith('/api/')):
                 return self.reply(403, {'error': 'Open this tester from its local launch address.'})
             route = urlsplit(self.path)
+            if route.path == '/api/osc-routing':
+                with store.lock:
+                    return self.reply(200, {'osc': osc.snapshot(), 'workspace': store.snapshot(), 'revision': store.revision})
             if route.path == '/pair' and dashboard:
                 page = ('<!doctype html><html lang="ko"><head><meta charset="utf-8">'
                         '<meta name="tester-token" content="'+token+'">'
@@ -396,7 +409,8 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             if route.path == '/api/state':
                 with store.lock:
                     data = {'workspace': store.snapshot(), 'events': list(store.events), 'warning': store.warning,
-                            'cursor': store.sequence, 'generation': store.generation, 'revision': store.revision, 'bridgeApiVersion': 1}
+                            'cursor': store.sequence, 'generation': store.generation, 'revision': store.revision, 'bridgeApiVersion': 1,
+                            'features': ['dmx', 'osc-routing', 'graph-overlay', 'vl53-diagnostics']}
                 data.update(connections=hub.snapshot(data['workspace']['targets']), serial=hub.port_state(), sensors=sensors.snapshot())
                 return self.reply(200, data)
             if route.path == '/api/debug':
@@ -427,10 +441,11 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 except ValueError:
                     return self.reply(400, {'error': 'Invalid log cursor.'})
                 data = store.activity(after)
-                data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(parse_qs(route.query).get('monitor', [None])[0]))
+                query = parse_qs(route.query)
+                data.update(connections=hub.snapshot(store.snapshot()['targets']), serial=hub.port_state(), sensors=sensors.snapshot(query.get('monitor', [None])[0], query.get('graph', [])[:32]))
                 return self.reply(200, data)
             assets = {'/fields.js': ('fields.js', 'text/javascript; charset=utf-8'), '/workbench.js': ('workbench.js', 'text/javascript; charset=utf-8'), '/workbench.css': ('workbench.css', 'text/css; charset=utf-8'), '/debug.html': ('debug.html', 'text/html; charset=utf-8'), '/debug.js': ('debug.js', 'text/javascript; charset=utf-8'), '/debug.css': ('debug.css', 'text/css; charset=utf-8'), '/debug-open.js': ('debug-open.js', 'text/javascript; charset=utf-8'), '/code-guide.js': ('code-guide.js', 'text/javascript; charset=utf-8'), '/code-guide.json': ('code-guide.json', 'application/json; charset=utf-8'), '/updates.js': ('updates.js', 'text/javascript; charset=utf-8'), '/desktop.js': ('desktop.js', 'text/javascript; charset=utf-8'), '/sensors.js': ('sensors.js', 'text/javascript; charset=utf-8'), '/keyboard.js': ('keyboard.js', 'text/javascript; charset=utf-8'), '/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/io.js': ('io.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
-            assets.update({path: (path[1:], 'text/javascript; charset=utf-8') for path in ('/pair.js', '/bridge.js')})
+            assets.update({path: (path[1:], 'text/javascript; charset=utf-8') for path in ('/pair.js', '/bridge.js', '/osc-routing.js')})
             if self.path not in assets:
                 return self.reply(404, {'error': 'Not found.'})
             name, mime = assets[self.path]
@@ -440,6 +455,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             self.reply(200, data, mime)
 
         def do_POST(self):
+            nonlocal osc_enabled
             if not self.allowed(True):
                 return self.reply(403, {'error': 'Open this tester from its local launch address.'})
             if stopping.is_set():
@@ -494,6 +510,8 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                             sensors.arm(False)
                             hub.reconcile([])
                             sensors.configure(saved)
+                            osc_enabled = False
+                            configure_osc(saved)
                             return self.reply(200, {'workspace': saved, 'revision': store.revision, 'recovery': str(recovery),
                                 'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
                 if self.path == '/api/shutdown':
@@ -505,12 +523,23 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                     self.reply(200, {'ok': True})
                     threading.Thread(target=self.server.shutdown, daemon=True, name='tester-shutdown').start()
                     return
+                if self.path == '/api/osc-routing':
+                    with operation_lock:
+                        if body.get('revision') != store.revision:
+                            raise WorkspaceConflict('설정이 변경되었습니다. 다시 불러온 후 저장하세요.')
+                        updated = store.snapshot()
+                        updated['osc'] = body.get('config')
+                        saved = store.save(updated, expected_revision=body['revision'])
+                        osc_enabled = saved['osc']['enabled']
+                        configure_osc(saved)
+                        return self.reply(200, {'workspace': saved, 'revision': store.revision, 'osc': osc.snapshot()})
                 if self.path == '/api/workspace':
                     with operation_lock:
                         if not isinstance(body.get('revision'), str):
                             raise WorkspaceConflict('Workspace version is missing. Reload the latest settings and try again.')
                         saved = store.save(body, expected_revision=body['revision'])
                         sensors.configure(saved)
+                        configure_osc(saved)
                         hub.reconcile(saved['targets'])
                         return self.reply(200, {'workspace': saved, 'revision': store.revision,
                             'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
@@ -521,11 +550,15 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                 if self.path == '/api/sensors/preset':
                     with operation_lock:
                         with store.lock:
-                            merged, added = add_sensor_preset(store.snapshot(), body.get('preset'))
+                            if body.get('preset') == 'vl53l0x-diagnostic':
+                                merged, added = add_vl53l0x_diagnostics(store.snapshot(), body.get('sourceId'))
+                            else:
+                                merged, added = add_sensor_preset(store.snapshot(), body.get('preset'))
                             saved = store.save(merged)
                         # Even an idempotent preset action leaves automation paused.
                         sensors.arm(False)
                         sensors.configure(saved)
+                        configure_osc(saved)
                         hub.reconcile(saved['targets'])
                         return self.reply(200, {'workspace': saved, 'revision': store.revision, 'added': added,
                             'connections': hub.snapshot(saved['targets']), 'sensors': sensors.snapshot()})
@@ -533,6 +566,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
                     with operation_lock:
                         result = store.import_scene(body)
                         sensors.configure(result['workspace'])
+                        configure_osc(result['workspace'])
                     return self.reply(200, result)
                 if self.path == '/api/send':
                     return self.reply(200, perform_send(store, body))
@@ -579,6 +613,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
     class TesterServer(ThreadingHTTPServer):
         def server_close(self):
             stopping.set()
+            osc.close()
             sensors.arm(False)
             if updater:
                 updater.close()
@@ -588,6 +623,7 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
             sensors.arm(False)
             hub.close()
             sensors.close()
+            osc.close()
             if cloud:
                 cloud.close()
 
@@ -599,6 +635,8 @@ def create_server(store, port=0, io_factory=TransportHub, instance_id=None, dash
     server.config = str(store.file.resolve())
     server.hub = hub
     server.sensors = sensors
+    server.osc = osc
+    configure_osc(store.snapshot())
     server.ui_ready = True
     server.web_restart_pending = False
     if updater:

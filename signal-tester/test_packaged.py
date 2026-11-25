@@ -73,7 +73,7 @@ class PackagedTests(unittest.TestCase):
             html = response.read().decode()
         self.assertIn(previous['token'], html)
         self.assertNotIn('__TESTER_TOKEN__', html)
-        for asset in ('app.js', 'io.js', 'keyboard.js', 'sensors.js', 'style.css', 'code-guide.js', 'debug.js', 'debug.css', 'debug-open.js', 'bridge.js', 'pair.js'):
+        for asset in ('app.js', 'io.js', 'keyboard.js', 'sensors.js', 'style.css', 'code-guide.js', 'debug.js', 'debug.css', 'debug-open.js', 'bridge.js', 'pair.js', 'osc-routing.js'):
             with self.opener.open(base_url+'/'+asset, timeout=3) as response:
                 self.assertGreater(len(response.read()), 100)
         with self.opener.open(base_url+'/code-guide.json', timeout=3) as response:
@@ -99,6 +99,9 @@ class PackagedTests(unittest.TestCase):
             self.assertEqual(response.headers['Access-Control-Allow-Origin'], 'https://dashboard.3dowon.com')
             self.assertEqual(json.load(response)['workspace'], initial['workspace'])
         self.assertTrue(initial['serial']['available'])
+        self.assertIn('dmx', initial['features'])
+        self.assertIn('osc-routing', initial['features'])
+        self.assertEqual(self.call(previous, 'osc-routing')['osc']['state'], 'stopped')
         self.assertEqual(self.call(previous, 'ports', {})['error'], '')
         preset = self.call(previous, 'sensors/preset', {'preset': 'all'})
         self.assertGreaterEqual(len(preset['workspace']['sensors']), 16)

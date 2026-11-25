@@ -1,5 +1,6 @@
 """Local Serial/UDP sessions. UI state never owns a device or its receive loop."""
 from copy import deepcopy
+from tester_dmx import frame as dmx_frame, settings as dmx_settings
 import errno
 import ipaddress
 import re
@@ -30,13 +31,19 @@ def validate_profile(raw, base, host_validator):
     kind = raw.get('type', 'http')
     if kind == 'http':
         return {**base, 'host': host_validator(raw.get('host')), 'port': number(raw.get('port'), 'Port', 1, 65535)}
-    if kind == 'serial':
+    if kind in ('serial', 'enttec'):
         device = raw.get('device', '')
         if not isinstance(device, str) or not re.fullmatch(r'(?:COM[1-9][0-9]*|/dev/[A-Za-z0-9_./-]+)', device.strip(), re.I):
             raise ValueError('Choose a COM port, such as COM3, or a /dev/ serial device.')
         device = device.strip()
         if device.upper().startswith('COM'):
             device = device.upper()
+        if kind == 'enttec':
+            order = raw.get('channelOrder', 'ww-cw')
+            if order not in ('ww-cw', 'cw-ww'):
+                raise ValueError('Choose WW/CW or CW/WW channel order.')
+            return {**base, 'type': kind, 'device': device, 'baudrate': 57600, 'dataBits': 8, 'parity': 'N', 'stopBits': 1,
+                    'startAddress': number(raw.get('startAddress', 1), 'Start address', 1, 505), 'channelOrder': order}
         baud = number(raw.get('baudrate', 115200), 'Baud rate', 50, 4_000_000)
         bits = number(raw.get('dataBits', 8), 'Data bits', 5, 8)
         parity, stop = raw.get('parity', 'N'), raw.get('stopBits', 1)
@@ -110,7 +117,7 @@ def diagnose(error, stage, kind):
         return 'Device not found', 'The selected port is no longer available. Check the USB cable and refresh the COM port list.'
     if isinstance(error, TimeoutError) or 'timeout' in lower or 'timed out' in lower:
         return 'Write timed out', 'The device did not accept all bytes in time. Check the connection and serial settings; some bytes may already have been sent.'
-    if kind == 'serial':
+    if kind in ('serial', 'enttec'):
         return ('Serial connection lost' if stage != 'open' else 'Could not open serial port'), 'Check the USB cable, port owner and baud / framing settings. Reconnect after fixing the issue.'
     return 'UDP '+stage+' failed', 'Check local and remote IPs, ports and firewall rules. UDP does not guarantee a reply or delivery.'
 
@@ -197,7 +204,7 @@ class TransportHub:
                             state['osc'] = session.osc.snapshot()
                 else:
                     state = deepcopy(Session(profile).state)
-                state['detected'] = profile.get('device', '').casefold() in found if profile['type'] == 'serial' else None
+                state['detected'] = profile.get('device', '').casefold() in found if profile['type'] in ('serial', 'enttec') else None
                 states[profile['id']] = state
             return states
 
@@ -249,7 +256,7 @@ class TransportHub:
             session = Session(profile)
             self.sessions[profile['id']] = session
             try:
-                if profile['type'] == 'serial':
+                if profile['type'] in ('serial', 'enttec'):
                     if not self.serial_factory:
                         raise ValueError('Serial support is not installed. Install pyserial using this tester\'s Python and restart.')
                     if any(s is not session and s.state['status'] == 'open' and s.profile.get('device', '').casefold() == profile['device'].casefold() for s in self.sessions.values()):
@@ -273,10 +280,14 @@ class TransportHub:
                 with session.lock:
                     session.state.update(status='open', stage='receive', detail=detail, local=local, openedAt=time.time()*1000)
                 self._event(session, 'SYSTEM', 'open', 'open', label, detail, local=local)
+                if profile['type'] == 'enttec':
+                    initial = self.send(profile, {'on': [False] * 4})
+                    if not initial['ok']:
+                        raise OSError('Initial blackout failed; reconnect before use.')
                 session.thread = threading.Thread(target=self._read, args=(session,), daemon=True, name=profile['type']+'-receive')
                 session.thread.start()
             except Exception as error:
-                if session.profile['type'] == 'serial' and self.serial_factory is None:
+                if session.profile['type'] in ('serial', 'enttec') and self.serial_factory is None:
                     with session.lock:
                         session.state.update(status='error', stage='open', detail=str(error), error={'label':'Serial support missing','detail':str(error),'raw':str(error),'stage':'open'})
                     self._event(session,'SYSTEM','open','error','Serial support missing',str(error))
@@ -286,7 +297,7 @@ class TransportHub:
     def _read(self, session):
         while not session.stop.is_set():
             try:
-                if session.profile['type'] == 'serial':
+                if session.profile['type'] in ('serial', 'enttec'):
                     data = session.handle.read(min(max(session.handle.in_waiting, 1), 4096))
                     peer = session.profile['device']
                     if not data:
@@ -308,7 +319,7 @@ class TransportHub:
                     session.state.update(lastRx=stamp, lastPacket={**packet, 'peer': peer}, detail='Bytes received. Inspect Text / HEX below.')
                 if self.on_data:
                     self.on_data(session.profile, data)
-                detail = ('Raw serial chunks; one read may contain part of a message or several messages.' if session.profile['type'] == 'serial' else 'A datagram arrived at this local socket. This is not an acknowledgment of a specific send.')
+                detail = ('Raw serial chunks; one read may contain part of a message or several messages.' if session.profile['type'] in ('serial', 'enttec') else 'A datagram arrived at this local socket. This is not an acknowledgment of a specific send.')
                 self._event(session, 'RX', 'receive', 'error' if osc and 'error' in osc else 'received',
                             'OSC parse error' if osc and 'error' in osc else 'OSC received' if osc else 'Bytes received',
                             osc['error'] if osc and 'error' in osc else detail, packet=packet, peer=peer)
@@ -319,7 +330,8 @@ class TransportHub:
                 return
 
     def send(self, profile, body):
-        packet = encode_payload(body)
+        dmx = dmx_settings(body) if profile['type'] == 'enttec' else None
+        packet = dmx_frame(profile, dmx) if dmx is not None else encode_payload(body)
         with self.lock:
             session = self.sessions.get(profile['id'])
             if not session or session.profile != profile or session.state['status'] != 'open':
@@ -328,7 +340,7 @@ class TransportHub:
             with session.write_lock:
                 started = time.monotonic()
                 try:
-                    if profile['type'] == 'serial':
+                    if profile['type'] in ('serial', 'enttec'):
                         size = session.handle.write(packet)
                         peer = profile['device']
                         if size != len(packet):
@@ -341,12 +353,14 @@ class TransportHub:
                         peer = '%s:%s' % remote
                         detail = 'Datagram accepted by the local socket. Remote receipt is not confirmed; UDP has no delivery acknowledgment.'
                     with session.lock:
+                        if dmx is not None:
+                            session.state['dmx'] = dmx
                         session.state['txBytes'] += size
                         session.state['txCount'] += 1
                         session.state['lastTx'] = time.time()*1000
                         if session.state['error'] and session.state['error']['stage'] == 'send':
                             session.state.update(error=None, stage='receive', detail='Send completed. Waiting for received data.')
-                    return self._event(session, 'TX', 'send', 'sent', 'Bytes sent' if profile['type']=='serial' else 'Datagram sent', detail,
+                    return self._event(session, 'TX', 'send', 'sent', 'Bytes sent' if profile['type'] in ('serial', 'enttec') else 'Datagram sent', detail,
                                        packet=packet_preview(packet), peer=peer, elapsed=round((time.monotonic()-started)*1000))
                 except Exception as error:
                     label, detail = diagnose(error, 'send', profile['type'])
@@ -356,6 +370,8 @@ class TransportHub:
                     return self._event(session, 'TX', 'send', 'error', label, detail, packet=packet_preview(packet), error=str(error)[:500])
 
     def _close(self, session, announce=True):
+        if session.profile['type'] == 'enttec' and session.state['status'] == 'open':
+            self.send(session.profile, {'on': [False] * 4})
         with session.lock:
             was_open = session.state['status'] == 'open'
             session.stop.set()

@@ -54,6 +54,7 @@ function workbenchSetup(){
   document.querySelector('.app').append(foot);
   new ResizeObserver(()=>{drawOSCGraph();renderGauge();}).observe($('paneSensors'));
   setupJSONFields();
+  $('jsonFields').append($('addVL53Diagnostics'));
   workbenchUpdate();
 }
 function workbenchUpdate(){

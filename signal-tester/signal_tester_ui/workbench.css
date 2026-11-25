@@ -112,3 +112,5 @@ dialog{border:1px solid var(--ink);padding:26px;background:var(--bg);box-shadow:
 .sidebar-collapsed .sidebar>:not(.sidebar-heading),.sidebar-collapsed .sidebar-heading>:not(.sidebar-toggle){display:none!important}
 .sidebar-collapsed .sidebar-heading{border:0;margin:0;padding:0;justify-content:center}
 @media(max-width:760px){.workbench.sidebar-collapsed .sidebar{width:auto;max-height:40px;padding:0 0 5px}.sidebar-collapsed .sidebar-heading{justify-content:flex-start}}
+
+.sensor-graph-legend{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}.sensor-series{display:flex;align-items:center;gap:6px}.sensor-series-swatch{width:16px;height:3px}#paneOsc>.panel{padding:24px}#oscLog{max-height:320px;overflow:auto;white-space:pre-wrap}#dmxPanel .field-row{flex-wrap:wrap}

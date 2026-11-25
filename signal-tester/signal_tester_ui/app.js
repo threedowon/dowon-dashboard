@@ -33,7 +33,7 @@ let workspaceError='Workspace is still loading. Wait for the saved connections t
 const restartHelp=token==='__TESTER_TOKEN__'?'통신 프로그램을 실행한 뒤 설정에서 이 PC 통신 프로그램 연결을 눌러 주세요. 기존 설정은 유지됩니다.':'Run SignalTester.exe again (or Start-Signal-Tester.cmd for source installations), then use the newly opened page. Saved targets and Signals are kept.';
 const selected=()=>workspace?.signals.find(s=>s.id===selectedId);
 const active=()=>workspace?.targets.find(t=>t.id===workspace.activeTarget);
-const address=t=>kind(t)==='serial'?`${t.device} · ${t.baudrate} baud`:kind(t)==='udp'?`${t.bindHost}:${t.bindPort} → ${t.remoteHost}:${t.remotePort}`:`${t.host.includes(':')?'['+t.host+']':t.host}:${t.port}`;
+const address=t=>['serial','enttec'].includes(kind(t))?`${t.device} · ${t.baudrate} baud`:kind(t)==='udp'?`${t.bindHost}:${t.bindPort} → ${t.remoteHost}:${t.remotePort}`:`${t.host.includes(':')?'['+t.host+']':t.host}:${t.port}`;
 const liveAddress=t=>kind(t)==='udp'?`${connectionStates[t.id]?.status==='open'?connectionStates[t.id].local:t.bindHost+':'+(t.bindPort||'auto')} → ${t.remoteHost}:${t.remotePort}`:address(t);
 const clone=value=>structuredClone(value);
 const valueType=value=>value===null?'null':typeof value;
@@ -269,7 +269,7 @@ function openEditor(kind,item=null){
   if(lockWorkspace())return;editing={kind,id:item?.id};$('editTitle').textContent=`${kind==='target'?'장치':'신호'} ${item?'편집':'추가'}`;$('editEyebrow').textContent=kind==='target'?'SAVED CONNECTION':'SIGNAL LIBRARY';$('editFields').replaceChildren();$('formError').textContent='';$('deleteItem').hidden=!item;
   if(kind==='target'){
     $('editFields').append(field('itemName','Name',item?.name||'',{maxLength:80}));
-    $('editFields').append(selectField('targetType','Connection type',[['http','HTTP Signal · 출력'],['serial','Serial · COM device'],['udp','UDP / OSC · 송수신']],item?(item.type||'http'):'serial'));
+    $('editFields').append(selectField('targetType','Connection type',[['http','HTTP Signal · 출력'],['serial','Serial · COM device'],['udp','UDP / OSC · 송수신'],['enttec','DMX · ENTTEC USB Pro']],item?(item.type||'http'):'serial'));
     const transport=el('div');transport.id='transportFields';$('editFields').append(transport);renderTransportFields(item||{});$('targetType').onchange=()=>renderTransportFields(item||{});
   }else{
     $('editFields').append(field('itemName','Display name',item?.name||'',{maxLength:80}),field('itemKey','Signal key',item?.key||'',{maxLength:120}),field('itemCooldown','Cooldown · seconds',item?.cooldown??3,{type:'number',min:0,max:3600,step:0.1}),el('p','field-help','Must match the key in Editor → Signals. Keys are saved in lowercase. Set its optional value in the right panel.'));
@@ -298,6 +298,7 @@ async function removeTarget(id){
   if(lockWorkspace())return;
   const next=clone(workspace);next.targets=next.targets.filter(t=>t.id!==id);
   next.sensors=(next.sensors||[]).filter(m=>m.sourceId!==id).map(m=>({...m,rules:m.rules.filter(r=>r.targetId!==id)}));
+  if(next.osc)next.osc.rules=next.osc.rules.filter(r=>r.targetId!==id);
   await saveWorkspace(next);healthChecks.delete(id);toast('장치를 삭제했습니다.');
 }
 function confirmAction(title,text,yes='Continue'){
@@ -311,7 +312,7 @@ $('deleteItem').addEventListener('click',safe(async()=>{
   if(!editing?.id||saving)return;const kind=editing.kind;
   if(kind==='target'){const id=editing.id;await removeTarget(id);if(!workspace.targets.some(t=>t.id===id))$('editDialog').close();return;}
   if(!await confirmAction(`Delete this ${kind}?`,'This removes it from the tester only. Your Player and .scene file stay unchanged.','Delete'))return;
-  const next=clone(workspace),list=kind==='target'?'targets':'signals';next[list]=next[list].filter(i=>i.id!==editing.id);await saveWorkspace(next);$('editDialog').close();toast(`${kind==='target'?'Target':'Signal'} deleted.`);
+  const next=clone(workspace),list=kind==='target'?'targets':'signals';next[list]=next[list].filter(i=>i.id!==editing.id);if(next.osc)next.osc.rules=next.osc.rules.filter(r=>r.signalId!==editing.id);await saveWorkspace(next);$('editDialog').close();toast(`${kind==='target'?'Target':'Signal'} deleted.`);
 }));
 document.querySelectorAll('.close-dialog').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
 $('addTarget').onclick=()=>openEditor('target');$('addSignal').onclick=()=>openEditor('signal');$('editSignal').onclick=()=>openEditor('signal',selected());

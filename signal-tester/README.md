@@ -1,5 +1,19 @@
 # Signal Tester
 
+## v1.4.0 — 두 프로젝트의 공통 프로그램
+
+`dowon-dashboard/signal-tester`가 기능 수정과 배포의 기준 소스입니다. `dfesta-japan/Tool/Signal-Tester/Start-Signal-Tester.cmd`와 이 폴더의 `Start-Shared-Tester.cmd`는 `%LOCALAPPDATA%/SignalTester/shared/SignalTester.exe`를 공통으로 실행합니다. 최초 실행 시 GitHub 릴리스와 SHA-256을 확인하고 설치하며 Python은 필요하지 않습니다. 이후 엔진 업데이트는 웹 설정의 업데이트 버튼을 사용합니다.
+
+DFESTA 런처는 이전 `workspace.json`이 있으면 그 파일을 지정해 열고, 없으면 기본 `dashboard-workspace.json`을 사용합니다. 두 설정을 자동 병합하거나 덮어쓰지 않습니다. DFESTA의 프로젝트 펌웨어/배선 자료와 이전 Python 소스는 해당 저장소에 보관됩니다.
+
+- **DMX:** 장치 추가 → DMX · ENTTEC USB Pro. 조명 4개, WW/CW 8채널, 공통 밝기와 혼합 비율·개별 ON/OFF·전체 소등. USB Pro 프로토콜이며 Open DMX USB / Art-Net용이 아닙니다. 전체 Universe를 전송하고 사용하지 않는 채널은 0입니다. 연결/정상 종료 시 소등을 시도하며 USB 단절 시 소등은 보장되지 않습니다.
+- **VL53L0X:** 센서 선택 → VL53L0X 진단 필드 추가. 기존 필드/규칙을 유지하며 없는 진단 항목만 추가합니다. 진단 JSON을 보내는 펌웨어가 필요합니다.
+- **그래프 겹쳐 보기:** 선택한 센서에 저장된 필드들을 공통 눈금으로 비교합니다. 범례로 선을 숨길 수 있습니다. 단위 환산은 하지 않습니다.
+- **OSC 매핑:** 별도 OSC 매핑 탭에서 정확한 주소와 첫 번째 인수 조건을 Player Signal에 연결합니다. 기존 UDP/OSC 주소 모니터와 별도의 수신기이므로 같은 IP/UDP 포트를 중복 지정하지 마세요. 설정은 보존되지만 프로그램 재시작 후 수신은 정지 상태입니다. 저장 및 적용을 눌러 시작합니다.
+
+웹은 최신 UI를 표시하고 PC 프로그램은 통신·설정·규칙을 처리합니다. 기존 백업과 디버깅 기능도 유지됩니다. 새 기능은 EXE v1.4.0 이상에서 사용할 수 있습니다.
+
+
 ## v1.3.0: 웹 화면과 PC 통신 분리
 
 v1.3.0 이상 EXE를 실행하고 웹 화면의 **이 PC 통신 프로그램 연결 → 연결 허용**을 누릅니다. 기존 CMD도 사용할 수 있습니다. 실행된 로컬 화면은 최신 대시보드 화면으로 이동합니다.
