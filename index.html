@@ -149,12 +149,13 @@ html[data-active-page="home"] .side{display:none}
 <link rel="stylesheet" href="assets/hardware-sheet.css?v=20261122">
 <script src="assets/hardware-sheet.js?v=20261122-retro-pages-v1" defer></script>
 <link rel="stylesheet" href="assets/poster-theme.css?v=20261122-black">
-<link rel="stylesheet" href="assets/retro-home.css?v=20261122-taskbar-eight">
+<link rel="stylesheet" href="assets/retro-home.css?v=20261124-taskbar-nine">
 <script src="assets/retro-desktop.js?v=20261122-github-computer-v1" defer></script>
 <link rel="stylesheet" href="assets/retro-pages.css?v=20261122-pdf-previews-v1">
 <link rel="stylesheet" href="assets/retro-milestones.css?v=20261122-map-tools-v2">
 <link rel="stylesheet" href="assets/retro-wirenest.css?v=20261122-v1">
 <link rel="stylesheet" href="assets/retro-signaltester.css?v=20261122-v1">
+<link rel="stylesheet" href="assets/arduino-sketchbook.css?v=20261125-sketch-explorer-v1">
 </head>
 <body>
 <div class="app"><aside class="side"><div class="workspace-brand"><div class="brand"><a href="#home" aria-label="Workspace home">Workspace</a></div><p class="small editable workspace-save-status" hidden id="cloudStatus" role="status" aria-live="polite">GitHub 연결을 확인하고 있어요.</p></div>
@@ -166,6 +167,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="workspace-link" href="#ideas" data-page="ideas"><span class="nav-symbol" aria-hidden="true">✧</span>Reference</a>
 <a class="workspace-link" href="#wirenest" data-page="wirenest"><span class="nav-symbol" aria-hidden="true">↗</span>WireNest</a>
 <a class="workspace-link" href="#signaltester" data-page="signaltester">Signal Tester</a>
+<a class="workspace-link" href="#arduino" data-page="arduino">Arduino Sketchbook</a>
 <a class="workspace-link" href="#hardware" data-page="hardware">Hardware Sheet</a>
 </nav>
 
@@ -185,8 +187,9 @@ html[data-active-page="home"] .side{display:none}
 <a class="catalog-card object-card" href="#transfers" aria-labelledby="transferCardTitle"><div class="catalog-symbol object-5" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">05</span><div class="catalog-card-head"><div><h2 id="transferCardTitle">File Transfer</h2><span class="catalog-en">File transfer</span></div></div><div class="catalog-details"><p>Move files between workspaces.</p><div class="catalog-status">Upload · Download</div></div></a>
 <a class="catalog-card object-card" href="#hardware" aria-labelledby="hardwareCardTitle"><div class="catalog-symbol object-hardware" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">06</span><div class="catalog-card-head"><div><h2 id="hardwareCardTitle">Hardware Sheet</h2><span class="catalog-en">Team purchase sheet</span></div></div><div class="catalog-details"><p>Organize hardware requests and purchase quantities.</p></div></a>
 <a class="catalog-card object-card" href="http://127.0.0.1:6699/" target="_blank" rel="noopener noreferrer" title="Open the running web tester on this PC" aria-labelledby="signalTesterCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">07</span><div class="catalog-card-head"><div><h2 id="signalTesterCardTitle">Signal Tester</h2><span class="catalog-en">Sensors &amp; signals</span></div></div><div class="catalog-details"><p>Live sensor readings · Charts · Communication logs</p></div></a>
+<a class="catalog-card object-card" href="#arduino" aria-labelledby="arduinoCardTitle"><div class="catalog-symbol" aria-hidden="true"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"></div><span class="object-label" aria-hidden="true">08</span><div class="catalog-card-head"><div><h2 id="arduinoCardTitle">Arduino Sketchbook</h2><span class="catalog-en">Reusable sketches &amp; sensor code</span></div></div><div class="catalog-details"><p>Browse Arduino code, wiring guides and project settings.</p></div></a>
 <div class="retro-welcome"><span aria-hidden="true">⚙</span><p>A place for things<br>in progress.</p></div></div>
-<footer class="retro-status"><span id="retroHomeStatus" role="status">7 tools ready</span></footer></div>
+<footer class="retro-status"><span id="retroHomeStatus" role="status">8 tools ready</span></footer></div>
 <aside class="retro-desktop-side" aria-label="Desktop accessories">
 <button type="button" id="retroComputer" class="retro-desktop-icon" data-retro-action="restore"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>My Computer</span></button>
 <section class="retro-window retro-note" id="retroNote" aria-labelledby="retroNoteTitle"><header class="retro-titlebar"><h2 id="retroNoteTitle">Quick Note</h2><button type="button" class="retro-control" data-retro-action="close-note" aria-label="Close Quick Note">×</button></header><textarea id="retroNoteText" aria-label="Quick Note — saved on this device" spellcheck="false" maxlength="4000">Make something today.</textarea></section>
@@ -198,15 +201,29 @@ html[data-active-page="home"] .side{display:none}
 <p class="small" id="hardwareHelp">화면이 표시되지 않거나 다운로드가 안 되면 새 탭에서 열어주세요.</p>
 <div id="hardwareMount"></div>
 </section>
+<section id="arduinoPage" data-screen="arduino" aria-labelledby="arduinoTitle" hidden>
+<h1 id="arduinoTitle" class="sr-only" tabindex="-1">Arduino Sketchbook</h1>
+<div class="sketch-main-toolbar"><div class="tools"><button type="button" class="btn" id="sketchNew">New sketch</button><button type="button" class="btn" id="sketchRefresh">Sync</button><button type="button" class="btn" id="sketchRestore" hidden>Restore draft</button></div><div class="sketch-account"><span id="sketchConnection" role="status">Checking GitHub…</span><button type="button" class="btn" id="sketchLogin" hidden>Connect GitHub</button></div></div>
+<div class="sketch-workspace"><aside class="sketch-sidebar" aria-labelledby="sketchListTitle"><h2 id="sketchListTitle">Sketches</h2><nav id="sketchList" aria-label="Saved sketches"></nav><p id="sketchCount">Loading sketches…</p></aside><div id="sketchDetail" class="sketch-detail" aria-live="polite"></div></div>
+<p id="sketchStatus" class="sketch-status" role="status" aria-live="polite">Loading sketches…</p>
+<dialog id="sketchEditor" aria-labelledby="sketchEditorTitle"><form id="sketchForm"><h2 id="sketchEditorTitle">New sketch</h2>
+<div class="sketch-editor-fields"><label>Title<input id="sketchTitle" required maxlength="120" placeholder="예: FSR 단일 센서"></label><label>Board<input id="sketchBoard" maxlength="120" placeholder="예: ESP32-S3"></label><label class="sketch-wide">Description<textarea id="sketchDescription" maxlength="2000" rows="2"></textarea></label></div>
+<div class="sketch-code-toolbar"><label>File<select id="sketchFileSelect"></select></label><div class="tools"><button type="button" class="btn" id="sketchFileAdd">Add file</button><button type="button" class="btn" id="sketchFileRemove">Remove file</button></div></div>
+<label class="sketch-filename">Filename<input id="sketchFilename" required maxlength="160" placeholder="sketch.ino"></label>
+<label for="sketchSource">Code</label><textarea id="sketchSource" class="sketch-code" required spellcheck="false" wrap="off"></textarea>
+<p id="sketchEditorStatus" role="status" aria-live="polite">Save to your private GitHub sketchbook.</p>
+<div class="tools"><button class="btn primary" id="sketchSave" type="submit">Save</button><button class="btn" id="sketchCancel" type="button">Cancel</button><button class="btn" id="sketchEditorLogin" type="button" hidden>Connect GitHub</button></div>
+</form></dialog>
+</section>
 <section id="signaltesterPage" data-screen="signaltester" aria-labelledby="signaltesterTitle" hidden>
 <div class="placeholder-heading signal-heading"><div><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" class="signal-heading-icon"><div><h1 id="signaltesterTitle" tabindex="-1">Signal Tester</h1><p class="page-intro">Connect devices. Explore your signals.</p></div></div><a class="btn" href="signal-tester/README.md" target="_blank" rel="noopener">User guide ↗</a></div>
 <div class="signal-setup">
-<div class="signal-start"><h2>Get started</h2><ol><li><div><strong>Start on this PC</strong><span>Run <code>Start-Web-Tester.cmd</code> once to start the web tester.</span></div></li><li><div><strong>Open in browser</strong><span>Click <b>Open web tester</b> or the home card. The tester opens in a new tab.</span></div></li><li><div><strong>Connect &amp; test</strong><span>Add a Serial or UDP connection, then choose <b>Open connection</b> to see your signals.</span></div></li></ol><p class="signal-note">Close other Serial Monitors using the same COM port before connecting.</p></div>
-<div class="signal-download"><strong>Signal Tester in your browser</strong><p>Your existing settings, sensors and signals.</p><a class="btn primary" href="http://127.0.0.1:6699/" target="_blank" rel="noopener noreferrer">Open web tester ↗</a><p class="signal-note">Runs on this PC at 127.0.0.1:6699<br>If the page does not open, run <code>Start-Web-Tester.cmd</code>, then try again.<br>After restarting your PC, start the tester again.</p></div>
+<div class="signal-start"><h2>Get started</h2><ol><li><div><strong>Start on this PC</strong><span>Save the EXE and CMD below in the same folder, then run <code>Open-Signal-Tester.cmd</code>. No Python or source code needed.</span></div></li><li><div><strong>Open in browser</strong><span>Click <b>Open web tester</b> or the home card. The tester opens in a new tab.</span></div></li><li><div><strong>Connect &amp; test</strong><span>Add a Serial or UDP connection, then choose <b>Open connection</b> to see your signals.</span></div></li></ol><p class="signal-note">Close other Serial Monitors using the same COM port before connecting.</p></div>
+<div class="signal-download"><strong>Signal Tester in your browser</strong><p>Your existing settings, sensors and signals.</p><a class="btn primary" href="http://127.0.0.1:6699/" target="_blank" rel="noopener noreferrer">Open web tester ↗</a><a class="btn" href="https://github.com/threedowon/dowon-dashboard/releases/latest/download/SignalTester.exe">Download .exe</a><a class="btn" href="signal-tester/Open-Signal-Tester.cmd" download="Open-Signal-Tester.cmd">Download .cmd</a><p class="signal-note">Windows 10/11 · 64-bit · No Python or source code required<br>Save both files in the same folder and run the CMD to start the tester and open your browser.<br>If the browser does not open, click Open web tester after starting the CMD. Run CMD again after restarting your PC.<br>Closing the browser tab does not stop communication.</p></div>
 </div>
 <div class="signal-features" aria-label="Supported features"><span>Serial</span><span>UDP · Text / HEX</span><span>Numeric / JSON graphs</span><span>HTTP Signal</span><span>Automatic rules</span></div>
 <section class="signal-cloud" aria-labelledby="signalCloudTitle"><div class="signal-cloud-title"><h2 id="signalCloudTitle">Settings backups</h2><span>Saved per PC</span></div><div class="signal-cloud-toolbar"><p>Connect your dashboard account in the app to back up settings automatically. Restore a backup on another PC from the app.</p><div class="tools"><button id="signalBackupConnect" class="btn editable">Connect account</button><button id="signalBackupRefresh" class="btn editable">Sync</button></div></div><p id="signalBackupStatus" role="status" aria-live="polite">Connect your account to view saved settings.</p><div class="signal-backup-head" aria-hidden="true"><span>Computer / Backup</span><span>Updated</span><span>Action</span></div><div id="signalBackupList"></div><p class="signal-backup-note">Settings only — readings and send / receive logs are not backed up.</p></section>
-<details class="signal-advanced"><summary>Connect inside dashboard <span>Advanced</span></summary><p class="signal-note">For an embedded view, run <code>python signal_tester.py --dashboard</code> and enter the connection code shown in the console. Allow local network access if your browser asks.</p><form id="signalPairForm" class="signal-pair editable"><label for="signalPairCode">PC connection code<input id="signalPairCode" type="password" autocomplete="off" spellcheck="false" placeholder="Port:connection code" required></label><div class="tools"><button class="btn primary" id="signalPairButton" type="submit">Connect</button><button class="btn" id="signalForget" type="button">Disconnect</button></div><p id="signalPairStatus" role="status" aria-live="polite">Run the program and enter your connection code.</p><a id="signalLocalLink" target="_blank" rel="noopener noreferrer" hidden>Open directly on this PC</a></form></details>
+<details class="signal-advanced"><summary>Connect inside dashboard <span>Advanced</span></summary><p class="signal-note">For an embedded view, run <code>SignalTester.exe --dashboard</code> and enter the connection code shown in the console. Allow local network access if your browser asks.</p><form id="signalPairForm" class="signal-pair editable"><label for="signalPairCode">PC connection code<input id="signalPairCode" type="password" autocomplete="off" spellcheck="false" placeholder="Port:connection code" required></label><div class="tools"><button class="btn primary" id="signalPairButton" type="submit">Connect</button><button class="btn" id="signalForget" type="button">Disconnect</button></div><p id="signalPairStatus" role="status" aria-live="polite">Run the program and enter your connection code.</p><a id="signalLocalLink" target="_blank" rel="noopener noreferrer" hidden>Open directly on this PC</a></form></details>
 <p class="signal-note signal-footer-note">Readings stay on your PC. Closing a browser tab does not stop communication. To stop it completely, use the tester’s Exit button. OSC address / argument parsing is not supported.</p><div id="signalFrameHost"></div>
 </section>
 <section id="transfersPage" data-screen="transfers" aria-labelledby="transfersTitle" hidden>
@@ -286,6 +303,7 @@ html[data-active-page="home"] .side{display:none}
 <a class="retro-task" href="#wirenest" data-page="wirenest"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"><span>WireNest</span></a>
 <a class="retro-task" href="#transfers" data-page="transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a>
 <a class="retro-task" href="#signaltester" data-page="signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
+<a class="retro-task" href="#arduino" data-page="arduino"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"><span>Arduino Sketchbook</span></a>
 <a class="retro-task" href="#hardware" data-page="hardware"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"><span>Hardware Sheet</span></a></nav><time id="retroClock" class="retro-clock" aria-label="Current time"></time></div>
 <nav class="retro-start-menu" lang="en" id="retroStartMenu" aria-label="Start menu" hidden><a href="#home"><img src="assets/dashboard-objects/retro-v1/computer.png" alt="" decoding="async"><span>Home</span></a>
 <a href="#milestones"><img src="assets/dashboard-objects/retro-v1/milestones.png" alt="" decoding="async"><span>Milestones</span></a>
@@ -293,6 +311,7 @@ html[data-active-page="home"] .side{display:none}
 <a href="#ideas"><img src="assets/dashboard-objects/retro-v1/ideas.png" alt="" decoding="async"><span>Reference</span></a>
 <a href="#wirenest"><img src="assets/dashboard-objects/retro-v1/wirenest.png" alt="" decoding="async"><span>WireNest</span></a>
 <a href="#signaltester"><img src="assets/dashboard-objects/retro-v1/signaltester.png" alt="" decoding="async"><span>Signal Tester</span></a>
+<a href="#arduino"><img src="assets/dashboard-objects/retro-v1/arduino.svg" alt="" decoding="async"><span>Arduino Sketchbook</span></a>
 <a href="#hardware"><img src="assets/dashboard-objects/retro-v1/hardware.png" alt="" decoding="async"><span>Hardware Sheet</span></a>
 <a href="#transfers"><img src="assets/dashboard-objects/retro-v1/transfers.png" alt="" decoding="async"><span>File Transfer</span></a><button type="button" data-retro-action="note">Quick Note</button></nav>
 <dialog id="modal"><h2 id="modalTitle"></h2><form id="form"><div class="formgrid" id="fields"></div><div class="footer"><button type="button" class="btn danger" id="remove">삭제</button><div><button type="button" class="btn" id="cancel">취소</button> <button class="btn primary" type="submit">저장</button></div></div></form></dialog>
@@ -344,7 +363,7 @@ document.addEventListener("keydown",e=>{
 });
 let tab="connections",month=new Date(),selected=day(),edit=null,detailId=null;
 const current=()=>state.projects.find(p=>p.id===state.selectedId)||state.projects[0];
-const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매"};
+const pages={home:"홈",milestones:"프로젝트 일정",pdf:"PDF 자료실",ideas:"Reference",wirenest:"WireNest",transfers:"파일 전송",signaltester:"신호 테스트",hardware:"하드웨어 구매",arduino:"Arduino Sketchbook"};
 const projectHref=pid=>"#milestones/"+encodeURIComponent(pid);
 function route(focus=false){
  const requested=location.hash.slice(1),isProject=requested.startsWith("milestones/");
@@ -627,5 +646,6 @@ if(!readonly&&globalThis.MilestoneCloud){
  milestoneCloud.sync();
 }
 })();
-</script><script src="assets/retro-pages.js?v=20261122-map-tools-v2" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
+</script><script src="assets/retro-pages.js?v=20261125-sketch-explorer-v1" defer></script><script src="assets/retro-milestones.js?v=20261122-map-tools-v2" defer></script>
+<script src="assets/arduino-sketchbook.js?v=20261125-sketch-explorer-v1" defer></script>
 </body></html>

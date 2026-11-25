@@ -1,3 +1,4 @@
+import {sketchbook} from './sketchbook.js';
 
 import {library} from './library.js';
 import {ideas} from './ideas.js';
@@ -69,6 +70,7 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil(Promise.all([cleanu
  if(u.pathname==='/api/transfers'||u.pathname.startsWith('/api/transfers/'))return transfers(req,env,cors);
  if(u.pathname==='/api/wirenest'||u.pathname.startsWith('/api/wirenest/'))return library(req,session.token,gh,cors,'wnest');
  if(u.pathname==='/api/library'||u.pathname.startsWith('/api/library/'))return library(req,session.token,gh,cors);
+ if(u.pathname==='/api/sketchbook')return sketchbook(req,session.token,gh,cors);
  if(u.pathname==='/api/ideas'||u.pathname.startsWith('/api/ideas/'))return ideas(req,session.token,gh,cors);
  if(u.pathname==="/api/backup"&&req.method==="GET"){
  const r=await gh("/repos/"+repo+"/contents/"+file,session.token);
