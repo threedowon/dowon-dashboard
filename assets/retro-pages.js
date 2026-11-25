@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const configs = {
-    archive: ['파일 보관함','transfers',['archiveUpload','archiveRefresh','archiveConnect'],'파일당 최대 25MB. 직접 삭제할 때까지 보관됩니다.'],
+    archive: ['파일 보관함','transfers',['archiveUpload','archiveRefresh','archiveConnect'],'파일당 최대 5GB. 직접 삭제할 때까지 보관됩니다. 보관량 10GB 이상이면 경고합니다.'],
     arduino: ['Arduino Sketchbook','arduino',['sketchNew','sketchRefresh','sketchLogin'],'Browse sensor code, download source files and project settings, and open wiring guides.'],
     milestones: ['Milestones','milestones',['newProject','cloudSave','backup'],'Select projects to explore their roadmap. Open a project for its calendar and connection map.'],
     pdf: ['PDF Library','library',['pdfAdd','pdfRefresh','pdfConnect'],'Upload PDFs, search by title or tag, and select documents to manage their tags.'],

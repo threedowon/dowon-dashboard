@@ -13,3 +13,5 @@
 #archivePage .transfer-footnote{font-size:14px;line-height:1.6;color:#555;margin-top:18px}
 #archivePage .small{font-size:14px}
 @media(max-width:600px){#archivePage .library-toolbar{flex-wrap:wrap}#archivePage .library-toolbar>label{width:100%;min-width:0}#archivePage .transfer-dropzone{padding:16px 10px}}
+
+#archiveWarning{padding:14px;border:2px solid #9b6500;background:#fff2c6;color:#603d00;font-size:16px;line-height:1.5}

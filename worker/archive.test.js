@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {archive} from './src/archive.js';
+import {archive,cleanupArchiveUploads} from './src/archive.js';
 import {cleanupTransfers} from './src/transfers.js';
 import worker from './src/index.js';
 
@@ -39,4 +39,24 @@ test('archive rejects missing storage, malformed forms, oversized bodies and una
   }
   const native=request('/'+crypto.randomUUID()+'/file',{headers:{'sec-fetch-site':'same-site',referer:'https://dashboard.3dowon.com/'}});
   assert.equal((await worker.fetch(native,{DASHBOARD_ORIGIN:'https://dashboard.3dowon.com'})).status,401);
+});
+
+test('large archive payload downloads, contributes its full size, survives session cleanup and deletes with its record',async()=>{
+ const bucket=storage(),env={TRANSFERS:bucket},id=crypto.randomUUID();
+ await bucket.put('archive-files/'+id,new Blob(['payload']).stream(),{});
+ await bucket.put('archive/'+id,'',{customMetadata:{filename:'large.bin',size:'7',createdAt:'1',payloadKey:'archive-files/'+id}});
+ assert.equal((await(await archive(request(),env,{})).json()).totalBytes,7);
+ assert.equal(await(await archive(request('/'+id+'/file'),env,{})).text(),'payload');
+ bucket.head=async key=>bucket.objects.get(key);
+ bucket.resumeMultipartUpload=()=>({abort:async()=>{}});
+ const baseGet=bucket.get;bucket.get=async key=>{const obj=await baseGet(key);return obj?{...obj,json:async()=>JSON.parse(new TextDecoder().decode(obj.bytes))}:null;};
+ await bucket.put('archive-uploads/'+id,JSON.stringify({id,key:'archive-files/'+id,uploadId:'completed'}),{customMetadata:{expiresAt:'0'}});
+ await cleanupArchiveUploads(env);
+ assert.equal(bucket.objects.has('archive-uploads/'+id),false);
+ assert.equal(bucket.objects.has('archive-files/'+id),true);
+ await archive(request('/'+id+'/delete',{method:'POST'}),env,{});
+ assert.equal(bucket.objects.size,0);
+ const orphan=crypto.randomUUID();await bucket.put('archive-files/'+orphan,'orphan',{});
+ await bucket.put('archive-uploads/'+orphan,JSON.stringify({id:orphan,key:'archive-files/'+orphan,uploadId:'failed'}),{customMetadata:{expiresAt:'0'}});
+ await cleanupArchiveUploads(env);assert.equal(bucket.objects.size,0);
 });

@@ -4,9 +4,9 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../assets/archive.js',import.meta.url),'utf8');
 const settle=async()=>{for(let i=0;i<15;i++)await new Promise(r=>setImmediate(r));};
-function app(fetch,{readonly=false,local=false}={}){
+function app(fetch,{readonly=false,local=false,confirm=()=>true,alert=()=>{}}={}){
  const elements=new Map();const el=id=>{if(!elements.has(id))elements.set(id,{value:'',addEventListener(){}});return elements.get(id);};
- vm.runInNewContext(source,{document:{documentElement:{dataset:{readonly:String(readonly)}},getElementById:el},location:{hostname:local?'localhost':'dashboard.3dowon.com',hash:'#archive'},window:{addEventListener(){}},sessionStorage:{getItem:()=>null},FormData,fetch,confirm:()=>true});return el;
+ vm.runInNewContext(source,{document:{documentElement:{dataset:{readonly:String(readonly)}},getElementById:el},location:{hostname:local?'localhost':'dashboard.3dowon.com',hash:'#archive'},window:{addEventListener(){}},sessionStorage:{getItem:()=>null},FormData,fetch,confirm,alert,AbortController,AbortSignal,setTimeout:fn=>fn()});return el;
 }
 test('archive UI uploads files, retains successful files on partial failure, searches and deletes',async()=>{
  let posts=0,deletes=0;const el=app(async(url,options)=>{
@@ -24,6 +24,26 @@ test('archive UI uploads files, retains successful files on partial failure, sea
 });
 test('archive UI blocks oversized files and all network calls in shared or local views',async()=>{
  let calls=0;const fetch=async()=>{calls++;return Response.json({documents:[]});};
- const el=app(fetch);await settle();el('archiveFiles').files=[{name:'too-large.bin',size:26*1024**2}];el('archiveFiles').onchange();await settle();assert.equal(calls,1);assert.match(el('archiveStatus').textContent,/최대 25MB/);
- for(const options of [{readonly:true},{local:true}]){const blocked=app(fetch,options);await settle();assert.equal(blocked('archiveUpload').disabled,true);await blocked('archiveRefresh').onclick();assert.equal(calls,1);}
+ const el=app(fetch);await settle();el('archiveFiles').files=[{name:'too-large.bin',size:5*1024**3+1}];el('archiveFiles').onchange();await settle();assert.equal(calls,2);assert.match(el('archiveStatus').textContent,/최대 5GB/);
+ for(const options of [{readonly:true},{local:true}]){const blocked=app(fetch,options);await settle();assert.equal(blocked('archiveUpload').disabled,true);await blocked('archiveRefresh').onclick();assert.equal(calls,2);}
+});
+
+test('archive warns on stored usage and lets users cancel projected high usage before uploading',async()=>{
+ let alerts=0,prompts=0,posts=0;
+ const el=app(async(url,options)=>{if(options.method==='POST')posts++;return Response.json({documents:[{id:'existing',filename:'big.bin',size:10*1024**3,createdAt:Date.now()}]});},{alert:()=>alerts++,confirm:()=>{prompts++;return false;}});
+ await settle();assert.equal(alerts,1);assert.equal(el('archiveWarning').hidden,false);
+ await el('archiveRefresh').onclick();assert.equal(alerts,1);
+ el('archiveFiles').files=[new File(['x'],'a.txt')];el('archiveFiles').onchange();await settle();
+ assert.equal(prompts,1);assert.equal(posts,0);assert.equal(el('archiveUpload').disabled,false);assert.match(el('archiveStatus').textContent,/취소/);
+});
+test('archive accepts exactly 5GB, streams slices, retries a part, and completes ordered parts',async()=>{
+ let started=0,completed=0,retries=0;const chunks=[],prompts=[];
+ const el=app(async(url,options)=>{
+  if(options.method!=='POST')return Response.json({documents:[{id:'old',filename:'old',size:6*1024**3,createdAt:Date.now()}]});
+  if(url.endsWith('/uploads')){started++;assert.equal(JSON.parse(options.body).size,5*1024**3);return Response.json({id:'upload',partSize:1024**3});}
+  if(url.includes('/part?')){const n=Number(new URL(url).searchParams.get('number'));if(n===2&&retries++===0)throw Error('network');chunks.push(n);return Response.json({partNumber:n,etag:'part-'+n});}
+  if(url.endsWith('/complete')){completed++;assert.deepEqual(JSON.parse(options.body).parts.map(p=>p.partNumber),[1,2,3,4,5]);return Response.json({document:{id:'new',filename:'5gb.bin',size:5*1024**3,createdAt:Date.now()}});}
+ },{confirm:message=>{prompts.push(message);return true;}});await settle();
+ const slices=[];el('archiveFiles').files=[{name:'5gb.bin',size:5*1024**3,slice:(a,b)=>{slices.push([a,b]);return new Blob(['mock chunk']);}}];el('archiveFiles').onchange();await settle();
+ assert.equal(started,1);assert.equal(completed,1);assert.deepEqual(chunks,[1,2,3,4,5]);assert.equal(slices.length,5);assert.match(prompts[0],/11.00 GB/);assert.match(el('archiveUsage').textContent,/11.00 GB/);assert.equal(el('archiveCancel').hidden,true);
 });

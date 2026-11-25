@@ -1,4 +1,4 @@
-import {archive} from './archive.js';
+import {archive,cleanupArchiveUploads} from './archive.js';
 import {sketchbook} from './sketchbook.js';
 
 import {library} from './library.js';
@@ -17,7 +17,7 @@ async function aes(env){return crypto.subtle.importKey("raw",deb64(env.SESSION_K
 async function seal(env,obj){const iv=crypto.getRandomValues(new Uint8Array(12)),out=await crypto.subtle.encrypt({name:"AES-GCM",iv},await aes(env),new TextEncoder().encode(JSON.stringify(obj)));return b64(iv)+"."+b64(out)}
 async function unseal(env,enc){const [iv,v]=String(enc||"").split(".");if(!iv||!v)throw Error("Missing session");return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:deb64(iv)},await aes(env),deb64(v))))}
 async function gh(path,token,options={}){return fetch("https://api.github.com"+path,{...options,headers:{"accept":"application/vnd.github+json","authorization":"Bearer "+token,"user-agent":"dowon-dashboard","x-github-api-version":"2022-11-28",...(options.headers||{})}})}
-export default {async scheduled(event,env,ctx){ctx.waitUntil(Promise.all([cleanupTransfers(env),cleanupSignalAuth(env)]));},async fetch(req,env){
+export default {async scheduled(event,env,ctx){ctx.waitUntil(Promise.all([cleanupTransfers(env),cleanupArchiveUploads(env),cleanupSignalAuth(env)]));},async fetch(req,env){
  const u=new URL(req.url),origin=req.headers.get("origin"),site=env.DASHBOARD_ORIGIN||"https://threedowon.github.io",home=env.DASHBOARD_URL||"https://threedowon.github.io/dowon-dashboard/";
  const cors=origin===site?{"access-control-allow-origin":site,"access-control-allow-credentials":"true","access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","vary":"Origin"}:{};
  const cb=u.origin+"/auth/callback";

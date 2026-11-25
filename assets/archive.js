@@ -4,9 +4,15 @@
   const readonly=document.documentElement.dataset.readonly==='true',local=location.hostname!=='dashboard.3dowon.com';
   const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const size=v=>v>=1024**3?(v/1024**3).toFixed(2)+' GB':v>=1024**2?(v/1024**2).toFixed(1)+' MB':v>=1024?(v/1024).toFixed(1)+' KB':v+' B';
-  let documents=[],ready=false,busy=false;
+  const MAX_FILE=5*1024**3,WARNING_BYTES=10*1024**3;
+  let documents=[],ready=false,busy=false,warned=false,controller=null;
+  const total=()=>documents.reduce((n,d)=>n+d.size,0);
+  function warnUsage(){if(total()<WARNING_BYTES){warned=false;return;}if(!warned){warned=true;alert('보관함 사용량이 '+size(total())+'입니다. 10GB 이상 보관 중이며 저장 비용이 늘어날 수 있습니다. 불필요한 파일을 정리해주세요.');}}
+
   const status=text=>{$('archiveStatus').textContent=text;};
   function render(){
+    $('archiveCancel').hidden=!controller;
+    $('archiveWarning').hidden=!ready||total()<WARNING_BYTES;
     $('archiveUpload').disabled=busy||!ready||readonly||local;
     $('archiveRefresh').disabled=$('archiveConnect').disabled=busy||readonly||local;
     $('archiveUsage').textContent=ready?documents.length+'개 파일 · '+size(documents.reduce((n,d)=>n+d.size,0))+' 사용 중':'';
@@ -22,21 +28,53 @@
   async function load(){
     if(busy||readonly||local)return;
     busy=true;render();status('파일을 불러오는 중…');
-    try{documents=(await request()).documents;ready=true;status('');}catch(e){ready=false;documents=[];status(e.message);}finally{busy=false;render();}
+    try{documents=(await request()).documents;ready=true;status('');warnUsage();}catch(e){ready=false;documents=[];status(e.message);}finally{busy=false;render();}
   }
   async function upload(files){
     if(busy||!ready||readonly||local)return;
+    const selected=Array.from(files);if(!selected.length)return;
     busy=true;render();let saved=0;const errors=[];
-    for(const file of Array.from(files)){
-      status('보관 중: '+file.name);
-      try{
-        if(file.size>25*1024**2)throw Error('파일당 최대 25MB입니다.');
-        const form=new FormData();form.set('file',file);
-        const result=await request('',{method:'POST',body:form});documents.unshift(result.document);saved++;
-      }catch(e){errors.push(file.name+': '+e.message);if(!ready)break;}
-    }
-    busy=false;render();status(saved+'개 파일을 보관했습니다.'+(errors.length?' '+errors.join(' / '):''));
+    try{
+      // Refresh usage so uploads from another device are included in the warning.
+      documents=(await request()).documents;
+      const projected=total()+selected.filter(f=>f.size<=MAX_FILE).reduce((n,f)=>n+f.size,0);
+      if(projected>=WARNING_BYTES&&!confirm('업로드 후 보관함 사용량은 약 '+size(projected)+'입니다. 10GB 이상 보관하면 저장 비용이 늘어날 수 있습니다. 계속 업로드할까요?')){status('업로드를 취소했습니다.');return;}
+      if(projected>=WARNING_BYTES)warned=true;
+      controller=new AbortController();render();const signal=controller.signal;
+      for(const file of selected){
+        if(signal.aborted)break;
+        let session=null;
+        status('보관 중: '+file.name);
+        try{
+          if(file.size>MAX_FILE)throw Error('파일당 최대 5GB입니다.');
+          let result;
+          if(file.size<=25*1024**2){
+            const form=new FormData();form.set('file',file);
+            result=await request('',{method:'POST',body:form,signal});
+          }else{
+            const post=(path,data)=>request(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data),signal});
+            session=await post('/uploads',{filename:file.name,size:file.size});
+            const parts=[],count=Math.ceil(file.size/session.partSize);
+            const retry=async action=>{for(let attempt=0;;attempt++){try{signal.throwIfAborted();return await action();}catch(e){if(signal.aborted||attempt===3||!ready)throw e;await new Promise(resolve=>setTimeout(resolve,1000*2**attempt));}}};
+            for(let index=0;index<count;index++){
+              const chunk=file.slice(index*session.partSize,Math.min((index+1)*session.partSize,file.size));
+              parts.push(await retry(()=>request('/uploads/'+session.id+'/part?number='+(index+1),{method:'POST',headers:{'content-type':'application/octet-stream'},body:chunk,signal:AbortSignal.any([signal,AbortSignal.timeout(120000)])})));
+              status('보관 중: '+file.name+' · '+Math.floor((index+1)/count*100)+'% ('+(index+1)+'/'+count+')');
+            }
+            // Commit is retryable. Keep cancellation disabled once finalizing starts.
+            $('archiveCancel').disabled=true;
+            result=await retry(()=>post('/uploads/'+session.id+'/complete',{parts}));
+          }
+          documents.unshift(result.document);saved++;render();
+        }catch(e){
+          if(session){try{await request('/uploads/'+session.id+'/abort',{method:'POST'});}catch{}}
+          errors.push(file.name+': '+(signal.aborted?'업로드 취소':e.message));if(!ready||signal.aborted)break;
+        }finally{$('archiveCancel').disabled=false;}
+      }
+      status(saved+'개 파일을 보관했습니다.'+(errors.length?' '+errors.join(' / '):''));
+    }catch(e){status(e.message);}finally{controller=null;busy=false;render();}
   }
+  $('archiveCancel').onclick=()=>{controller?.abort();};
   $('archiveConnect').onclick=()=>{sessionStorage.setItem('dowon:open-archive','1');location.href=base+'/auth/login';};
   $('archiveRefresh').onclick=load;
   $('archiveSearch').oninput=render;
